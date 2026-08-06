@@ -1,0 +1,7 @@
+Esta engine muito provavelmente vai ser usada para fins do nosso RPG.
+Seja para, novamente perguntas (totalmente não esquisitas), ou para mapas, pistas e anotações próprias dos players.
+Vai começar a ser usado a partir do próximo RPG, o "Segredo nas Montanhas". Os próximos RPGs também vão usar essa mesma engine e essa mesma ideia, sendo sempre atualizado.
+ENGINE feita por João Guilherme e Arthur Jonas com uma pequena ajuda do CHATgpt para a criação de comandos.
+Desde já, obrigado por jogarem o RPG e usarem essa engine!
+
+(Nenhuma informação SUA vai ser distribuída com o criador ou outros usuários, apenas o do seu(s) personagem(s).)

@@ -1,0 +1,166 @@
+/* ===========================
+ARENA
+=========================== */
+
+#arena {
+
+position: fixed;
+
+left: 0;
+top: 0;
+
+width: 100vw;
+height: 100vh;
+
+overflow: auto;
+
+background: #000;
+
+touch-action: none;
+
+}
+
+/* ===========================
+PERSONAGENS
+=========================== */
+
+#jogador,
+#mascara {
+
+position: absolute;
+
+image-rendering: pixelated;
+
+user-select: none;
+
+-webkit-user-drag: none;
+
+}
+
+#mascara {
+
+z-index: 10;
+
+}
+
+#jogador {
+
+z-index: 15;
+
+}
+
+/* ===========================
+PILARES
+=========================== */
+
+.pilar {
+
+position: absolute;
+
+box-sizing: border-box;
+
+z-index: 5;
+
+}
+
+/* ===========================
+HUD
+=========================== */
+
+#hp,
+#hpMascara,
+#faseMascara {
+
+position: fixed;
+
+color: white;
+
+font-size: 24px;
+
+z-index: 30;
+
+text-shadow: 2px 2px black;
+
+}
+
+#hp {
+
+left: 20px;
+bottom: 20px;
+
+}
+
+#hpMascara {
+
+right: 20px;
+top: 20px;
+
+}
+
+#faseMascara {
+
+left: 50%;
+top: 20px;
+
+transform: translateX(-50%);
+
+}
+
+/* ===========================
+CONTROLE MOBILE
+=========================== */
+
+#controleMobile {
+
+position: fixed;
+
+right: 20px;
+bottom: 25px;
+
+z-index: 50;
+
+}
+
+#botaoAtaque {
+
+width: 70px;
+height: 70px;
+
+border-radius: 50%;
+
+font-size: 30px;
+
+}
+
+/* ===========================
+MOBILE
+=========================== */
+
+@media (max-width: 700px) {
+
+#arena {
+
+    width: 100vw;
+
+    height: 100dvh;
+
+}
+
+
+#hp,
+#hpMascara,
+#faseMascara {
+
+    font-size: 18px;
+
+}
+
+
+#botaoAtaque {
+
+    width: 65px;
+    height: 65px;
+
+}
+
+}

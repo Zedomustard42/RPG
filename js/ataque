@@ -1,0 +1,181 @@
+const Ataque = {
+
+    dano:15,
+
+    alcance:50,
+
+    cooldown:400,
+
+
+    atacando:false,
+
+    ultimoAtaque:0,
+
+
+    iniciar(){
+
+        document.addEventListener("keydown",(e)=>{
+
+
+            if(e.repeat)
+                return;
+
+
+            if(
+                e.key === " " ||
+                e.key.toLowerCase() === "j"
+            ){
+
+                this.executar();
+
+            }
+
+
+        });
+
+
+        console.log("ATAQUE INICIADO");
+
+
+    },
+
+
+
+    executar(){
+
+
+        const agora = Date.now();
+
+
+        if(
+            agora - this.ultimoAtaque < this.cooldown
+        ){
+
+            return;
+
+        }
+
+
+
+        this.ultimoAtaque = agora;
+
+
+
+        this.atacando = true;
+
+        Movimento.atacando = true;
+
+
+
+        console.log(
+            "JOGADOR ATACOU!"
+        );
+
+
+
+        // ==========================
+        // TROCA PARA SPRITE DE ATAQUE
+        // ==========================
+
+
+        const ataques = {
+
+            frente:
+            "assets/imagens/ra_atacando_frente.png",
+
+
+            atras:
+            "assets/imagens/ra_atacando_atras.png",
+
+
+            esquerda:
+            "assets/imagens/ra_atacando_esquerdo.png",
+
+
+            direita:
+            "assets/imagens/ra_atacando_direito.png"
+
+        };
+
+
+
+        Batalha.jogador.sprite =
+        ataques[Batalha.jogador.direcao]
+        ||
+        ataques.frente;
+
+
+
+        // ==========================
+        // DANO
+        // ==========================
+
+
+        if(
+            typeof Batalha !== "undefined" &&
+            typeof Batalha.receberAtaque === "function"
+        ){
+
+            Batalha.receberAtaque(
+                this.dano,
+                Batalha.jogador.x,
+                Batalha.jogador.y,
+                Batalha.jogador.direcao
+            );
+
+        }
+
+
+
+        // ==========================
+        // VOLTA AO NORMAL
+        // ==========================
+
+
+        setTimeout(()=>{
+
+
+            this.atacando=false;
+
+            Movimento.atacando=false;
+
+
+
+            const normais = {
+
+
+                frente:
+                "assets/imagens/ra_frente.png",
+
+
+                atras:
+                "assets/imagens/ra_atras.png",
+
+
+                esquerda:
+                "assets/imagens/ra_esquerdo.png",
+
+
+                direita:
+                "assets/imagens/ra_direito.png"
+
+
+            };
+
+
+
+            Batalha.jogador.sprite =
+            normais[Batalha.jogador.direcao]
+            ||
+            normais.frente;
+
+
+
+        },150);
+
+
+
+    }
+
+
+};
