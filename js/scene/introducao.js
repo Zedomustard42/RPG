@@ -1,86 +1,77 @@
 const Introducao = [
 
     {
-        id: "pergunta",
+        id:"pergunta",
 
-        tipo: "menu",
+        tipo:"menu",
 
-        titulo: "Olá...?",
+        titulo:"Olá...?",
 
-        mensagem: "Você Consegue Me Escutar?",
+        mensagem:"Você Consegue Me Escutar?",
 
-        opcoes: [
+        opcoes:[
             "SIM",
             "NÃO"
         ]
-
     },
 
-
     {
-        id: "sim",
+        id:"sim",
 
-        tipo: "texto",
+        tipo:"texto",
 
-        titulo: "Bom...",
+        titulo:"Bom...",
 
-        mensagem: "Muito Bom."
-
+        mensagem:"Muito Bom."
     },
 
-
     {
-        id: "continuacao",
+        id:"continuacao",
 
-        tipo: "texto",
+        tipo:"texto",
 
-        titulo: "Então...",
+        titulo:"Então...",
 
-        mensagem: "Devemos Começar."
-
+        mensagem:"Devemos Começar."
     },
 
-
     {
-        id: "proximo",
+        id:"proximo",
 
-        tipo: "entrada",
+        tipo:"entrada",
 
-        entrada: "pessoa",
+        entrada:"pessoa",
 
-        titulo: "Primeiro...",
+        titulo:"Primeiro...",
 
-        mensagem: "Quem Está Por Trás Disto?"
-
+        mensagem:"Quem Está Por Trás Disto?"
     },
 
-
     {
-        id: "criacao",
+        id:"criacao",
 
-        tipo: "entrada",
+        tipo:"entrada",
 
-        entrada: "criacao",
+        entrada:"criacao",
 
-        titulo: "Agora...",
+        titulo:"Agora...",
 
-        mensagem: "Qual O Nome Da Sua Criação?"
-
+        mensagem:"Qual O Nome Da Sua Criação?"
     }
 
 ];
 
 
 
-const CenaNao = {
+const CenaNao={
 
-    id: "nao",
+    id:"nao",
 
-    tipo: "texto",
+    tipo:"texto",
 
-    titulo: "...",
+    titulo:"...",
 
-    mensagem: " "
+    mensagem:" "
 
 };
 

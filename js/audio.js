@@ -1,6 +1,22 @@
 const AudioManager = {
 
 
+
+    falas:{
+
+    Bruno1:"assets/falas/Bruno1.mp3",
+    Bruno2:"assets/falas/Bruno2.mp3",
+    Bruno3:"assets/falas/Bruno3.mp3",
+    Bruno4:"assets/falas/Bruno4.mp3",
+    Bruno5:"assets/falas/Bruno5.mp3",
+    Bruno6:"assets/falas/Bruno6.mp3",
+    Bruno7:"assets/falas/Bruno7.mp3",
+    Bruno8:"assets/falas/Bruno8.mp3",
+    Bruno9:"assets/falas/Bruno9.mp3",
+    Bruno10:"assets/falas/Bruno10.mp3",
+    Bruno11:"assets/falas/Bruno11.mp3"
+
+},
     sons: {
 
         nao: "assets/audio/nao.mp3",
@@ -247,7 +263,7 @@ const AudioManager = {
 
 
 
-        this.musicaAtual.volume=0.5;
+        this.musicaAtual.volume=0.3;
 
 
 
@@ -317,23 +333,41 @@ const AudioManager = {
 
     pararSom(){
 
+    if(this.atual){
 
-        if(this.atual){
+        this.atual.pause();
+        this.atual.currentTime=0;
 
-
-            this.atual.pause();
-
-            this.atual.currentTime=0;
-
-
-            this.atual=null;
-
-
-        }
-
+        this.atual=null;
 
     }
 
+},
 
 
-};
+
+tocarFala(nome){
+
+    const caminho=this.falas[nome];
+
+
+    if(!caminho){
+        console.log("Fala não encontrada:",nome);
+        return;
+    }
+
+    if(this.atual){
+
+        this.atual.pause();
+        this.atual.currentTime=0;
+
+    }
+
+    this.atual=new Audio(caminho);
+
+    this.atual.volume=1;
+
+    this.atual.play();
+
+},
+}

@@ -64,104 +64,123 @@ const Batalha = {
     // INTRODUÇÃO
     // =========================
 
-    iniciarIntroducao() {
+    iniciarIntroducao(){
 
-        console.log(
-            "INTRODUÇÃO DA MÁSCARA"
-        );
+    console.log("INTRODUÇÃO DA MÁSCARA");
 
+    AudioManager.pararMusica();
+    AudioManager.tocarMusica("eramseismascaras");
 
-        AudioManager.pararMusica();
+    const falas = [
 
+        {
+            texto:"Interessante.",
+            audio:"Bruno1"
+        },
 
-        AudioManager.tocarMusica(
-            "eramseismascaras"
-        );
+        {
+            texto:"Você Sabia?",
+            audio:"Bruno2"
+        },
 
+        {
+            texto:"Você Imaginava?",
+            audio:"Bruno3"
+        },
 
-        const falas = [
+        {
+            texto:"Porque Veio Até Mim?",
+            audio:"Bruno4"
+        },
 
-            "Interessante.",
+        {
+            texto:"Curiosidade?",
+            audio:"Bruno5"
+        },
 
-            "Você Sabia?",
+        {
+            texto:"...",
+          
+        },
 
-            "Você Imaginava?",
+        {
+            texto:"Excelente.",
+            audio:"Bruno6"
+        },
 
-            "Porque Veio Até Mim?",
+        {
+            texto:"Máscara. Sua Identidade Perdida.",
+            audio:"Bruno7"
+        },
 
-            "Curiosidade?",
+        {
+            texto:"O Ritual Está Prestes À Começar.",
+            audio:"Bruno8"
+        },
 
-            "...",
+        {
+            texto:"Você Está Aqui. Você Sobreviveu.",
+            audio:"Bruno9"
+        },
 
-            "Excelente.",
+        {
+            texto:"E É Hora De Pegar Sua Identidade De Volta.",
+            audio:"Bruno10"
+        },
+         {
+            
+            texto:"Vamos Começar o RITUAL.",
+            audio:"Bruno11"
+         },
+    ];
 
-            "Máscara. Sua Identidade Perdida.",
+    let atual = 0;
 
-            "O Ritual Está Prestes À Começar.",
+    const continuar = (e)=>{
 
-            "Você Está Aqui. Você Sobreviveu.",
+        if(e.key!=="Enter")
+            return;
 
-            "E É Hora De Pegar Sua Identidade De Volta.",
+        if(atual>=falas.length){
 
-            "...",
-
-            "Vamos Terminar O RITUAL."
-
-        ];
-
-
-        let atual = 0;
-
-
-        const continuar = (evento) => {
-
-            if (evento.key !== "Enter")
-                return;
-
-
-            if (atual >= falas.length) {
-
-                document.removeEventListener(
-                    "keydown",
-                    continuar
-                );
-
-
-                AudioManager.tocarMusica(
-                    "mascaras"
-                );
-
-
-                this.iniciar();
-
-
-                return;
-
-            }
-
-
-            UI.texto(
-                "???",
-                falas[atual]
+            document.removeEventListener(
+                "keydown",
+                continuar
             );
 
+            AudioManager.pararSom();
 
-            atual++;
+            AudioManager.tocarMusica("mascaras");
 
-        };
+            this.iniciar();
 
+            return;
 
-        document.addEventListener(
-            "keydown",
-            continuar
+        }
+
+        const fala=falas[atual];
+
+        UI.texto(
+            "???",
+            fala.texto
         );
 
+        AudioManager.tocarFala(
+            fala.audio
+        );
 
-        continuar({
-            key: "Enter"
-        });
+        atual++;
 
-    },
+    };
+
+    document.addEventListener(
+        "keydown",
+        continuar
+    );
+
+    continuar({key:"Enter"});
+
+},
 
 
     // =========================
