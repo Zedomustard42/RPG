@@ -1,89 +1,144 @@
 const UI = {
 
-    gameOverAtivo: true,
+    gameOverAtivo: false,
 
-    transformarMensagemHTML(html) {
+
+    // =====================================================
+    // TRANSFORMAR HTML EM LETRAS
+    // =====================================================
+
+    transformarMensagemHTML(html){
 
         const div = document.createElement("div");
 
         div.innerHTML = html;
 
+
         const percorrer = (no) => {
 
-            if (no.nodeType === 3) {
+            if(no.nodeType === 3){
 
-                return no.textContent.split("").map(letra => {
+                return no.textContent
+                    .split("")
+                    .map(letra => {
 
-                    if (letra === " ") return " ";
+                        if(letra === " "){
+                            return " ";
+                        }
 
-                    const duracao = (Math.random() * 0.8 + 0.8).toFixed(2);
 
-                    const atraso = (Math.random() * 0.6).toFixed(2);
+                        const duracao =
+                            (Math.random() * 0.8 + 0.8)
+                            .toFixed(2);
 
-                    return `<span class="letra"
-                    style="
-                    animation-duration:${duracao}s;
-                    animation-delay:${atraso}s;
-                    ">${letra}</span>`;
+                        const atraso =
+                            (Math.random() * 0.6)
+                            .toFixed(2);
 
-                }).join("");
+
+                        return `<span class="letra" style="animation-duration:${duracao}s;animation-delay:${atraso}s">${letra}</span>`;
+
+                    })
+                    .join("");
 
             }
 
-            if (no.nodeType === 1) {
+
+            if(no.nodeType === 1){
 
                 const filhos =
-                    [...no.childNodes].map(percorrer).join("");
+                    [...no.childNodes]
+                    .map(percorrer)
+                    .join("");
 
-                return `<${no.tagName.toLowerCase()} class="${no.className}">
-                ${filhos}
-                </${no.tagName.toLowerCase()}>`;
+
+                const classe =
+                    no.className
+                        ? ` class="${no.className}"`
+                        : "";
+
+
+                return `<${no.tagName.toLowerCase()}${classe}>${filhos}</${no.tagName.toLowerCase()}>`;
 
             }
+
 
             return "";
 
         };
 
-        return [...div.childNodes].map(percorrer).join("");
+
+        return [...div.childNodes]
+            .map(percorrer)
+            .join("");
 
     },
 
 
+    // =====================================================
+    // TRANSFORMAR MENSAGEM
+    // =====================================================
 
-    transformarMensagem(texto) {
+    transformarMensagem(texto){
+
+        if(!texto)
+            texto = "";
+
 
         texto = texto.replace(
-
             /<vermelho>(.*?)<\/vermelho>/g,
-
             '<span class="texto-vermelho">$1</span>'
-
         );
+
 
         return this.transformarMensagemHTML(texto);
 
     },
 
 
+    // =====================================================
+    // LIMPAR
+    // =====================================================
 
-    limpar() {
+    limpar(){
 
-        document.getElementById("game").innerHTML = "";
+        const game =
+            document.getElementById("game");
+
+
+        if(game){
+
+            game.innerHTML = "";
+
+        }
 
     },
 
 
+    // =====================================================
+    // TEXTO
+    // =====================================================
 
-    texto(titulo,mensagem,aviso=false){
+    texto(titulo, mensagem, aviso = false){
 
         this.limpar();
 
-        const game=document.getElementById("game");
 
-        const caixa=document.createElement("div");
+        const game =
+            document.getElementById("game");
 
-        caixa.className="caixa-texto";
+
+        if(!game)
+            return;
+
+
+        const caixa =
+            document.createElement("div");
+
+
+        caixa.className =
+            "caixa-texto";
+
 
         if(aviso){
 
@@ -91,207 +146,336 @@ const UI = {
 
         }
 
-        caixa.innerHTML=`
 
-        <div class="titulo">
+        caixa.innerHTML = `
 
-        ${this.transformarMensagem(titulo)}
+            <div class="titulo">
 
-        </div>
+                ${this.transformarMensagem(titulo)}
 
-        <div class="mensagem">
+            </div>
 
-        ${this.transformarMensagem(mensagem)}
+            <div class="mensagem">
 
-        </div>
+                ${this.transformarMensagem(mensagem)}
+
+            </div>
 
         `;
+
 
         game.appendChild(caixa);
 
     },
 
 
+    // =====================================================
+    // MENU
+    // =====================================================
 
-    criarMenu(titulo,mensagem,opcoes,selecionado=0){
+    criarMenu(
+        titulo,
+        mensagem,
+        opcoes,
+        selecionado = 0
+    ){
 
         this.limpar();
 
-        const game=document.getElementById("game");
 
-        const caixa=document.createElement("div");
+        const game =
+            document.getElementById("game");
 
-        caixa.className="caixa-texto";
 
-        caixa.innerHTML=`
+        if(!game)
+            return;
 
-        <div class="titulo">
 
-        ${this.transformarMensagem(titulo)}
+        const caixa =
+            document.createElement("div");
 
-        </div>
 
-        <div class="mensagem">
+        caixa.className =
+            "caixa-texto";
 
-        ${this.transformarMensagem(mensagem)}
 
-        </div>
+        caixa.innerHTML = `
 
-        <div class="opcoes"></div>
+            <div class="titulo">
+
+                ${this.transformarMensagem(titulo)}
+
+            </div>
+
+            <div class="mensagem">
+
+                ${this.transformarMensagem(mensagem)}
+
+            </div>
+
+            <div class="opcoes"></div>
 
         `;
 
-        const lista=caixa.querySelector(".opcoes");
 
-        opcoes.forEach((texto,index)=>{
+        const lista =
+            caixa.querySelector(".opcoes");
 
-            const item=document.createElement("div");
 
-            item.className="opcao";
+        opcoes.forEach((texto, index) => {
 
-            item.innerHTML=index===selecionado?
+            const item =
+                document.createElement("div");
 
-            "♥ "+texto:
 
-            texto;
+            item.className =
+                "opcao";
+
+
+            item.innerHTML =
+                index === selecionado
+                    ? "♥ " + texto
+                    : texto;
+
 
             lista.appendChild(item);
 
         });
 
+
         game.appendChild(caixa);
 
     },
 
 
+    // =====================================================
+    // ATUALIZAR MENU
+    // =====================================================
 
     atualizarMenu(selecionado){
 
-        const opcoes=document.querySelectorAll(".opcao");
+        const opcoes =
+            document.querySelectorAll(".opcao");
 
-        opcoes.forEach((item,index)=>{
 
-            const texto=item.innerText.replace("♥ ","");
+        opcoes.forEach((item, index) => {
 
-            item.innerHTML=index===selecionado?
+            const texto =
+                item.innerText
+                    .replace("♥ ", "");
 
-            "♥ "+texto:
 
-            texto;
+            item.innerHTML =
+                index === selecionado
+                    ? "♥ " + texto
+                    : texto;
 
         });
 
     },
 
 
+    // =====================================================
+    // ENTRADA
+    // =====================================================
 
-    entrada(titulo,mensagem){
+    entrada(titulo, mensagem){
 
         this.limpar();
 
-        const game=document.getElementById("game");
 
-        const caixa=document.createElement("div");
+        const game =
+            document.getElementById("game");
 
-        caixa.className="caixa-texto";
 
-        caixa.innerHTML=`
+        if(!game)
+            return;
 
-        <div class="titulo">
 
-        ${this.transformarMensagem(titulo)}
+        const caixa =
+            document.createElement("div");
 
-        </div>
 
-        <div class="mensagem">
+        caixa.className =
+            "caixa-texto";
 
-        ${this.transformarMensagem(mensagem)}
 
-        </div>
+        caixa.innerHTML = `
 
-        <div class="entrada">
+            <div class="titulo">
 
-        > <span id="textoDigitado"></span><span id="cursor">_</span>
+                ${this.transformarMensagem(titulo)}
 
-        </div>
+            </div>
+
+            <div class="mensagem">
+
+                ${this.transformarMensagem(mensagem)}
+
+            </div>
+
+            <div class="entrada">
+
+                > <span id="textoDigitado"></span><span id="cursor">_</span>
+
+            </div>
 
         `;
+
 
         game.appendChild(caixa);
 
     },
 
 
+    // =====================================================
+    // ATUALIZAR ENTRADA
+    // =====================================================
 
     atualizarEntrada(texto){
 
-        const span=document.getElementById("textoDigitado");
+        const span =
+            document.getElementById("textoDigitado");
+
 
         if(span){
 
-            span.textContent=texto;
+            span.textContent =
+                texto;
 
         }
 
     },
 
 
+    // =====================================================
+    // GAME OVER
+    // =====================================================
 
-    gameOver(){
+        // =====================================================
+    // TELA FINAL
+    // =====================================================
 
-        this.gameOverAtivo=true;
+    final(){
 
         this.limpar();
 
-        const game=document.getElementById("game");
 
-        game.innerHTML=`
-
-        <div id="fadePreto"></div>
-
-        <div id="sangueTopo"></div>
-
-        <div id="sangueBaixo"></div>
-
-        <div id="gameOver">
-
-            <div id="fraseGameOver">
-
-                <p>Não acabou ainda, Acabou?</p>
-
-                <p>Você não era fraco assim.</p>
-
-                <p class="levante">Levante.</p>
-
-            </div>
+        const game =
+            document.getElementById("game");
 
 
+        if(!game)
+            return;
+
+
+        game.innerHTML = `
+
+            <div id="final">
+
+                <img
+                    id="imagemTenebris"
+                    src="assets/imagens/TENEBRIS.jpg"
+                >
+
+                <div id="finalTexto"></div>
 
             </div>
-
-        </div>
 
         `;
 
     },
 
 
+    // =====================================================
+    // TEXTO DO FINAL
+    // =====================================================
+
+    finalTexto(texto){
+
+        const elemento =
+            document.getElementById("finalTexto");
+
+
+        if(!elemento)
+            return;
+
+
+        elemento.innerHTML =
+            this.transformarMensagem(texto);
+
+    },
+    gameOver(){
+
+        this.gameOverAtivo = true;
+
+
+        this.limpar();
+
+
+        const game =
+            document.getElementById("game");
+
+
+        if(!game)
+            return;
+
+
+        game.innerHTML = `
+
+            <div id="fadePreto"></div>
+
+            <div id="sangueTopo"></div>
+
+            <div id="sangueBaixo"></div>
+
+            <div id="gameOver">
+
+                <div id="fraseGameOver">
+
+                    <p>Não acabou ainda, Acabou?</p>
+
+                    <p>Você não era fraco assim.</p>
+
+                    <p class="levante">Levante.</p>
+
+                </div>
+
+            </div>
+
+        `;
+
+    },
+
+
+    // =====================================================
+    // ATUALIZAR GAME OVER
+    // =====================================================
 
     atualizarGameOver(){
 
-        const opcoes=document.querySelectorAll(".opcaoGameOver");
+        const opcoes =
+            document.querySelectorAll(
+                ".opcaoGameOver"
+            );
 
-        opcoes.forEach((o,i)=>{
 
-            if(i===Game.gameOverSelecionado){
+        opcoes.forEach((o, i) => {
 
-                o.classList.add("selecionado");
+            if(i === Game.gameOverSelecionado){
 
-            }else{
+                o.classList.add(
+                    "selecionado"
+                );
 
-                o.classList.remove("selecionado");
+            }
 
-                console.log("UI carregado");
+            else{
+
+                o.classList.remove(
+                    "selecionado"
+                );
+
             }
 
         });

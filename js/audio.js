@@ -27,7 +27,9 @@ const AudioManager = {
 
         gameover: "assets/audio/gameover.mp3",
 
-        batimento: "assets/audio/batimento.mp3"
+        batimento: "assets/audio/batimento.mp3",
+
+         chamado: "assets/audio/CHAMADO.mp3"
 
     },
 

@@ -1,6 +1,7 @@
 const Game = {
 
     cenaAtual: 0,
+
     selecionado: 0,
 
     gameOverSelecionado: 0,
@@ -13,7 +14,30 @@ const Game = {
 
     tipoEntrada: "",
 
-    emBatalha:false
+    emBatalha: false,
+
+    finalIndice: 0,
+
+
+    // =====================================================
+    // PERGUNTAS
+    // =====================================================
+
+    perguntaAtual: null,
+
+    perguntaSelecionada: 0,
+
+    perguntasInicio: false,
+
+    perguntasInicioEtapa: 0,
+
+    perguntasAceite: false,
+
+    perguntaRespostaAtiva: false,
+
+    perguntaResposta: null,
+
+    perguntaRespostaIndice: 0
 
 };
 
@@ -21,48 +45,760 @@ const Game = {
 
 const Engine = {
 
+    tempoSemResposta: null,
 
-    tempoSemResposta:null,
+    pessoaAtual: null,
 
-    pessoaAtual:null,
+    falaAtual: 0,
 
-    falaAtual:0,
+    iniciado: false,
+
+    finalIndice: 0,
 
 
+    // =====================================================
+    // FALAS FINAIS
+    // =====================================================
 
+    finalMensagens: [
+
+        "Interessante...",
+
+        "Excelente.",
+
+        "Obrigado, Máscara.",
+
+        "Com tua ajuda... Seremos Melhores.",
+
+        "Venha.",
+
+        "Vamos Em Busca Do IMPOSSÍVEL."
+
+    ],
+
+
+    // =====================================================
+    // INICIAR ENGINE
+    // =====================================================
 
     iniciar(){
 
-    
-console.trace("INPUT INICIAR CHAMADO");
+        console.log("ENGINE INICIANDO");
 
-if(this.iniciado)
-    return;
-        console.log(
-            "ENGINE INICIOU"
-        );
+        if(this.iniciado)
+            return;
 
+        this.iniciado = true;
+
+        console.log("ENGINE INICIOU");
 
         Render.iniciar();
 
         Input.iniciar();
 
-
         this.iniciarCena();
-
 
     },
 
 
+    // =====================================================
+    // INICIAR PERGUNTAS
+    // =====================================================
+
+    iniciarPerguntas(){
+
+        Game.perguntaAtual = null;
+
+        Game.perguntaSelecionada = 0;
+
+        Game.perguntasInicio = true;
+
+        Game.perguntasInicioEtapa = 0;
+
+        Game.perguntasAceite = false;
+
+        Game.perguntaRespostaAtiva = false;
+
+        Game.perguntaResposta = null;
+
+        Game.perguntaRespostaIndice = 0;
 
 
+        UI.texto(
+            "Então...",
+            "Então..."
+        );
+
+    },
+
+
+    // =====================================================
+    // AVANÇAR INTRODUÇÃO DAS PERGUNTAS
+    // =====================================================
+
+    avancarInicioPerguntas(){
+
+        if(Game.perguntasInicioEtapa === 0){
+
+            Game.perguntasInicioEtapa = 1;
+
+            UI.texto(
+                "Devemos",
+                "Começar."
+            );
+
+            return;
+
+        }
+
+
+        if(Game.perguntasInicioEtapa === 1){
+
+            Game.perguntasInicio = false;
+
+            this.mostrarAceitePerguntas();
+
+            return;
+
+        }
+
+    },
+
+
+    // =====================================================
+    // MOSTRAR "VOCÊ ACEITA?"
+    // =====================================================
+
+    mostrarAceitePerguntas(){
+
+        Game.perguntasInicio = false;
+
+        Game.perguntasAceite = true;
+
+        Game.perguntaSelecionada = 0;
+
+
+        UI.criarMenu(
+
+            "Você Aceita?",
+
+            "",
+
+            [
+                "SIM",
+                "NÃO"
+            ],
+
+            Game.perguntaSelecionada
+
+        );
+
+    },
+
+
+    // =====================================================
+    // ESCOLHER "VOCÊ ACEITA?"
+    // =====================================================
+
+    escolherAceitePerguntas(){
+
+        // ---------------------------------------------
+        // SIM
+        // ---------------------------------------------
+
+        if(Game.perguntaSelecionada === 0){
+
+            Game.perguntasAceite = false;
+
+            Game.perguntaAtual = "corpo";
+
+            Game.perguntaSelecionada = 0;
+
+            this.mostrarPergunta();
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // NÃO
+        // ---------------------------------------------
+
+        if(Game.perguntaSelecionada === 1){
+
+            Game.perguntasAceite = false;
+
+            AudioManager.tocar("nao");
+
+            UI.limpar();
+
+            setTimeout(() => {
+
+                document.body.innerHTML = "";
+
+            }, 3000);
+
+            return;
+
+        }
+
+    },
+
+
+    // =====================================================
+    // MOSTRAR PERGUNTA
+    // =====================================================
+
+    mostrarPergunta(){
+
+        const pergunta =
+            Perguntas[
+                Game.perguntaAtual
+            ];
+
+
+        if(!pergunta){
+
+            console.error(
+                "PERGUNTA NÃO ENCONTRADA:",
+                Game.perguntaAtual
+            );
+
+            return;
+
+        }
+
+
+        Game.perguntaRespostaAtiva = false;
+
+        Game.perguntaResposta = null;
+
+        Game.perguntaRespostaIndice = 0;
+
+
+        UI.criarMenu(
+
+            pergunta.pergunta.titulo,
+
+            pergunta.pergunta.mensagem || "",
+
+            pergunta.pergunta.opcoes,
+
+            Game.perguntaSelecionada
+
+        );
+
+
+        console.log(
+            "PERGUNTA:",
+            Game.perguntaAtual
+        );
+
+    },
+
+
+    // =====================================================
+    // ESCOLHER PERGUNTA
+    // =====================================================
+
+    escolherPergunta(){
+
+        const pergunta =
+            Perguntas[
+                Game.perguntaAtual
+            ];
+
+
+        if(!pergunta)
+            return;
+
+
+        const resposta =
+            pergunta.respostas[
+                Game.perguntaSelecionada
+            ];
+
+
+        if(!resposta)
+            return;
+
+
+        // ---------------------------------------------
+        // RESPOSTA QUE FECHA
+        // ---------------------------------------------
+
+        if(resposta.fechar){
+
+            UI.limpar();
+
+            setTimeout(() => {
+
+                document.body.innerHTML = "";
+
+            }, 2000);
+
+            return;
+
+        }
+
+
+        Game.perguntaResposta =
+            resposta;
+
+        Game.perguntaRespostaIndice = 0;
+
+        Game.perguntaRespostaAtiva = true;
+
+
+        this.mostrarRespostaPergunta();
+
+    },
+
+
+    // =====================================================
+    // MOSTRAR RESPOSTA DA PERGUNTA
+    // =====================================================
+
+    mostrarRespostaPergunta(){
+
+        const resposta =
+            Game.perguntaResposta;
+
+
+        if(!resposta)
+            return;
+
+
+        const mensagens =
+            Array.isArray(resposta.mensagens)
+                ? resposta.mensagens
+                : [
+                    resposta.mensagem || ""
+                ];
+
+
+        if(
+            Game.perguntaRespostaIndice >=
+            mensagens.length
+        ){
+
+            this.finalizarRespostaPergunta();
+
+            return;
+
+        }
+
+
+        UI.texto(
+
+            resposta.titulo || "...",
+
+            mensagens[
+                Game.perguntaRespostaIndice
+            ]
+
+        );
+
+    },
+
+
+    // =====================================================
+    // AVANÇAR RESPOSTA
+    // =====================================================
+
+    avancarRespostaPergunta(){
+
+        const resposta =
+            Game.perguntaResposta;
+
+
+        if(!resposta)
+            return;
+
+
+        const mensagens =
+            Array.isArray(resposta.mensagens)
+                ? resposta.mensagens
+                : [
+                    resposta.mensagem || ""
+                ];
+
+
+        Game.perguntaRespostaIndice++;
+
+
+        if(
+            Game.perguntaRespostaIndice <
+            mensagens.length
+        ){
+
+            this.mostrarRespostaPergunta();
+
+            return;
+
+        }
+
+
+        this.finalizarRespostaPergunta();
+
+    },
+
+
+    // =====================================================
+    // FINALIZAR RESPOSTA
+    // =====================================================
+
+    finalizarRespostaPergunta(){
+
+        const resposta =
+            Game.perguntaResposta;
+
+
+        Game.perguntaRespostaAtiva = false;
+
+        Game.perguntaResposta = null;
+
+        Game.perguntaRespostaIndice = 0;
+
+
+        if(
+            resposta &&
+            resposta.proxima
+        ){
+
+            // ---------------------------------------------
+            // FINAL
+            // ---------------------------------------------
+
+            if(
+                resposta.proxima === "final"
+            ){
+
+                this.iniciarFinal();
+
+                return;
+
+            }
+
+
+            // ---------------------------------------------
+            // PRÓXIMA PERGUNTA
+            // ---------------------------------------------
+
+            Game.perguntaAtual =
+                resposta.proxima;
+
+            Game.perguntaSelecionada = 0;
+
+            this.mostrarPergunta();
+
+            return;
+
+        }
+
+
+        console.log(
+            "FIM DAS PERGUNTAS"
+        );
+
+    },
+
+
+    // =====================================================
+    // INICIAR FINAL
+    // =====================================================
+
+    iniciarFinal(){
+
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            "INICIANDO FINAL"
+        );
+
+        console.log(
+            "================================="
+        );
+
+
+        // ---------------------------------------------
+        // RESETAR ESTADOS
+        // ---------------------------------------------
+
+        Game.perguntaRespostaAtiva = false;
+
+        Game.perguntaResposta = null;
+
+        Game.perguntaRespostaIndice = 0;
+
+        Game.perguntaAtual = null;
+
+        Game.perguntasInicio = false;
+
+        Game.perguntasAceite = false;
+
+
+        this.finalIndice = 0;
+
+        Game.finalIndice = 0;
+
+
+        // ---------------------------------------------
+        // PARAR MÚSICA BRUNO
+        // ---------------------------------------------
+
+        console.log(
+            "PARANDO MÚSICA BRUNO"
+        );
+
+        AudioManager.pararMusica();
+
+
+        // ---------------------------------------------
+        // LIMPAR TELA
+        // ---------------------------------------------
+
+        document.body.innerHTML = "";
+
+        document.body.className = "";
+
+
+        // ---------------------------------------------
+        // TELA PRETA
+        // ---------------------------------------------
+
+        document.body.style.background =
+            "#000000";
+
+        document.body.style.backgroundImage =
+            "none";
+
+        document.body.style.backgroundColor =
+            "#000000";
+
+
+        // ---------------------------------------------
+        // CONTAINER DO FINAL
+        // ---------------------------------------------
+
+        const tela =
+            document.createElement("div");
+
+
+        tela.id =
+            "tela-final";
+
+
+        tela.style.position =
+            "fixed";
+
+        tela.style.inset =
+            "0";
+
+        tela.style.width =
+            "100vw";
+
+        tela.style.height =
+            "100vh";
+
+        tela.style.background =
+            "#000000";
+
+        tela.style.display =
+            "flex";
+
+        tela.style.alignItems =
+            "center";
+
+        tela.style.justifyContent =
+            "center";
+
+        tela.style.zIndex =
+            "999999";
+
+
+        // ---------------------------------------------
+        // TEXTO
+        // ---------------------------------------------
+
+        const texto =
+            document.createElement("div");
+
+
+        texto.id =
+            "texto-final";
+
+
+        texto.style.color =
+            "#FFFFFF";
+
+        texto.style.fontFamily =
+            "Consolas, monospace";
+
+        texto.style.fontSize =
+            "34px";
+
+        texto.style.textAlign =
+            "center";
+
+        texto.style.maxWidth =
+            "90vw";
+
+        texto.style.padding =
+            "20px";
+
+
+        tela.appendChild(
+            texto
+        );
+
+
+        document.body.appendChild(
+            tela
+        );
+
+
+        // ---------------------------------------------
+        // NÃO TOCA CHAMADO AQUI
+        // ---------------------------------------------
+        //
+        // IMPORTANTE:
+        // O CHAMADO NÃO TOCA QUANDO A TELA APARECE.
+        //
+        // Primeiro serão exibidas TODAS as falas.
+        //
+        // O chamado só será tocado depois da
+        // última frase.
+        // ---------------------------------------------
+
+
+        console.log(
+            "TELA FINAL CRIADA"
+        );
+
+
+        // ---------------------------------------------
+        // COMEÇAR PRIMEIRA FALA
+        // ---------------------------------------------
+
+        setTimeout(() => {
+
+            this.mostrarFinal();
+
+        }, 500);
+
+    },
+
+
+    // =====================================================
+    // MOSTRAR FALA FINAL
+    // =====================================================
+
+    mostrarFinal(){
+
+        console.log(
+            "FALA FINAL:",
+            this.finalIndice
+        );
+
+
+        // ---------------------------------------------
+        // TERMINOU TODAS AS FALAS
+        // ---------------------------------------------
+
+        if(
+            this.finalIndice >=
+            this.finalMensagens.length
+        ){
+
+            console.log(
+                "TODAS AS FALAS TERMINARAM"
+            );
+
+
+            // -----------------------------------------
+            // AGORA SIM: CHAMADO
+            // -----------------------------------------
+
+            console.log(
+                "TOCANDO CHAMADO AGORA"
+            );
+
+
+            AudioManager.tocar(
+                "chamado"
+            );
+
+
+            return;
+
+        }
+
+
+        const texto =
+            document.getElementById(
+                "texto-final"
+            );
+
+
+        if(!texto){
+
+            console.error(
+                "ERRO: texto-final não encontrado"
+            );
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // MOSTRAR FRASE
+        // ---------------------------------------------
+
+        texto.innerText =
+            this.finalMensagens[
+                this.finalIndice
+            ];
+
+
+        console.log(
+            "MOSTRANDO:",
+            this.finalMensagens[
+                this.finalIndice
+            ]
+        );
+
+
+        this.finalIndice++;
+
+
+        // ---------------------------------------------
+        // PRÓXIMA FRASE
+        // ---------------------------------------------
+
+        setTimeout(() => {
+
+            this.mostrarFinal();
+
+        }, 1800);
+
+    },
+
+
+    // =====================================================
+    // CENAS NORMAIS
+    // =====================================================
 
     iniciarCena(){
 
-
         const cena =
-        Introducao[Game.cenaAtual];
-
+            Introducao[
+                Game.cenaAtual
+            ];
 
 
         if(!cena){
@@ -76,8 +812,6 @@ if(this.iniciado)
         }
 
 
-
-
         console.log(
             "CENA:",
             Game.cenaAtual,
@@ -85,199 +819,177 @@ if(this.iniciado)
         );
 
 
-
         UI.limpar();
-
-
 
 
         switch(cena.tipo){
 
-
+            // =============================================
+            // MENU
+            // =============================================
 
             case "menu":
-
 
                 UI.criarMenu(
 
                     cena.titulo,
+
                     cena.mensagem,
+
                     cena.opcoes,
+
                     Game.selecionado
 
                 );
 
 
-                if(Game.cenaAtual === 0){
+                if(
+                    Game.cenaAtual === 0
+                ){
 
                     this.iniciarEspera();
 
                 }
 
-
             break;
 
 
-
-
-
+            // =============================================
+            // TEXTO
+            // =============================================
 
             case "texto":
-
 
                 UI.texto(
 
                     cena.titulo,
+
                     cena.mensagem
 
                 );
-
 
             break;
 
 
-
-
-
-
+            // =============================================
+            // ENTRADA
+            // =============================================
 
             case "entrada":
-
 
                 UI.entrada(
 
                     cena.titulo,
+
                     cena.mensagem
 
                 );
-
 
 
                 Input.texto = "";
 
 
+                if(
+                    cena.id === "proximo"
+                ){
 
-                if(cena.id === "proximo"){
-
-
-                    Game.tipoEntrada="pessoa";
-
-
-                }
-
-
-
-                if(cena.id === "criacao"){
-
-
-                    Game.tipoEntrada="criacao";
-
+                    Game.tipoEntrada =
+                        "pessoa";
 
                 }
 
 
+                if(
+                    cena.id === "criacao"
+                ){
 
-                // ABRIR TECLADO CELULAR
+                    Game.tipoEntrada =
+                        "criacao";
 
-                if(typeof TecladoMobile !== "undefined"){
+                }
 
-                    setTimeout(()=>{
+
+                if(
+                    typeof TecladoMobile !==
+                    "undefined"
+                ){
+
+                    setTimeout(() => {
 
                         TecladoMobile.abrir();
 
-                    },300);
+                    }, 300);
 
                 }
 
-
-
             break;
-
-
 
         }
 
-
     },
 
 
-
-
-
-
-
-
+    // =====================================================
+    // ESPERA INICIAL
+    // =====================================================
 
     iniciarEspera(){
 
-
         clearTimeout(
             this.tempoSemResposta
         );
-
 
 
         this.tempoSemResposta =
-        setTimeout(()=>{
+            setTimeout(() => {
+
+                AudioManager.tocar(
+                    "nao"
+                );
 
 
-            AudioManager.tocar(
-                "nao"
-            );
+                UI.texto(
 
+                    CenaNao.titulo,
 
-            UI.texto(
+                    CenaNao.mensagem
 
-                CenaNao.titulo,
+                );
 
-                CenaNao.mensagem
-
-            );
-
-
-        },10000);
-
-
+            }, 10000);
 
     },
 
 
-
-
+    // =====================================================
+    // CANCELAR ESPERA
+    // =====================================================
 
     cancelarEspera(){
-
 
         clearTimeout(
             this.tempoSemResposta
         );
 
-
     },
 
 
-
-
-
-
-
-
+    // =====================================================
+    // ESCOLHER MENU NORMAL
+    // =====================================================
 
     escolher(opcao){
-
 
         this.cancelarEspera();
 
 
-
-        if(Game.cenaAtual !== 0)
+        if(
+            Game.cenaAtual !== 0
+        )
             return;
 
 
-
-
-        if(opcao===0){
-
+        if(opcao === 0){
 
             Fullscreen.entrar();
 
@@ -287,17 +999,14 @@ if(this.iniciado)
             );
 
 
-            Game.cenaAtual=1;
+            Game.cenaAtual = 1;
 
 
             this.iniciarCena();
 
-
-
         }
 
         else{
-
 
             AudioManager.tocar(
                 "nao"
@@ -312,26 +1021,22 @@ if(this.iniciado)
 
             );
 
-
         }
-
 
     },
 
 
-
-
-
-
-
-
+    // =====================================================
+    // PRÓXIMA CENA
+    // =====================================================
 
     proximaCena(){
 
-
-        if(Game.cenaAtual >= Introducao.length-1)
+        if(
+            Game.cenaAtual >=
+            Introducao.length - 1
+        )
             return;
-
 
 
         Game.cenaAtual++;
@@ -339,19 +1044,14 @@ if(this.iniciado)
 
         this.iniciarCena();
 
-
     },
 
 
-
-
-
-
-
-
+    // =====================================================
+    // RECEBER NOME
+    // =====================================================
 
     receberNome(nome){
-
 
         console.log(
             "RECEBEU NOME:",
@@ -359,34 +1059,24 @@ if(this.iniciado)
         );
 
 
-
         const pessoa =
-        Nome.verificar(nome);
-
+            Nome.verificar(nome);
 
 
         this.executarPessoa(
             pessoa
         );
 
-
-
     },
 
 
-
-
-
-
-
-
+    // =====================================================
+    // EXECUTAR PESSOA
+    // =====================================================
 
     executarPessoa(pessoa){
 
-
-
         if(!pessoa){
-
 
             AudioManager.tocar(
                 "nao"
@@ -402,29 +1092,22 @@ if(this.iniciado)
             );
 
 
+            setTimeout(() => {
 
-            setTimeout(()=>{
+                document.body.innerHTML = "";
 
-                document.body.innerHTML="";
-
-            },4000);
+            }, 4000);
 
 
             return;
 
-
         }
 
 
+        this.pessoaAtual =
+            pessoa;
 
-
-
-
-        this.pessoaAtual=pessoa;
-
-        this.falaAtual=0;
-
-
+        this.falaAtual = 0;
 
 
         if(pessoa.audio){
@@ -436,59 +1119,47 @@ if(this.iniciado)
         }
 
 
-
-
         this.mostrarFalaPessoa();
-
-
 
     },
 
 
-
-
-
-
-
-
+    // =====================================================
+    // FALA DA PESSOA
+    // =====================================================
 
     mostrarFalaPessoa(){
 
-
         const pessoa =
-        this.pessoaAtual;
-
+            this.pessoaAtual;
 
 
         if(!pessoa)
             return;
 
 
+        if(
+            this.falaAtual >=
+            pessoa.falas.length
+        ){
 
+            this.pessoaAtual = null;
 
-        if(this.falaAtual >= pessoa.falas.length){
-
-
-            this.pessoaAtual=null;
-
-            this.falaAtual=0;
-
+            this.falaAtual = 0;
 
 
             if(pessoa.fechar){
 
+                setTimeout(() => {
 
-                setTimeout(()=>{
+                    document.body.innerHTML = "";
 
-                    document.body.innerHTML="";
-
-                },3000);
+                }, 3000);
 
 
                 return;
 
             }
-
 
 
             if(pessoa.continuar){
@@ -498,41 +1169,32 @@ if(this.iniciado)
             }
 
 
-
             return;
 
-
         }
-
-
 
 
         UI.texto(
 
             "...",
 
-            pessoa.falas[this.falaAtual]
+            pessoa.falas[
+                this.falaAtual
+            ]
 
         );
 
 
-
         this.falaAtual++;
-
 
     },
 
 
-
-
-
-
-
-
+    // =====================================================
+    // RECEBER CRIAÇÃO
+    // =====================================================
 
     receberCriacao(nome){
-
-
 
         console.log(
             "CRIAÇÃO:",
@@ -540,60 +1202,57 @@ if(this.iniciado)
         );
 
 
-
         const resposta =
-        Criacao.verificar(nome);
+            Criacao.verificar(nome);
 
 
+        // ---------------------------------------------
+        // BOSS
+        // ---------------------------------------------
+
+        if(
+            resposta === "boss"
+        ){
+
+            Game.emBatalha = true;
 
 
-if(resposta==="boss"){
+            UI.limpar();
 
 
-    Game.emBatalha=true;
+            AudioManager.pararMusica();
 
 
-    UI.limpar();
+            Batalha.iniciarIntroducao();
 
-
-    AudioManager.pararMusica();
-
-
-
-    Batalha.iniciarIntroducao();
-
-
-
-    return;
-
-
-}
-
-
-
-
-
-
-
-        if(resposta==="fechar"){
-
-
-            document.body.innerHTML="";
 
             return;
-
 
         }
 
 
+        // ---------------------------------------------
+        // FECHAR
+        // ---------------------------------------------
+
+        if(
+            resposta === "fechar"
+        ){
+
+            document.body.innerHTML = "";
+
+            return;
+
+        }
 
 
+        // ---------------------------------------------
+        // ROGER
+        // ---------------------------------------------
 
-
-
-        if(resposta==="roger"){
-
-
+        if(
+            resposta === "roger"
+        ){
 
             AudioManager.tocar(
                 "nao"
@@ -609,24 +1268,21 @@ if(resposta==="boss"){
             );
 
 
+            setTimeout(() => {
 
-            setTimeout(()=>{
+                document.body.innerHTML = "";
 
-                document.body.innerHTML="";
-
-            },3000);
-
+            }, 3000);
 
 
             return;
 
-
         }
 
 
-
-
-
+        // ---------------------------------------------
+        // NOME NORMAL
+        // ---------------------------------------------
 
         UI.texto(
 
@@ -637,36 +1293,38 @@ if(resposta==="boss"){
         );
 
 
+        setTimeout(() => {
 
-        setTimeout(()=>{
+            this.iniciarPerguntas();
 
-            this.proximaCena();
-
-        },3000);
-
+        }, 1500);
 
     },
 
 
-gameOver(){
+    // =====================================================
+    // GAME OVER
+    // =====================================================
 
-    AudioManager.pararMusica();
+    gameOver(){
 
-    GameOver.iniciar();
+        AudioManager.pararMusica();
 
-},
+        GameOver.iniciar();
+
+    },
 
 
+    // =====================================================
+    // ATUALIZAR MENU NORMAL
+    // =====================================================
 
     atualizar(){
-
 
         UI.atualizarMenu(
             Game.selecionado
         );
 
-
     }
-
 
 };
