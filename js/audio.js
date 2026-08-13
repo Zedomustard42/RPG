@@ -29,7 +29,10 @@ const AudioManager = {
 
         batimento: "assets/audio/batimento.mp3",
 
-         chamado: "assets/audio/CHAMADO.mp3"
+         chamado: "assets/audio/CHAMADO.mp3",
+
+         perdido:
+    "assets/audio/Perdido.mp3"
 
     },
 

@@ -78,19 +78,28 @@ const Engine = {
 
 
     // =====================================================
-    // INICIAR ENGINE
+    // INICIAR
     // =====================================================
 
     iniciar(){
 
-        console.log("ENGINE INICIANDO");
+        console.log(
+            "ENGINE INICIANDO"
+        );
+
 
         if(this.iniciado)
             return;
 
-        this.iniciado = true;
 
-        console.log("ENGINE INICIOU");
+        this.iniciado =
+            true;
+
+
+        console.log(
+            "ENGINE INICIOU"
+        );
+
 
         Render.iniciar();
 
@@ -102,26 +111,34 @@ const Engine = {
 
 
     // =====================================================
-    // INICIAR PERGUNTAS
+    // PERGUNTAS
     // =====================================================
 
     iniciarPerguntas(){
 
-        Game.perguntaAtual = null;
+        Game.perguntaAtual =
+            null;
 
-        Game.perguntaSelecionada = 0;
+        Game.perguntaSelecionada =
+            0;
 
-        Game.perguntasInicio = true;
+        Game.perguntasInicio =
+            true;
 
-        Game.perguntasInicioEtapa = 0;
+        Game.perguntasInicioEtapa =
+            0;
 
-        Game.perguntasAceite = false;
+        Game.perguntasAceite =
+            false;
 
-        Game.perguntaRespostaAtiva = false;
+        Game.perguntaRespostaAtiva =
+            false;
 
-        Game.perguntaResposta = null;
+        Game.perguntaResposta =
+            null;
 
-        Game.perguntaRespostaIndice = 0;
+        Game.perguntaRespostaIndice =
+            0;
 
 
         UI.texto(
@@ -133,32 +150,39 @@ const Engine = {
 
 
     // =====================================================
-    // AVANÇAR INTRODUÇÃO DAS PERGUNTAS
+    // AVANÇAR INTRODUÇÃO
     // =====================================================
 
     avancarInicioPerguntas(){
 
-        if(Game.perguntasInicioEtapa === 0){
+        if(
+            Game.perguntasInicioEtapa === 0
+        ){
 
-            Game.perguntasInicioEtapa = 1;
+            Game.perguntasInicioEtapa =
+                1;
+
 
             UI.texto(
                 "Devemos",
                 "Começar."
             );
 
+
             return;
 
         }
 
 
-        if(Game.perguntasInicioEtapa === 1){
+        if(
+            Game.perguntasInicioEtapa === 1
+        ){
 
-            Game.perguntasInicio = false;
+            Game.perguntasInicio =
+                false;
+
 
             this.mostrarAceitePerguntas();
-
-            return;
 
         }
 
@@ -166,16 +190,19 @@ const Engine = {
 
 
     // =====================================================
-    // MOSTRAR "VOCÊ ACEITA?"
+    // ACEITE
     // =====================================================
 
     mostrarAceitePerguntas(){
 
-        Game.perguntasInicio = false;
+        Game.perguntasInicio =
+            false;
 
-        Game.perguntasAceite = true;
+        Game.perguntasAceite =
+            true;
 
-        Game.perguntaSelecionada = 0;
+        Game.perguntaSelecionada =
+            0;
 
 
         UI.criarMenu(
@@ -197,22 +224,24 @@ const Engine = {
 
 
     // =====================================================
-    // ESCOLHER "VOCÊ ACEITA?"
+    // ESCOLHER ACEITE
     // =====================================================
 
     escolherAceitePerguntas(){
 
-        // ---------------------------------------------
-        // SIM
-        // ---------------------------------------------
+        if(
+            Game.perguntaSelecionada === 0
+        ){
 
-        if(Game.perguntaSelecionada === 0){
+            Game.perguntasAceite =
+                false;
 
-            Game.perguntasAceite = false;
+            Game.perguntaAtual =
+                "corpo";
 
-            Game.perguntaAtual = "corpo";
+            Game.perguntaSelecionada =
+                0;
 
-            Game.perguntaSelecionada = 0;
 
             this.mostrarPergunta();
 
@@ -221,25 +250,28 @@ const Engine = {
         }
 
 
-        // ---------------------------------------------
-        // NÃO
-        // ---------------------------------------------
+        if(
+            Game.perguntaSelecionada === 1
+        ){
 
-        if(Game.perguntaSelecionada === 1){
+            Game.perguntasAceite =
+                false;
 
-            Game.perguntasAceite = false;
 
-            AudioManager.tocar("nao");
+            AudioManager.tocar(
+                "nao"
+            );
+
 
             UI.limpar();
 
+
             setTimeout(() => {
 
-                document.body.innerHTML = "";
+                document.body.innerHTML =
+                    "";
 
             }, 3000);
-
-            return;
 
         }
 
@@ -270,11 +302,14 @@ const Engine = {
         }
 
 
-        Game.perguntaRespostaAtiva = false;
+        Game.perguntaRespostaAtiva =
+            false;
 
-        Game.perguntaResposta = null;
+        Game.perguntaResposta =
+            null;
 
-        Game.perguntaRespostaIndice = 0;
+        Game.perguntaRespostaIndice =
+            0;
 
 
         UI.criarMenu(
@@ -287,12 +322,6 @@ const Engine = {
 
             Game.perguntaSelecionada
 
-        );
-
-
-        console.log(
-            "PERGUNTA:",
-            Game.perguntaAtual
         );
 
     },
@@ -324,19 +353,18 @@ const Engine = {
             return;
 
 
-        // ---------------------------------------------
-        // RESPOSTA QUE FECHA
-        // ---------------------------------------------
-
         if(resposta.fechar){
 
             UI.limpar();
 
+
             setTimeout(() => {
 
-                document.body.innerHTML = "";
+                document.body.innerHTML =
+                    "";
 
             }, 2000);
+
 
             return;
 
@@ -346,9 +374,11 @@ const Engine = {
         Game.perguntaResposta =
             resposta;
 
-        Game.perguntaRespostaIndice = 0;
+        Game.perguntaRespostaIndice =
+            0;
 
-        Game.perguntaRespostaAtiva = true;
+        Game.perguntaRespostaAtiva =
+            true;
 
 
         this.mostrarRespostaPergunta();
@@ -357,7 +387,7 @@ const Engine = {
 
 
     // =====================================================
-    // MOSTRAR RESPOSTA DA PERGUNTA
+    // RESPOSTA
     // =====================================================
 
     mostrarRespostaPergunta(){
@@ -371,7 +401,9 @@ const Engine = {
 
 
         const mensagens =
-            Array.isArray(resposta.mensagens)
+            Array.isArray(
+                resposta.mensagens
+            )
                 ? resposta.mensagens
                 : [
                     resposta.mensagem || ""
@@ -418,7 +450,9 @@ const Engine = {
 
 
         const mensagens =
-            Array.isArray(resposta.mensagens)
+            Array.isArray(
+                resposta.mensagens
+            )
                 ? resposta.mensagens
                 : [
                     resposta.mensagem || ""
@@ -455,11 +489,14 @@ const Engine = {
             Game.perguntaResposta;
 
 
-        Game.perguntaRespostaAtiva = false;
+        Game.perguntaRespostaAtiva =
+            false;
 
-        Game.perguntaResposta = null;
+        Game.perguntaResposta =
+            null;
 
-        Game.perguntaRespostaIndice = 0;
+        Game.perguntaRespostaIndice =
+            0;
 
 
         if(
@@ -467,12 +504,9 @@ const Engine = {
             resposta.proxima
         ){
 
-            // ---------------------------------------------
-            // FINAL
-            // ---------------------------------------------
-
             if(
-                resposta.proxima === "final"
+                resposta.proxima ===
+                "final"
             ){
 
                 this.iniciarFinal();
@@ -482,14 +516,12 @@ const Engine = {
             }
 
 
-            // ---------------------------------------------
-            // PRÓXIMA PERGUNTA
-            // ---------------------------------------------
-
             Game.perguntaAtual =
                 resposta.proxima;
 
-            Game.perguntaSelecionada = 0;
+            Game.perguntaSelecionada =
+                0;
+
 
             this.mostrarPergunta();
 
@@ -506,69 +538,54 @@ const Engine = {
 
 
     // =====================================================
-    // INICIAR FINAL
+    // FINAL
     // =====================================================
 
     iniciarFinal(){
 
-        console.log(
-            "================================="
-        );
+        Game.perguntaRespostaAtiva =
+            false;
 
-        console.log(
-            "INICIANDO FINAL"
-        );
+        Game.perguntaResposta =
+            null;
 
-        console.log(
-            "================================="
-        );
+        Game.perguntaRespostaIndice =
+            0;
 
+        Game.perguntaAtual =
+            null;
 
-        // ---------------------------------------------
-        // RESETAR ESTADOS
-        // ---------------------------------------------
+        Game.perguntasInicio =
+            false;
 
-        Game.perguntaRespostaAtiva = false;
-
-        Game.perguntaResposta = null;
-
-        Game.perguntaRespostaIndice = 0;
-
-        Game.perguntaAtual = null;
-
-        Game.perguntasInicio = false;
-
-        Game.perguntasAceite = false;
+        Game.perguntasAceite =
+            false;
 
 
-        this.finalIndice = 0;
+        this.finalIndice =
+            0;
 
-        Game.finalIndice = 0;
+        Game.finalIndice =
+            0;
 
 
-        // ---------------------------------------------
-        // PARAR MÚSICA BRUNO
-        // ---------------------------------------------
-
-        console.log(
-            "PARANDO MÚSICA BRUNO"
-        );
+        // =================================================
+        // PARAR BRUNO
+        // =================================================
 
         AudioManager.pararMusica();
 
 
-        // ---------------------------------------------
-        // LIMPAR TELA
-        // ---------------------------------------------
+        // =================================================
+        // LIMPAR
+        // =================================================
 
-        document.body.innerHTML = "";
+        document.body.innerHTML =
+            "";
 
-        document.body.className = "";
+        document.body.className =
+            "";
 
-
-        // ---------------------------------------------
-        // TELA PRETA
-        // ---------------------------------------------
 
         document.body.style.background =
             "#000000";
@@ -580,9 +597,9 @@ const Engine = {
             "#000000";
 
 
-        // ---------------------------------------------
-        // CONTAINER DO FINAL
-        // ---------------------------------------------
+        // =================================================
+        // TELA
+        // =================================================
 
         const tela =
             document.createElement("div");
@@ -620,9 +637,9 @@ const Engine = {
             "999999";
 
 
-        // ---------------------------------------------
+        // =================================================
         // TEXTO
-        // ---------------------------------------------
+        // =================================================
 
         const texto =
             document.createElement("div");
@@ -661,29 +678,6 @@ const Engine = {
         );
 
 
-        // ---------------------------------------------
-        // NÃO TOCA CHAMADO AQUI
-        // ---------------------------------------------
-        //
-        // IMPORTANTE:
-        // O CHAMADO NÃO TOCA QUANDO A TELA APARECE.
-        //
-        // Primeiro serão exibidas TODAS as falas.
-        //
-        // O chamado só será tocado depois da
-        // última frase.
-        // ---------------------------------------------
-
-
-        console.log(
-            "TELA FINAL CRIADA"
-        );
-
-
-        // ---------------------------------------------
-        // COMEÇAR PRIMEIRA FALA
-        // ---------------------------------------------
-
         setTimeout(() => {
 
             this.mostrarFinal();
@@ -694,44 +688,19 @@ const Engine = {
 
 
     // =====================================================
-    // MOSTRAR FALA FINAL
+    // MOSTRAR FINAL
     // =====================================================
 
     mostrarFinal(){
-
-        console.log(
-            "FALA FINAL:",
-            this.finalIndice
-        );
-
-
-        // ---------------------------------------------
-        // TERMINOU TODAS AS FALAS
-        // ---------------------------------------------
 
         if(
             this.finalIndice >=
             this.finalMensagens.length
         ){
 
-            console.log(
-                "TODAS AS FALAS TERMINARAM"
-            );
-
-
-            // -----------------------------------------
-            // AGORA SIM: CHAMADO
-            // -----------------------------------------
-
-            console.log(
-                "TOCANDO CHAMADO AGORA"
-            );
-
-
             AudioManager.tocar(
                 "chamado"
             );
-
 
             return;
 
@@ -744,20 +713,9 @@ const Engine = {
             );
 
 
-        if(!texto){
-
-            console.error(
-                "ERRO: texto-final não encontrado"
-            );
-
+        if(!texto)
             return;
 
-        }
-
-
-        // ---------------------------------------------
-        // MOSTRAR FRASE
-        // ---------------------------------------------
 
         texto.innerText =
             this.finalMensagens[
@@ -765,20 +723,8 @@ const Engine = {
             ];
 
 
-        console.log(
-            "MOSTRANDO:",
-            this.finalMensagens[
-                this.finalIndice
-            ]
-        );
-
-
         this.finalIndice++;
 
-
-        // ---------------------------------------------
-        // PRÓXIMA FRASE
-        // ---------------------------------------------
 
         setTimeout(() => {
 
@@ -790,7 +736,7 @@ const Engine = {
 
 
     // =====================================================
-    // CENAS NORMAIS
+    // CENAS
     // =====================================================
 
     iniciarCena(){
@@ -812,21 +758,10 @@ const Engine = {
         }
 
 
-        console.log(
-            "CENA:",
-            Game.cenaAtual,
-            cena.id
-        );
-
-
         UI.limpar();
 
 
         switch(cena.tipo){
-
-            // =============================================
-            // MENU
-            // =============================================
 
             case "menu":
 
@@ -854,10 +789,6 @@ const Engine = {
             break;
 
 
-            // =============================================
-            // TEXTO
-            // =============================================
-
             case "texto":
 
                 UI.texto(
@@ -871,10 +802,6 @@ const Engine = {
             break;
 
 
-            // =============================================
-            // ENTRADA
-            // =============================================
-
             case "entrada":
 
                 UI.entrada(
@@ -886,11 +813,13 @@ const Engine = {
                 );
 
 
-                Input.texto = "";
+                Input.texto =
+                    "";
 
 
                 if(
-                    cena.id === "proximo"
+                    cena.id ===
+                    "proximo"
                 ){
 
                     Game.tipoEntrada =
@@ -900,7 +829,8 @@ const Engine = {
 
 
                 if(
-                    cena.id === "criacao"
+                    cena.id ===
+                    "criacao"
                 ){
 
                     Game.tipoEntrada =
@@ -930,7 +860,7 @@ const Engine = {
 
 
     // =====================================================
-    // ESPERA INICIAL
+    // ESPERA
     // =====================================================
 
     iniciarEspera(){
@@ -975,7 +905,7 @@ const Engine = {
 
 
     // =====================================================
-    // ESCOLHER MENU NORMAL
+    // ESCOLHER
     // =====================================================
 
     escolher(opcao){
@@ -999,7 +929,8 @@ const Engine = {
             );
 
 
-            Game.cenaAtual = 1;
+            Game.cenaAtual =
+                1;
 
 
             this.iniciarCena();
@@ -1094,7 +1025,8 @@ const Engine = {
 
             setTimeout(() => {
 
-                document.body.innerHTML = "";
+                document.body.innerHTML =
+                    "";
 
             }, 4000);
 
@@ -1107,7 +1039,8 @@ const Engine = {
         this.pessoaAtual =
             pessoa;
 
-        this.falaAtual = 0;
+        this.falaAtual =
+            0;
 
 
         if(pessoa.audio){
@@ -1125,7 +1058,7 @@ const Engine = {
 
 
     // =====================================================
-    // FALA DA PESSOA
+    // FALA
     // =====================================================
 
     mostrarFalaPessoa(){
@@ -1143,16 +1076,19 @@ const Engine = {
             pessoa.falas.length
         ){
 
-            this.pessoaAtual = null;
+            this.pessoaAtual =
+                null;
 
-            this.falaAtual = 0;
+            this.falaAtual =
+                0;
 
 
             if(pessoa.fechar){
 
                 setTimeout(() => {
 
-                    document.body.innerHTML = "";
+                    document.body.innerHTML =
+                        "";
 
                 }, 3000);
 
@@ -1197,24 +1133,125 @@ const Engine = {
     receberCriacao(nome){
 
         console.log(
-            "CRIAÇÃO:",
+            "================================="
+        );
+
+        console.log(
+            "RECEBER CRIAÇÃO"
+        );
+
+        console.log(
+            "NOME:",
             nome
         );
 
+        console.log(
+            "================================="
+        );
+
+
+        Game.nome =
+            nome;
+
+
+        // =================================================
+        // CHOKITO
+        // =================================================
+
+        const nomeNormalizado =
+            nome.trim().toUpperCase();
+
+
+        if(
+            nomeNormalizado ===
+            "CHOKITO"
+        ){
+
+            console.log(
+                "☠ SEGREDO CHOKITO ATIVADO ☠"
+            );
+
+
+            // =============================================
+            // VERIFICAR PERDIDO
+            // =============================================
+
+            if(
+                typeof Perdido ===
+                "undefined"
+            ){
+
+                console.error(
+                    "ERRO: Perdido não está carregado!"
+                );
+
+                return;
+
+            }
+
+
+            // =============================================
+            // PARAR BRUNO.mp3
+            // =============================================
+
+            console.log(
+                "PARANDO BRUNO.mp3..."
+            );
+
+
+            if(
+                typeof AudioManager !==
+                "undefined"
+            ){
+
+                AudioManager.pararMusica();
+
+            }
+
+
+            // =============================================
+            // LIMPAR ENGINE
+            // =============================================
+
+            UI.limpar();
+
+
+            // =============================================
+            // ENTRAR NO PERDIDO
+            // =============================================
+
+            setTimeout(() => {
+
+                Perdido.iniciar();
+Boneco.iniciar();
+
+            }, 300);
+
+
+            return;
+
+        }
+
+
+        // =================================================
+        // SISTEMA NORMAL
+        // =================================================
 
         const resposta =
             Criacao.verificar(nome);
 
 
-        // ---------------------------------------------
+        // =================================================
         // BOSS
-        // ---------------------------------------------
+        // =================================================
 
         if(
-            resposta === "boss"
+            resposta ===
+            "boss"
         ){
 
-            Game.emBatalha = true;
+            Game.emBatalha =
+                true;
 
 
             UI.limpar();
@@ -1231,27 +1268,30 @@ const Engine = {
         }
 
 
-        // ---------------------------------------------
+        // =================================================
         // FECHAR
-        // ---------------------------------------------
+        // =================================================
 
         if(
-            resposta === "fechar"
+            resposta ===
+            "fechar"
         ){
 
-            document.body.innerHTML = "";
+            document.body.innerHTML =
+                "";
 
             return;
 
         }
 
 
-        // ---------------------------------------------
+        // =================================================
         // ROGER
-        // ---------------------------------------------
+        // =================================================
 
         if(
-            resposta === "roger"
+            resposta ===
+            "roger"
         ){
 
             AudioManager.tocar(
@@ -1270,7 +1310,8 @@ const Engine = {
 
             setTimeout(() => {
 
-                document.body.innerHTML = "";
+                document.body.innerHTML =
+                    "";
 
             }, 3000);
 
@@ -1280,9 +1321,9 @@ const Engine = {
         }
 
 
-        // ---------------------------------------------
-        // NOME NORMAL
-        // ---------------------------------------------
+        // =================================================
+        // NORMAL
+        // =================================================
 
         UI.texto(
 
@@ -1316,7 +1357,7 @@ const Engine = {
 
 
     // =====================================================
-    // ATUALIZAR MENU NORMAL
+    // ATUALIZAR
     // =====================================================
 
     atualizar(){

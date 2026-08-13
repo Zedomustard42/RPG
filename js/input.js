@@ -42,7 +42,22 @@ const Input = {
         const tecla =
             evento.key;
 
+// =================================================
+    // CENA SECRETA - PERDIDO
+    // =================================================
 
+    if(
+        typeof Perdido !== "undefined" &&
+        Perdido.ativo
+    ){
+
+        evento.preventDefault();
+
+        Perdido.tecla(tecla);
+
+        return;
+
+    }
         // =================================================
         // PERGUNTAS - INTRODUÇÃO
         // =================================================
