@@ -32,7 +32,11 @@ const AudioManager = {
          chamado: "assets/audio/CHAMADO.mp3",
 
          perdido:
-    "assets/audio/Perdido.mp3"
+    "assets/audio/Perdido.mp3",
+
+    Clube: "assets/audio/clube.mp3",
+
+    chokito: "assets/audio/troll.mp3"
 
     },
 

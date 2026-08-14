@@ -1,15 +1,10 @@
 const Pessoas = {
 
-    "maria vitória": {
+"cassian": {
 
     falas: [
 
-        "...",
-
-        "Interessante.",
-
-        "<vermelho>Verdadeiramente... Interessante.</vermelho>",
-
+        "__CASSIAN_MEME__"
 
     ],
 
@@ -18,6 +13,25 @@ const Pessoas = {
     continuar: true
 
 },
+
+    "maria vitória": {
+
+        falas: [
+
+            "...",
+
+            "Interessante.",
+
+            "<vermelho>Verdadeiramente... Interessante.</vermelho>",
+
+        ],
+
+        fechar: false,
+
+        continuar: true
+
+    },
+
     "mariane ameli": {
 
         falas: [
@@ -127,12 +141,12 @@ const Pessoas = {
 
 };
 
+
 const Criacao = {
 
     verificar(nome) {
 
         nome = nome.toLowerCase().trim();
-
 
         if(nome === "bruno") {
 
@@ -140,20 +154,17 @@ const Criacao = {
 
         }
 
-
         if(nome === "ash natori") {
 
             return "fechar";
 
         }
 
-
         if(nome === "roger") {
 
             return "roger";
 
         }
-
 
         return "normal";
 

@@ -1337,3 +1337,64 @@ body.final #texto-final {
     display: none !important;
 
 }
+
+/* =====================================================
+   TEXTO PRINCIPAL DO RPG
+   ===================================================== */
+
+.caixa-texto .titulo {
+    font-size: 48px !important;
+    line-height: 1.25 !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+    white-space: normal !important;
+    text-align: center;
+}
+
+.caixa-texto .mensagem {
+    font-size: 42px !important;
+    line-height: 1.35 !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+    white-space: normal !important;
+    text-align: center;
+}
+
+
+/* =====================================================
+   OPÇÕES / PERGUNTAS
+   ===================================================== */
+
+.caixa-texto .opcao {
+    font-size: 40px !important;
+    line-height: 1.35 !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+}
+
+
+/* =====================================================
+   ENTRADA
+   ===================================================== */
+
+.caixa-texto .entrada {
+    font-size: 40px !important;
+    line-height: 1.35 !important;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+}
+
+
+/* =====================================================
+   NÃO SEPARAR LETRAS
+   ===================================================== */
+
+.caixa-texto,
+.caixa-texto *,
+.titulo,
+.mensagem,
+.opcao,
+.entrada {
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+}
