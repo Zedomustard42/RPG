@@ -486,14 +486,71 @@ const Input = {
 
 
                 if(
-                    Game.tipoEntrada === "pessoa"
-                ){
+    Game.tipoEntrada === "pessoa"
+){
 
-                    Engine.receberNome(
-                        Game.nome
-                    );
+    // =================================================
+    // MEME DAS MONTANHAS
+    // =================================================
 
-                }
+    if(
+        Game.nome.toLowerCase() === "montanhas"
+    ){
+
+        const mensagemOriginal =
+            document.getElementById("game");
+
+        if(mensagemOriginal){
+
+            mensagemOriginal.innerHTML = "";
+
+            const caixa =
+                document.createElement("div");
+
+            caixa.className =
+                "caixa-texto";
+
+            caixa.innerHTML = `
+                <div class="titulo">
+                    ...
+                </div>
+
+                <div class="mensagem">
+                    O Segredo nas Montanhas são os amigos que fazemos pelo caminho.
+                </div>
+            `;
+
+            mensagemOriginal.appendChild(
+                caixa
+            );
+
+            /*
+             * Depois de 3 segundos,
+             * volta para o jogo normalmente.
+             */
+            setTimeout(() => {
+
+                Engine.receberNome(
+                    Game.nome
+                );
+
+            }, 3000);
+
+        }
+
+        return;
+    }
+
+
+    // =================================================
+    // NOME NORMAL
+    // =================================================
+
+    Engine.receberNome(
+        Game.nome
+    );
+
+}
 
 
                 else if(
