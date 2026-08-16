@@ -1,455 +1,915 @@
 const BatalhaRender = {
 
-mascara: null,
-jogador: null,
+    // =====================================================
+    // ELEMENTOS
+    // =====================================================
 
-hp: null,
-hpMascara: null,
-faseMascara: null,
+    arena: null,
 
-spriteMascara: null,
-spriteJogador: null,
+    jogadorElemento: null,
 
+    mascaraElemento: null,
 
-iniciar() {
+    caixaEsquiva: null,
 
-    console.log("RENDER DA BATALHA INICIADO");
+    menuAcoes: null,
 
+    opcaoAtiva: 0,
 
-    const arena =
-        document.getElementById("arena");
+    teclasIniciadas: false,
 
 
-    if (!arena) {
+    // =====================================================
+    // INICIAR
+    // =====================================================
 
-        console.error("Arena não encontrada.");
-        return;
+    iniciar() {
 
-    }
-
-
-    arena.style.display = "block";
-
-
-    // =========================
-    // TAMANHO DA TELA
-    // =========================
-
-    arena.style.width =
-        "100vw";
-
-    arena.style.height =
-        "100vh";
-
-    arena.style.overflow =
-        "auto";
-
-
-    // =========================
-    // MAPA DA IGREJA
-    // =========================
-
-    arena.style.backgroundImage =
-        'url("assets/imagens/igreja.png")';
-
-    arena.style.backgroundSize =
-        "100% 100%";
-
-    arena.style.backgroundPosition =
-        "center center";
-
-    arena.style.backgroundRepeat =
-        "no-repeat";
-
-    arena.style.imageRendering =
-        "pixelated";
-
-
-    // =========================
-    // HTML DA ARENA
-    // =========================
-
-    arena.innerHTML = `
-
-        <img
-            id="mascara"
-            src="${Mascara.sprite}"
-            draggable="false"
-        >
-
-        <img
-            id="jogador"
-            src="${Batalha.jogador.sprite}"
-            draggable="false"
-        >
-
-        <div id="hp">
-
-            HP:
-
-            <span id="vidaJogador">
-                ${Batalha.jogador.hp}
-            </span>
-
-            /
-
-            ${Batalha.jogador.hpMax}
-
-        </div>
-
-
-        <div id="hpMascara">
-
-            MÁSCARA:
-
-            <span id="vidaMascara">
-                ${Mascara.hp}
-            </span>
-
-            /
-
-            ${Mascara.hpMax}
-
-        </div>
-
-
-        <div id="faseMascara">
-
-            FASE ${Mascara.fase}
-
-        </div>
-
-
-        <div id="controleMobile">
-
-            <button id="botaoAtaque">
-                🩸
-            </button>
-
-        </div>
-
-    `;
-
-
-    // =========================
-    // PEGAR ELEMENTOS
-    // =========================
-
-    this.mascara =
-        document.getElementById("mascara");
-
-
-    this.jogador =
-        document.getElementById("jogador");
-
-
-    this.hp =
-        document.getElementById("vidaJogador");
-
-
-    this.hpMascara =
-        document.getElementById("vidaMascara");
-
-
-    this.faseMascara =
-        document.getElementById("faseMascara");
-
-
-    this.spriteMascara =
-        Mascara.sprite;
-
-
-    this.spriteJogador =
-        Batalha.jogador.sprite;
-
-
-    // =========================
-    // BOTÃO DE ATAQUE
-    // =========================
-
-    const botao =
-        document.getElementById("botaoAtaque");
-
-
-    if (botao) {
-
-        botao.addEventListener(
-            "touchstart",
-            e => {
-
-                e.preventDefault();
-
-                Movimento.atacar();
-
-            }
+        console.log(
+            "BATALHA RENDER INICIADO"
         );
 
 
-        botao.addEventListener(
-            "mousedown",
-            e => {
-
-                e.preventDefault();
-
-                Movimento.atacar();
-
-            }
-        );
-
-    }
-
-
-    this.atualizar();
-
-},
-
-
-// =========================
-// ATUALIZAR
-// =========================
-
-atualizar() {
-
-    const arena =
-        document.getElementById("arena");
-
-
-    if (!arena)
-        return;
-
-
-    const mobile =
-        /Android|iPhone|iPad|iPod/i
-            .test(navigator.userAgent);
-
-
-    // =========================
-    // CÂMERA
-    // =========================
-
-    if (!mobile) {
-
-        const cameraX =
-            Math.max(
-
-                0,
-
-                Math.min(
-
-                    Batalha.jogador.x -
-                    window.innerWidth / 2,
-
-                    Math.max(
-                        0,
-                        CenarioMascara.largura -
-                        window.innerWidth
-                    )
-
-                )
-
+        this.arena =
+            document.getElementById(
+                "arena"
             );
 
 
-        const cameraY =
-            Math.max(
+        if (!this.arena) {
 
-                0,
-
-                Math.min(
-
-                    Batalha.jogador.y -
-                    window.innerHeight / 2,
-
-                    Math.max(
-                        0,
-                        CenarioMascara.altura -
-                        window.innerHeight
-                    )
-
-                )
-
+            console.error(
+                "Arena não encontrada."
             );
 
-
-        arena.scrollLeft =
-            cameraX;
-
-
-        arena.scrollTop =
-            cameraY;
-
-    }
-
-
-    // =========================
-    // MÁSCARA
-    // =========================
-
-    if (this.mascara) {
-
-
-        if (
-            this.spriteMascara !==
-            Mascara.sprite
-        ) {
-
-            this.spriteMascara =
-                Mascara.sprite;
-
-
-            this.mascara.src =
-                Mascara.sprite;
+            return;
 
         }
 
 
-        this.mascara.style.position =
+        // =================================================
+        // LIMPAR ARENA
+        // =================================================
+
+        this.arena.innerHTML = "";
+
+
+        // =================================================
+        // CRIAR JOGADOR
+        // =================================================
+
+        this.criarJogador();
+
+
+        // =================================================
+        // CRIAR MÁSCARA
+        // =================================================
+
+        this.criarMascara();
+
+
+        // =================================================
+        // CRIAR MENU
+        // =================================================
+
+        this.criarMenuAcoes();
+
+
+        // =================================================
+        // CRIAR CAIXA DE ESQUIVA
+        // =================================================
+
+        this.criarCaixaEsquiva();
+
+
+        // =================================================
+        // TECLADO
+        // =================================================
+
+        this.iniciarTeclado();
+
+
+        // =================================================
+        // MOSTRAR MENU
+        // =================================================
+
+        this.mostrarMenuAcoes();
+
+
+        // =================================================
+        // ATUALIZAR
+        // =================================================
+
+        this.atualizar();
+
+    },
+
+
+    // =====================================================
+    // CRIAR JOGADOR
+    // =====================================================
+
+    criarJogador() {
+
+        this.jogadorElemento =
+            document.createElement(
+                "img"
+            );
+
+
+        this.jogadorElemento.id =
+            "jogador";
+
+
+        this.jogadorElemento.src =
+            Batalha.jogador.sprite;
+
+
+        this.jogadorElemento.style.position =
             "absolute";
 
 
-        this.mascara.style.left =
-            Mascara.x + "px";
+        this.jogadorElemento.style.width =
+            (
+                CenarioMascara.jogador.largura ||
+                70
+            ) + "px";
 
 
-        this.mascara.style.top =
-            Mascara.y + "px";
+        this.jogadorElemento.style.height =
+            (
+                CenarioMascara.jogador.altura ||
+                70
+            ) + "px";
 
 
-        this.mascara.style.width =
-            CenarioMascara.mascara.largura +
-            "px";
-
-
-        this.mascara.style.height =
-            CenarioMascara.mascara.altura +
-            "px";
-
-
-        this.mascara.style.imageRendering =
+        this.jogadorElemento.style.imageRendering =
             "pixelated";
 
 
-        this.mascara.style.zIndex =
+        this.jogadorElemento.style.zIndex =
+            "15";
+
+
+        // =================================================
+        // RA NA ESQUERDA
+        // =================================================
+
+        Batalha.jogador.x =
+            180;
+
+        Batalha.jogador.y =
+            350;
+
+
+        this.arena.appendChild(
+            this.jogadorElemento
+        );
+
+    },
+
+
+    // =====================================================
+    // CRIAR MÁSCARA
+    // =====================================================
+
+    criarMascara() {
+
+        this.mascaraElemento =
+            document.createElement(
+                "img"
+            );
+
+
+        this.mascaraElemento.id =
+            "mascara";
+
+
+        this.mascaraElemento.src =
+            Mascara.sprite;
+
+
+        this.mascaraElemento.style.position =
+            "absolute";
+
+
+        this.mascaraElemento.style.width =
+            (
+                CenarioMascara.mascara.largura ||
+                90
+            ) + "px";
+
+
+        this.mascaraElemento.style.height =
+            (
+                CenarioMascara.mascara.altura ||
+                90
+            ) + "px";
+
+
+        this.mascaraElemento.style.imageRendering =
+            "pixelated";
+
+
+        this.mascaraElemento.style.zIndex =
             "10";
 
-    }
+
+        // =================================================
+        // MÁSCARA NA DIREITA
+        // =================================================
+
+        Mascara.x =
+            1050;
+
+        Mascara.y =
+            120;
 
 
-    // =========================
-    // JOGADOR
-    // =========================
+        this.arena.appendChild(
+            this.mascaraElemento
+        );
 
-    if (this.jogador) {
+    },
+
+
+    // =====================================================
+    // CRIAR MENU
+    // =====================================================
+
+    criarMenuAcoes() {
+
+        this.menuAcoes =
+            document.createElement(
+                "div"
+            );
+
+
+        this.menuAcoes.id =
+            "menuAcoes";
+
+
+        this.menuAcoes.innerHTML = `
+
+            <button
+                id="acaoAtacar"
+                class="acaoBatalha"
+            >
+                ATACAR
+            </button>
+
+            <button
+                id="acaoRitual"
+                class="acaoBatalha"
+            >
+                RITUAL
+            </button>
+
+        `;
+
+
+        // =================================================
+        // POSIÇÃO
+        // =================================================
+
+        this.menuAcoes.style.position =
+            "fixed";
+
+
+        this.menuAcoes.style.left =
+            "50%";
+
+
+        this.menuAcoes.style.bottom =
+            "35px";
+
+
+        this.menuAcoes.style.transform =
+            "translateX(-50%)";
+
+
+        this.menuAcoes.style.display =
+            "flex";
+
+
+        this.menuAcoes.style.gap =
+            "25px";
+
+
+        this.menuAcoes.style.zIndex =
+            "100";
+
+
+        // =================================================
+        // ESTILO DOS BOTÕES
+        // =================================================
+
+        const botoes =
+            this.menuAcoes.querySelectorAll(
+                ".acaoBatalha"
+            );
+
+
+        botoes.forEach(
+            (botao) => {
+
+                botao.style.width =
+                    "180px";
+
+
+                botao.style.height =
+                    "55px";
+
+
+                botao.style.background =
+                    "#111";
+
+
+                botao.style.border =
+                    "3px solid white";
+
+
+                botao.style.color =
+                    "white";
+
+
+                botao.style.fontSize =
+                    "22px";
+
+
+                botao.style.fontWeight =
+                    "bold";
+
+
+                botao.style.fontFamily =
+                    "Arial";
+
+
+                botao.style.cursor =
+                    "pointer";
+
+
+                botao.style.zIndex =
+                    "101";
+
+            }
+        );
+
+
+        // =================================================
+        // ADICIONAR MENU
+        // =================================================
+
+        this.arena.appendChild(
+            this.menuAcoes
+        );
+
+
+        // =================================================
+        // BOTÃO ATACAR
+        // =================================================
+
+        const atacar =
+            this.menuAcoes.querySelector(
+                "#acaoAtacar"
+            );
+
+
+        if (atacar) {
+
+            atacar.onclick = () => {
+
+                this.opcaoAtiva =
+                    0;
+
+                this.confirmarAcao();
+
+            };
+
+        }
+
+
+        // =================================================
+        // BOTÃO RITUAL
+        // =================================================
+
+        const ritual =
+            this.menuAcoes.querySelector(
+                "#acaoRitual"
+            );
+
+
+        if (ritual) {
+
+            ritual.onclick = () => {
+
+                this.opcaoAtiva =
+                    1;
+
+                this.confirmarAcao();
+
+            };
+
+        }
+
+    },
+
+
+    // =====================================================
+    // MOSTRAR MENU
+    // =====================================================
+
+    mostrarMenuAcoes() {
+
+        if (!this.menuAcoes)
+            return;
+
+
+        this.menuAcoes.style.display =
+            "flex";
+
+
+        this.menuAcoes.style.visibility =
+            "visible";
+
+
+        this.menuAcoes.style.opacity =
+            "1";
+
+
+        this.opcaoAtiva =
+            0;
+
+
+        this.atualizarSelecao();
+
+
+        console.log(
+            "MENU DE AÇÕES MOSTRADO"
+        );
+
+    },
+
+
+    // =====================================================
+    // ESCONDER MENU
+    // =====================================================
+
+    esconderMenuAcoes() {
+
+        if (!this.menuAcoes)
+            return;
+
+
+        this.menuAcoes.style.display =
+            "none";
+
+
+        console.log(
+            "MENU DE AÇÕES ESCONDIDO"
+        );
+
+    },
+
+
+    // =====================================================
+    // SELEÇÃO
+    // =====================================================
+
+    atualizarSelecao() {
+
+        if (!this.menuAcoes)
+            return;
+
+
+        const botoes =
+            this.menuAcoes.querySelectorAll(
+                ".acaoBatalha"
+            );
+
+
+        botoes.forEach(
+            (botao, indice) => {
+
+                if (
+                    indice ===
+                    this.opcaoAtiva
+                ) {
+
+                    botao.style.border =
+                        "3px solid #b000ff";
+
+
+                    botao.style.color =
+                        "#b000ff";
+
+
+                    botao.style.transform =
+                        "scale(1.08)";
+
+                }
+
+                else {
+
+                    botao.style.border =
+                        "3px solid white";
+
+
+                    botao.style.color =
+                        "white";
+
+
+                    botao.style.transform =
+                        "scale(1)";
+
+                }
+
+            }
+        );
+
+    },
+
+
+    // =====================================================
+    // CONFIRMAR AÇÃO
+    // =====================================================
+
+    confirmarAcao() {
+
+        if (!Batalha.ativa)
+            return;
 
 
         if (
-            this.spriteJogador !==
-            Batalha.jogador.sprite
+            Batalha.turno !==
+            "jogador"
+        )
+            return;
+
+
+        console.log(
+            "AÇÃO CONFIRMADA:",
+            this.opcaoAtiva
+        );
+
+
+        // =================================================
+        // ESCONDER MENU
+        // =================================================
+
+        this.esconderMenuAcoes();
+
+
+        // =================================================
+        // ATACAR
+        // =================================================
+
+        if (
+            this.opcaoAtiva ===
+            0
         ) {
 
-            this.spriteJogador =
-                Batalha.jogador.sprite;
-
-
-            this.jogador.src =
-                Batalha.jogador.sprite;
+            Batalha.escolherAcao(
+                "atacar"
+            );
 
         }
 
 
-        this.jogador.style.position =
-            "absolute";
-
-
-        this.jogador.style.imageRendering =
-            "pixelated";
-
-
-        this.jogador.style.left =
-            Batalha.jogador.x + "px";
-
-
-        this.jogador.style.top =
-            Batalha.jogador.y + "px";
-
-
-        this.jogador.style.zIndex =
-            "11";
-
-
-        // =========================
-        // TAMANHO DO JOGADOR
-        // =========================
-
-        if (Movimento.atacando) {
-
-            this.jogador.style.width =
-                (
-                    CenarioMascara.jogador.largura +
-                    40
-                ) + "px";
-
-
-            this.jogador.style.height =
-                (
-                    CenarioMascara.jogador.altura +
-                    40
-                ) + "px";
-
-        }
+        // =================================================
+        // RITUAL
+        // =================================================
 
         else {
 
-            this.jogador.style.width =
-                CenarioMascara.jogador.largura +
-                "px";
+            Batalha.escolherAcao(
+                "ritual"
+            );
+
+        }
+
+    },
 
 
-            this.jogador.style.height =
-                CenarioMascara.jogador.altura +
-                "px";
+    // =====================================================
+    // CRIAR CAIXA DE ESQUIVA
+    // =====================================================
+
+    criarCaixaEsquiva() {
+
+        this.caixaEsquiva =
+            document.createElement(
+                "div"
+            );
+
+
+        this.caixaEsquiva.id =
+            "caixaEsquiva";
+
+
+        // =================================================
+        // POSIÇÃO
+        // =================================================
+
+        this.caixaEsquiva.style.position =
+            "fixed";
+
+
+        this.caixaEsquiva.style.left =
+            "50%";
+
+
+        this.caixaEsquiva.style.top =
+            "50%";
+
+
+        this.caixaEsquiva.style.transform =
+            "translate(-50%, -50%)";
+
+
+        // =================================================
+        // TAMANHO
+        // =================================================
+
+        this.caixaEsquiva.style.width =
+            "500px";
+
+
+        this.caixaEsquiva.style.height =
+            "280px";
+
+
+        // =================================================
+        // VISUAL
+        // =================================================
+
+        this.caixaEsquiva.style.border =
+            "4px solid white";
+
+
+        this.caixaEsquiva.style.background =
+            "#000";
+
+
+        this.caixaEsquiva.style.boxSizing =
+            "border-box";
+
+
+        this.caixaEsquiva.style.zIndex =
+            "40";
+
+
+        this.caixaEsquiva.style.display =
+            "none";
+
+
+        this.caixaEsquiva.style.overflow =
+            "hidden";
+
+
+        // =================================================
+        // ADICIONAR
+        // =================================================
+
+        this.arena.appendChild(
+            this.caixaEsquiva
+        );
+
+    },
+
+
+    // =====================================================
+    // MOSTRAR CAIXA
+    // =====================================================
+
+    mostrarCaixaEsquiva() {
+
+        if (!this.caixaEsquiva)
+            return;
+
+
+        this.caixaEsquiva.style.display =
+            "block";
+
+
+        this.esconderMenuAcoes();
+
+
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
+
+            Coracao.iniciar();
 
         }
 
 
-        // =========================
-        // HP JOGADOR
-        // =========================
+        console.log(
+            "CAIXA DE ESQUIVA MOSTRADA"
+        );
 
-        if (this.hp) {
+    },
 
-            this.hp.textContent =
-                Batalha.jogador.hp;
+
+    // =====================================================
+    // ESCONDER CAIXA
+    // =====================================================
+
+    esconderCaixaEsquiva() {
+
+        if (!this.caixaEsquiva)
+            return;
+
+
+        this.caixaEsquiva.style.display =
+            "none";
+
+
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
+
+            Coracao.parar();
 
         }
 
 
-        // =========================
-        // HP MÁSCARA
-        // =========================
+        console.log(
+            "CAIXA DE ESQUIVA ESCONDIDA"
+        );
 
-        if (this.hpMascara) {
+    },
 
-            this.hpMascara.textContent =
-                Mascara.hp;
+
+    // =====================================================
+    // TECLADO
+    // =====================================================
+
+    iniciarTeclado() {
+
+        if (
+            this.teclasIniciadas
+        )
+            return;
+
+
+        this.teclasIniciadas =
+            true;
+
+
+        document.addEventListener(
+            "keydown",
+            (e) => {
+
+                if (
+                    !Batalha.ativa
+                )
+                    return;
+
+
+                if (
+                    Batalha.turno !==
+                    "jogador"
+                )
+                    return;
+
+
+                // =========================================
+                // ESQUERDA
+                // =========================================
+
+                if (
+                    e.key ===
+                    "ArrowLeft"
+                ) {
+
+                    e.preventDefault();
+
+
+                    this.opcaoAtiva =
+                        0;
+
+
+                    this.atualizarSelecao();
+
+                }
+
+
+                // =========================================
+                // DIREITA
+                // =========================================
+
+                else if (
+                    e.key ===
+                    "ArrowRight"
+                ) {
+
+                    e.preventDefault();
+
+
+                    this.opcaoAtiva =
+                        1;
+
+
+                    this.atualizarSelecao();
+
+                }
+
+
+                // =========================================
+                // ENTER
+                // =========================================
+
+                else if (
+                    e.key ===
+                    "Enter"
+                ) {
+
+                    e.preventDefault();
+
+
+                    this.confirmarAcao();
+
+                }
+
+
+                // =========================================
+                // Z
+                // =========================================
+
+                else if (
+                    e.key.toLowerCase() ===
+                    "z"
+                ) {
+
+                    e.preventDefault();
+
+
+                    this.confirmarAcao();
+
+                }
+
+            }
+        );
+
+    },
+
+
+    // =====================================================
+    // ATUALIZAR
+    // =====================================================
+
+    atualizar() {
+
+        if (!this.arena)
+            return;
+
+
+        // =================================================
+        // JOGADOR
+        // =================================================
+
+        if (
+            this.jogadorElemento
+        ) {
+
+            this.jogadorElemento.src =
+                Batalha.jogador.sprite;
+
+
+            this.jogadorElemento.style.left =
+                Batalha.jogador.x + "px";
+
+
+            this.jogadorElemento.style.top =
+                Batalha.jogador.y + "px";
 
         }
 
 
-        // =========================
-        // FASE
-        // =========================
+        // =================================================
+        // MÁSCARA
+        // =================================================
 
-        if (this.faseMascara) {
+        if (
+            this.mascaraElemento
+        ) {
 
-            this.faseMascara.textContent =
-                "FASE " +
-                Mascara.fase;
+            this.mascaraElemento.src =
+                Mascara.sprite;
+
+
+            this.mascaraElemento.style.left =
+                Mascara.x + "px";
+
+
+            this.mascaraElemento.style.top =
+                Mascara.y + "px";
 
         }
 
     }
-
-}
 
 };

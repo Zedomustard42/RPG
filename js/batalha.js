@@ -1,53 +1,99 @@
 const Batalha = {
 
+    // =====================================================
+    // ESTADO
+    // =====================================================
+
     ativa: false,
 
+    turno: "jogador",
 
-    // =========================
+    estado: "JOGADOR",
+
+    acaoEscolhida: null,
+
+    batalhaIniciada: false,
+
+    mudancaTurnoEmAndamento: false,
+
+
+    // =====================================================
     // RESETAR BATALHA
-    // =========================
+    // =====================================================
 
     resetar() {
 
-        this.jogador.x = 675;
-        this.jogador.y = 430;
+        this.ativa = false;
+
+        this.turno = "jogador";
+
+        this.estado = "JOGADOR";
+
+        this.acaoEscolhida = null;
+
+        this.batalhaIniciada = false;
+
+        this.mudancaTurnoEmAndamento = false;
+
+
+        // =================================================
+        // JOGADOR
+        // =================================================
+
+        this.jogador.x = 150;
+
+        this.jogador.y = 180;
 
         this.jogador.hp =
             this.jogador.hpMax;
 
+        this.jogador.direcao =
+            "frente";
+
+        this.jogador.sprite =
+            "assets/imagens/ra_frente.png";
+
+
+        // =================================================
+        // MÁSCARA
+        // =================================================
 
         Mascara.hp =
             Mascara.hpMax;
 
-
         Mascara.fase = 1;
 
+        Mascara.x = 1050;
 
-        Mascara.x = 675;
-        Mascara.y = 100;
-
+        Mascara.y = 120;
 
         Mascara.sprite =
             "assets/imagens/fase1.png";
 
 
-        this.ativa = false;
+        // =================================================
+        // ESCONDER ARENA
+        // =================================================
+
+        this.esconderArena();
 
     },
 
 
-    // =========================
+    // =====================================================
     // JOGADOR
-    // =========================
+    // =====================================================
 
     jogador: {
 
-        x: 675,
-        y: 430,
+        x: 150,
+
+        y: 180,
 
         velocidade: 5,
 
         hp: 20,
+
         hpMax: 20,
 
         dano: 15,
@@ -60,132 +106,297 @@ const Batalha = {
     },
 
 
-    // =========================
+    // =====================================================
     // INTRODUÇÃO
-    // =========================
+    // =====================================================
 
-    iniciarIntroducao(){
+    iniciarIntroducao() {
 
-    console.log("INTRODUÇÃO DA MÁSCARA");
+        console.log(
+            "INTRODUÇÃO DA MÁSCARA"
+        );
 
-    AudioManager.pararMusica();
-    AudioManager.tocarMusica("eramseismascaras");
 
-    const falas = [
+        AudioManager.pararMusica();
 
-        {
-            texto:"Interessante.",
-            audio:"Bruno1"
-        },
 
-        {
-            texto:"Você Sabia?",
-            audio:"Bruno2"
-        },
+        AudioManager.tocarMusica(
+            "eramseismascaras"
+        );
 
-        {
-            texto:"Você Imaginava?",
-            audio:"Bruno3"
-        },
 
-        {
-            texto:"Porque Veio Até Mim?",
-            audio:"Bruno4"
-        },
+        const falas = [
 
-        {
-            texto:"Curiosidade?",
-            audio:"Bruno5"
-        },
+            {
+                texto: "Interessante.",
+                audio: "Bruno1"
+            },
 
-        {
-            texto:"...",
-          
-        },
+            {
+                texto: "Você Sabia?",
+                audio: "Bruno2"
+            },
 
-        {
-            texto:"Excelente.",
-            audio:"Bruno6"
-        },
+            {
+                texto: "Você Imaginava?",
+                audio: "Bruno3"
+            },
 
-        {
-            texto:"Máscara. Sua Identidade Perdida.",
-            audio:"Bruno7"
-        },
+            {
+                texto: "Porque Veio Até Mim?",
+                audio: "Bruno4"
+            },
 
-        {
-            texto:"O Ritual Está Prestes À Começar.",
-            audio:"Bruno8"
-        },
+            {
+                texto: "Curiosidade?",
+                audio: "Bruno5"
+            },
 
-        {
-            texto:"Você Está Aqui. Você Sobreviveu.",
-            audio:"Bruno9"
-        },
+            {
+                texto: "..."
+            },
 
-        {
-            texto:"E É Hora De Pegar Sua Identidade De Volta.",
-            audio:"Bruno10"
-        },
-         {
-            
-            texto:"Vamos Começar o RITUAL.",
-            audio:"Bruno11"
-         },
-    ];
+            {
+                texto: "Excelente.",
+                audio: "Bruno6"
+            },
 
-    let atual = 0;
+            {
+                texto:
+                    "Máscara. Sua Identidade Perdida.",
+                audio: "Bruno7"
+            },
 
-    const continuar = (e)=>{
+            {
+                texto:
+                    "O Ritual Está Prestes À Começar.",
+                audio: "Bruno8"
+            },
 
-        if(e.key!=="Enter")
-            return;
+            {
+                texto:
+                    "Você Está Aqui. Você Sobreviveu.",
+                audio: "Bruno9"
+            },
 
-        if(atual>=falas.length){
+            {
+                texto:
+                    "E É Hora De Pegar Sua Identidade De Volta.",
+                audio: "Bruno10"
+            },
 
-            document.removeEventListener(
-                "keydown",
-                continuar
+            {
+                texto:
+                    "Vamos Começar o RITUAL.",
+                audio: "Bruno11"
+            }
+
+        ];
+
+
+        let atual = 0;
+
+
+        const continuar = (e) => {
+
+            if (
+                e.key !== "Enter"
+            )
+                return;
+
+
+            // =================================================
+            // TERMINOU INTRODUÇÃO
+            // =================================================
+
+            if (
+                atual >= falas.length
+            ) {
+
+                document.removeEventListener(
+                    "keydown",
+                    continuar
+                );
+
+
+                AudioManager.pararSom();
+
+                AudioManager.pararMusica();
+
+
+                this.iniciar();
+
+
+                return;
+
+            }
+
+
+            const fala =
+                falas[atual];
+
+
+            UI.texto(
+                "???",
+                fala.texto
             );
 
-            AudioManager.pararSom();
 
-            AudioManager.tocarMusica("mascaras");
+            if (
+                fala.audio
+            ) {
 
-            this.iniciar();
+                AudioManager.tocarFala(
+                    fala.audio
+                );
 
-            return;
+            }
+
+
+            atual++;
+
+        };
+
+
+        document.addEventListener(
+            "keydown",
+            continuar
+        );
+
+
+        continuar({
+            key: "Enter"
+        });
+
+    },
+
+
+    // =====================================================
+    // MOSTRAR ARENA
+    // =====================================================
+
+    mostrarArena() {
+
+        document.body.classList.add(
+            "batalhaAtiva"
+        );
+
+
+        const game =
+            document.getElementById(
+                "game"
+            );
+
+
+        if (game) {
+
+            game.style.display =
+                "none";
 
         }
 
-        const fala=falas[atual];
 
-        UI.texto(
-            "???",
-            fala.texto
+        const mobile =
+            document.getElementById(
+                "mobile"
+            );
+
+
+        if (mobile) {
+
+            mobile.style.display =
+                "none";
+
+        }
+
+
+        const arena =
+            document.getElementById(
+                "arena"
+            );
+
+
+        if (arena) {
+
+            arena.style.display =
+                "block";
+
+            arena.classList.add(
+                "batalhaAtiva"
+            );
+
+        }
+
+
+        console.log(
+            "ARENA DA BATALHA MOSTRADA"
         );
 
-        AudioManager.tocarFala(
-            fala.audio
+    },
+
+
+    // =====================================================
+    // ESCONDER ARENA
+    // =====================================================
+
+    esconderArena() {
+
+        document.body.classList.remove(
+            "batalhaAtiva"
         );
 
-        atual++;
 
-    };
-
-    document.addEventListener(
-        "keydown",
-        continuar
-    );
-
-    continuar({key:"Enter"});
-
-},
+        const game =
+            document.getElementById(
+                "game"
+            );
 
 
-    // =========================
+        if (game) {
+
+            game.style.display =
+                "";
+
+        }
+
+
+        const mobile =
+            document.getElementById(
+                "mobile"
+            );
+
+
+        if (mobile) {
+
+            mobile.style.display =
+                "";
+
+        }
+
+
+        const arena =
+            document.getElementById(
+                "arena"
+            );
+
+
+        if (arena) {
+
+            arena.style.display =
+                "none";
+
+            arena.classList.remove(
+                "batalhaAtiva"
+            );
+
+        }
+
+    },
+
+
+    // =====================================================
     // INICIAR BATALHA
-    // =========================
+    // =====================================================
 
     iniciar() {
 
@@ -196,17 +407,40 @@ const Batalha = {
 
         this.ativa = true;
 
+        this.batalhaIniciada = true;
 
-        // =========================
+        this.turno = "jogador";
+
+        this.estado = "JOGADOR";
+
+        this.acaoEscolhida = null;
+
+        this.mudancaTurnoEmAndamento =
+            false;
+
+
+        // =================================================
+        // MOSTRAR ARENA
+        // =================================================
+
+        this.mostrarArena();
+
+
+        // =================================================
         // JOGADOR
-        // =========================
+        // =================================================
 
         this.jogador.hp =
             this.jogador.hpMax;
 
 
-        this.jogador.x = 675;
-        this.jogador.y = 430;
+        // RA À ESQUERDA
+
+        this.jogador.x =
+            150;
+
+        this.jogador.y =
+            180;
 
 
         this.jogador.direcao =
@@ -217,28 +451,34 @@ const Batalha = {
             "assets/imagens/ra_frente.png";
 
 
-        // =========================
+        // =================================================
         // MÁSCARA
-        // =========================
+        // =================================================
 
         Mascara.hp =
             Mascara.hpMax;
 
 
-        Mascara.fase = 1;
+        Mascara.fase =
+            1;
 
 
-        Mascara.x = 675;
-        Mascara.y = 100;
+        // MÁSCARA À DIREITA
+
+        Mascara.x =
+            1050;
+
+        Mascara.y =
+            120;
 
 
         Mascara.sprite =
             "assets/imagens/fase1.png";
 
 
-        // =========================
+        // =================================================
         // MÚSICA
-        // =========================
+        // =================================================
 
         AudioManager.pararMusica();
 
@@ -248,87 +488,123 @@ const Batalha = {
         );
 
 
-        // =========================
-        // MOVIMENTO
-        // =========================
+        // =================================================
+        // PARAR CORAÇÃO
+        // =================================================
 
-        Movimento.iniciar();
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
 
-
-        // =========================
-        // RENDER
-        // =========================
-
-        BatalhaRender.iniciar();
-
-
-        // =========================
-        // CÂMERA
-        // =========================
-
-        const arena =
-            document.getElementById("arena");
-
-
-        if (arena) {
-
-            arena.scrollLeft =
-                this.jogador.x -
-                window.innerWidth / 2;
-
-
-            arena.scrollTop =
-                this.jogador.y -
-                window.innerHeight / 2;
+            Coracao.parar();
 
         }
 
 
-        // =========================
+        // =================================================
+        // RESETAR ATAQUE DA MÁSCARA
+        // =================================================
+
+        if (
+            typeof AtaqueMascara !==
+            "undefined"
+        ) {
+
+            if (
+                typeof AtaqueMascara.finalizar ===
+                "function"
+            ) {
+
+                AtaqueMascara.finalizar();
+
+            }
+
+            AtaqueMascara.ativo =
+                false;
+
+            AtaqueMascara.atirando =
+                false;
+
+        }
+
+
+        // =================================================
+        // RENDER
+        // =================================================
+
+        if (
+            typeof BatalhaRender !==
+            "undefined"
+        ) {
+
+            BatalhaRender.iniciar();
+
+        }
+
+
+        // =================================================
         // LOOP
-        // =========================
+        // =================================================
 
         this.loop();
 
 
-        // =========================
-        // BOTÃO DE ATAQUE
-        // =========================
+        // =================================================
+        // MOSTRAR MENU
+        // =================================================
 
-        const ataque =
-            document.getElementById("btnAtaque");
+        setTimeout(() => {
 
-
-        if (ataque) {
-
-            ataque.onclick = () => {
-
-                this.atacar();
-
-            };
-
-        }
+            if (
+                !this.ativa
+            )
+                return;
 
 
-        if (
-            typeof BatalhaMobile !==
-            "undefined"
-        ) {
+            this.turno =
+                "jogador";
 
-            // Sistema mobile
 
-        }
+            this.estado =
+                "JOGADOR";
+
+
+            if (
+                typeof BatalhaRender !==
+                "undefined"
+            ) {
+
+                if (
+                    typeof BatalhaRender.mostrarMenuAcoes ===
+                    "function"
+                ) {
+
+                    BatalhaRender.mostrarMenuAcoes();
+
+                }
+
+            }
+
+        }, 100);
+
+
+        console.log(
+            "TURNO DO JOGADOR"
+        );
 
     },
 
 
-    // =========================
+    // =====================================================
     // LOOP
-    // =========================
+    // =====================================================
 
     loop() {
 
-        if (!this.ativa)
+        if (
+            !this.ativa
+        )
             return;
 
 
@@ -336,26 +612,77 @@ const Batalha = {
 
 
         requestAnimationFrame(
-            () => this.loop()
+            () =>
+                this.loop()
         );
 
     },
 
 
-    // =========================
+    // =====================================================
     // ATUALIZAR
-    // =========================
+    // =====================================================
 
     atualizar() {
 
-        Movimento.atualizar();
+        if (
+            !this.ativa
+        )
+            return;
 
+
+        // =================================================
+        // TURNO DO JOGADOR
+        // =================================================
+
+        if (
+            this.turno ===
+            "jogador"
+        ) {
+
+            // O menu controla a ação.
+
+        }
+
+
+        // =================================================
+        // TURNO DA MÁSCARA
+        // =================================================
+
+        else if (
+            this.turno ===
+            "mascara"
+        ) {
+
+            if (
+                this.estado ===
+                "ESQUIVA"
+            ) {
+
+                if (
+                    typeof Coracao !==
+                    "undefined"
+                ) {
+
+                    Coracao.atualizar();
+
+                }
+
+            }
+
+        }
+
+
+        // =================================================
+        // FASE
+        // =================================================
 
         this.atualizarFase();
 
 
-        this.movimentoMascara();
-
+        // =================================================
+        // RENDER
+        // =================================================
 
         if (
             typeof BatalhaRender !==
@@ -369,19 +696,516 @@ const Batalha = {
     },
 
 
-    // =========================
-    // FASES
-    // =========================
+    // =====================================================
+    // ESCOLHER AÇÃO
+    // =====================================================
+
+    escolherAcao(acao) {
+
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        if (
+            this.turno !==
+            "jogador"
+        )
+            return;
+
+
+        if (
+            this.estado !==
+            "JOGADOR"
+        )
+            return;
+
+
+        if (
+            acao !== "atacar" &&
+            acao !== "ritual"
+        )
+            return;
+
+
+        this.acaoEscolhida =
+            acao;
+
+
+        console.log(
+            "AÇÃO ESCOLHIDA:",
+            acao
+        );
+
+
+        // =================================================
+        // ESCONDER MENU
+        // =================================================
+
+        if (
+            typeof BatalhaRender !==
+            "undefined"
+        ) {
+
+            if (
+                typeof BatalhaRender.esconderMenuAcoes ===
+                "function"
+            ) {
+
+                BatalhaRender.esconderMenuAcoes();
+
+            }
+
+        }
+
+
+        // =================================================
+        // ATACAR
+        // =================================================
+
+        if (
+            acao ===
+            "atacar"
+        ) {
+
+            this.executarAtaque();
+
+        }
+
+
+        // =================================================
+        // RITUAL
+        // =================================================
+
+        else if (
+            acao ===
+            "ritual"
+        ) {
+
+            this.executarRitual();
+
+        }
+
+    },
+
+
+    // =====================================================
+    // ATAQUE DO JOGADOR
+    // =====================================================
+
+    executarAtaque() {
+
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        console.log(
+            "RA ATACOU A MÁSCARA"
+        );
+
+
+        this.danoMascara(
+            this.jogador.dano
+        );
+
+
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        this.iniciarTurnoMascara();
+
+    },
+
+
+    // =====================================================
+    // RITUAL DO JOGADOR
+    // =====================================================
+
+    executarRitual() {
+
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        console.log(
+            "RA USOU RITUAL"
+        );
+
+
+        this.danoMascara(
+            10
+        );
+
+
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        this.iniciarTurnoMascara();
+
+    },
+
+
+    // =====================================================
+    // TURNO DA MÁSCARA
+    // =====================================================
+
+    iniciarTurnoMascara() {
+
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        if (
+            this.mudancaTurnoEmAndamento
+        )
+            return;
+
+
+        this.mudancaTurnoEmAndamento =
+            true;
+
+
+        this.turno =
+            "mascara";
+
+
+        this.estado =
+            "ESQUIVA";
+
+
+        console.log(
+            "TURNO DA MÁSCARA"
+        );
+
+
+        // =================================================
+        // ESCONDER MENU
+        // =================================================
+
+        if (
+            typeof BatalhaRender !==
+            "undefined"
+        ) {
+
+            if (
+                typeof BatalhaRender.esconderMenuAcoes ===
+                "function"
+            ) {
+
+                BatalhaRender.esconderMenuAcoes();
+
+            }
+
+
+            if (
+                typeof BatalhaRender.mostrarCaixaEsquiva ===
+                "function"
+            ) {
+
+                BatalhaRender.mostrarCaixaEsquiva();
+
+            }
+
+        }
+
+
+        // =================================================
+        // INICIAR CORAÇÃO
+        // =================================================
+
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
+
+            Coracao.iniciar();
+
+        }
+
+
+        // =================================================
+        // ATAQUE DA MÁSCARA
+        // =================================================
+
+        setTimeout(() => {
+
+            if (
+                !this.ativa
+            )
+                return;
+
+
+            if (
+                this.turno !==
+                "mascara"
+            )
+                return;
+
+
+            if (
+                this.estado !==
+                "ESQUIVA"
+            )
+                return;
+
+
+            if (
+                typeof AtaqueMascara ===
+                "undefined"
+            ) {
+
+                console.error(
+                    "AtaqueMascara não encontrado."
+                );
+
+                this.terminarTurnoMascara();
+
+                return;
+
+            }
+
+
+            console.log(
+                "MÁSCARA VAI ESCOLHER UM ATAQUE"
+            );
+
+
+            // =================================================
+            // IMPORTANTE:
+            // O seu AtaqueMascara possui
+            // escolherAtaque(), e não executar().
+            // =================================================
+
+            if (
+                typeof AtaqueMascara.escolherAtaque ===
+                "function"
+            ) {
+
+                AtaqueMascara.escolherAtaque();
+
+            }
+
+            else {
+
+                // Compatibilidade caso queira
+                // chamar diretamente.
+
+                if (
+                    Math.random() < 0.5
+                ) {
+
+                    AtaqueMascara.executarRitual();
+
+                }
+
+                else {
+
+                    AtaqueMascara.executarArma();
+
+                }
+
+            }
+
+        }, 700);
+
+    },
+
+
+    // =====================================================
+    // TERMINAR TURNO DA MÁSCARA
+    // =====================================================
+
+    terminarTurnoMascara() {
+
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        if (
+            this.mudancaTurnoEmAndamento ===
+            false
+        ) {
+
+            // Pode continuar normalmente.
+
+        }
+
+
+        console.log(
+            "TURNO DA MÁSCARA TERMINOU"
+        );
+
+
+        // =================================================
+        // PARAR ATAQUES
+        // =================================================
+
+        if (
+            typeof AtaqueMascara !==
+            "undefined"
+        ) {
+
+            AtaqueMascara.ativo =
+                false;
+
+            AtaqueMascara.atirando =
+                false;
+
+        }
+
+
+        // =================================================
+        // PARAR CORAÇÃO
+        // =================================================
+
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
+
+            Coracao.parar();
+
+        }
+
+
+        // =================================================
+        // ESCONDER CAIXA
+        // =================================================
+
+        if (
+            typeof BatalhaRender !==
+            "undefined"
+        ) {
+
+            if (
+                typeof BatalhaRender.esconderCaixaEsquiva ===
+                "function"
+            ) {
+
+                BatalhaRender.esconderCaixaEsquiva();
+
+            }
+
+        }
+
+
+        // =================================================
+        // VOLTAR PARA JOGADOR
+        // =================================================
+
+        this.turno =
+            "jogador";
+
+
+        this.estado =
+            "JOGADOR";
+
+
+        this.acaoEscolhida =
+            null;
+
+
+        this.mudancaTurnoEmAndamento =
+            false;
+
+
+        console.log(
+            "NOVO ROUND - TURNO DO JOGADOR"
+        );
+
+
+        // =================================================
+        // MOSTRAR MENU NOVAMENTE
+        // =================================================
+
+        setTimeout(() => {
+
+            if (
+                !this.ativa
+            )
+                return;
+
+
+            if (
+                this.turno !==
+                "jogador"
+            )
+                return;
+
+
+            if (
+                typeof BatalhaRender !==
+                "undefined"
+            ) {
+
+                if (
+                    typeof BatalhaRender.mostrarMenuAcoes ===
+                    "function"
+                ) {
+
+                    BatalhaRender.mostrarMenuAcoes();
+
+                }
+
+            }
+
+        }, 300);
+
+    },
+
+
+    // =====================================================
+    // ALIAS
+    // =====================================================
+
+    terminarEsquiva() {
+
+        this.terminarTurnoMascara();
+
+    },
+
+
+    // =====================================================
+    // FASES DA MÁSCARA
+    // =====================================================
 
     atualizarFase() {
 
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        // =================================================
         // FASE 4
+        // =================================================
 
-        if (Mascara.hp <= 120) {
+        if (
+            Mascara.hp <= 120
+        ) {
 
-            if (Mascara.fase !== 4) {
+            if (
+                Mascara.fase !== 4
+            ) {
 
-                Mascara.fase = 4;
+                Mascara.fase =
+                    4;
 
 
                 Mascara.sprite =
@@ -397,13 +1221,20 @@ const Batalha = {
         }
 
 
+        // =================================================
         // FASE 3
+        // =================================================
 
-        else if (Mascara.hp <= 200) {
+        else if (
+            Mascara.hp <= 200
+        ) {
 
-            if (Mascara.fase !== 3) {
+            if (
+                Mascara.fase !== 3
+            ) {
 
-                Mascara.fase = 3;
+                Mascara.fase =
+                    3;
 
 
                 Mascara.sprite =
@@ -419,13 +1250,20 @@ const Batalha = {
         }
 
 
+        // =================================================
         // FASE 2
+        // =================================================
 
-        else if (Mascara.hp <= 300) {
+        else if (
+            Mascara.hp <= 300
+        ) {
 
-            if (Mascara.fase !== 2) {
+            if (
+                Mascara.fase !== 2
+            ) {
 
-                Mascara.fase = 2;
+                Mascara.fase =
+                    2;
 
 
                 Mascara.sprite =
@@ -443,13 +1281,15 @@ const Batalha = {
     },
 
 
-    // =========================
-    // MOVIMENTO DA MÁSCARA
-    // =========================
+    // =====================================================
+    // MOVIMENTO ANTIGO DA MÁSCARA
+    // =====================================================
 
     movimentoMascara() {
 
-        if (!Mascara.flutuando)
+        if (
+            !Mascara.flutuando
+        )
             return;
 
 
@@ -463,10 +1303,6 @@ const Batalha = {
             Mascara.velocidade;
 
 
-        // =========================
-        // LIMITES HORIZONTAIS
-        // =========================
-
         if (
             Mascara.x <= 100 ||
             Mascara.x >=
@@ -478,10 +1314,6 @@ const Batalha = {
         }
 
 
-        // =========================
-        // LIMITES VERTICAIS
-        // =========================
-
         if (
             Mascara.y <= 80 ||
             Mascara.y >= 300
@@ -492,10 +1324,6 @@ const Batalha = {
         }
 
 
-        // =========================
-        // MOVIMENTO FANTASMA
-        // =========================
-
         Mascara.y +=
             Math.sin(
                 Date.now() / 300
@@ -504,13 +1332,20 @@ const Batalha = {
     },
 
 
-    // =========================
+    // =====================================================
     // DANO NO JOGADOR
-    // =========================
+    // =====================================================
 
     danoJogador(valor) {
 
-        this.jogador.hp -= valor;
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        this.jogador.hp -=
+            valor;
 
 
         console.log(
@@ -523,7 +1358,8 @@ const Batalha = {
             this.jogador.hp <= 0
         ) {
 
-            this.jogador.hp = 0;
+            this.jogador.hp =
+                0;
 
 
             this.derrota();
@@ -533,13 +1369,20 @@ const Batalha = {
     },
 
 
-    // =========================
+    // =====================================================
     // DANO NA MÁSCARA
-    // =========================
+    // =====================================================
 
     danoMascara(valor) {
 
-        Mascara.hp -= valor;
+        if (
+            !this.ativa
+        )
+            return;
+
+
+        Mascara.hp -=
+            valor;
 
 
         console.log(
@@ -552,7 +1395,8 @@ const Batalha = {
             Mascara.hp <= 0
         ) {
 
-            Mascara.hp = 0;
+            Mascara.hp =
+                0;
 
 
             this.vitoria();
@@ -562,9 +1406,9 @@ const Batalha = {
     },
 
 
-    // =========================
+    // =====================================================
     // DERROTA
-    // =========================
+    // =====================================================
 
     derrota() {
 
@@ -573,17 +1417,84 @@ const Batalha = {
         );
 
 
-        this.ativa = false;
+        this.ativa =
+            false;
 
 
-        GameOver.iniciar();
+        this.estado =
+            "FIM";
+
+
+        // =================================================
+        // PARAR ATAQUE
+        // =================================================
+
+        if (
+            typeof AtaqueMascara !==
+            "undefined"
+        ) {
+
+            if (
+                typeof AtaqueMascara.finalizarArma ===
+                "function"
+            ) {
+
+                AtaqueMascara.finalizarArma();
+
+            }
+
+            else if (
+                typeof AtaqueMascara.finalizar ===
+                "function"
+            ) {
+
+                AtaqueMascara.finalizar();
+
+            }
+
+        }
+
+
+        // =================================================
+        // PARAR CORAÇÃO
+        // =================================================
+
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
+
+            Coracao.remover();
+
+        }
+
+
+        // =================================================
+        // ESCONDER ARENA
+        // =================================================
+
+        this.esconderArena();
+
+
+        // =================================================
+        // GAME OVER
+        // =================================================
+
+        if (
+            typeof GameOver !==
+            "undefined"
+        ) {
+
+            GameOver.iniciar();
+
+        }
 
     },
 
 
-    // =========================
+    // =====================================================
     // VITÓRIA
-    // =========================
+    // =====================================================
 
     vitoria() {
 
@@ -592,24 +1503,102 @@ const Batalha = {
         );
 
 
-        this.ativa = false;
+        this.ativa =
+            false;
 
+
+        this.estado =
+            "FIM";
+
+
+        // =================================================
+        // PARAR ATAQUE
+        // =================================================
+
+        if (
+            typeof AtaqueMascara !==
+            "undefined"
+        ) {
+
+            if (
+                typeof AtaqueMascara.finalizarArma ===
+                "function"
+            ) {
+
+                AtaqueMascara.finalizarArma();
+
+            }
+
+            else if (
+                typeof AtaqueMascara.finalizar ===
+                "function"
+            ) {
+
+                AtaqueMascara.finalizar();
+
+            }
+
+        }
+
+
+        // =================================================
+        // PARAR CORAÇÃO
+        // =================================================
+
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
+
+            Coracao.remover();
+
+        }
+
+
+        // =================================================
+        // MENSAGEM
+        // =================================================
 
         const arena =
-            document.getElementById("arena");
+            document.getElementById(
+                "arena"
+            );
 
 
         if (arena) {
 
             arena.innerHTML = `
 
-                <h1>
+                <div
+                    style="
+                        position:absolute;
+                        left:50%;
+                        top:50%;
+                        transform:translate(-50%,-50%);
+                        color:white;
+                        font-size:32px;
+                        font-weight:bold;
+                        text-align:center;
+                        text-shadow:2px 2px #000;
+                    "
+                >
                     A máscara caiu.
-                </h1>
+                </div>
 
             `;
 
         }
+
+
+        // =================================================
+        // ESPERAR
+        // =================================================
+
+        setTimeout(() => {
+
+            this.esconderArena();
+
+        }, 3000);
 
     }
 

@@ -4,50 +4,56 @@
 
 <head>
 
-```
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<title>O Segredo nas Montanhas</title>
+    <title>O Segredo nas Montanhas</title>
 
+    <meta name="viewport"
+          content="width=device-width,
+                   initial-scale=1,
+                   maximum-scale=1,
+                   user-scalable=no,
+                   viewport-fit=cover">
 
-<meta name="viewport"
-      content="width=device-width,
-               initial-scale=1,
-               maximum-scale=1,
-               user-scalable=no,
-               viewport-fit=cover">
+    <meta name="theme-color"
+          content="#000000">
 
+    <link rel="manifest"
+          href="manifest.json">
 
-<meta name="theme-color" content="#000000">
+    <link rel="icon"
+          type="image/png"
+          href="assets/icon.png">
 
-
-<link rel="manifest" href="manifest.json">
-
-<link rel="icon"
-      type="image/png"
-      href="assets/icon.png">
-
-<link rel="apple-touch-icon"
-      href="assets/icon.png">
+    <link rel="apple-touch-icon"
+          href="assets/icon.png">
 
 
-<!-- CSS -->
+    <!-- =========================
+         CSS
+    ========================== -->
 
-<link rel="stylesheet"
-      href="css/style.css">
+    <link rel="stylesheet"
+          href="css/style.css">
 
-<link rel="stylesheet"
-      href="css/batalha.css">
+    <link rel="stylesheet"
+          href="css/batalha.css">
 
-<link rel="stylesheet"
-      href="css/mobile.css">
-```
+    <link rel="stylesheet"
+          href="css/mobile.css">
 
 </head>
 
+
 <body>
 
+
+<!-- =========================
+     JOGO PRINCIPAL
+========================= -->
+
 <div id="game"></div>
+
 
 <!-- =========================
      CONTROLE MOBILE
@@ -55,29 +61,39 @@
 
 <div id="mobile">
 
-```
-<button id="btnLeft">◀</button>
+    <button id="btnLeft">
+        ◀
+    </button>
 
-<button id="btnDown">▼</button>
+    <button id="btnDown">
+        ▼
+    </button>
 
-<button id="btnUp">▲</button>
+    <button id="btnUp">
+        ▲
+    </button>
 
-<button id="btnRight">▶</button>
+    <button id="btnRight">
+        ▶
+    </button>
 
-<button id="btnOk">●</button>
+    <button id="btnOk">
+        ●
+    </button>
 
-<button id="btnAtaque">🩸</button>
-```
+    <button id="btnAtaque">
+        🩸
+    </button>
 
 </div>
+
 
 <!-- =========================
      ARENA DA BATALHA
 ========================= -->
 
-<div id="arena"
-     style="display:none;">
-</div>
+<div id="arena"></div>
+
 
 <!-- =========================
      CONFIG
@@ -87,6 +103,7 @@
 
 <script src="js/fullscreen.js"></script>
 
+
 <!-- =========================
      BANCO
 ========================= -->
@@ -95,12 +112,15 @@
 
 <script src="js/nome.js"></script>
 
+
 <!-- =========================
      CENAS
 ========================= -->
 
 <script src="js/scene/introducao.js"></script>
+
 <script src="js/scene/perguntas.js"></script>
+
 
 <!-- =========================
      SISTEMAS PRINCIPAIS
@@ -114,6 +134,7 @@
 
 <script src="js/input.js"></script>
 
+
 <!-- =========================
      JOGADOR
 ========================= -->
@@ -123,25 +144,40 @@
 <script src="js/perdido.js"></script>
 
 <script src="js/scene/boneco.js"></script>
+
+
 <!-- =========================
-     BATALHA
+     MÁSCARA
 ========================= -->
 
 <script src="js/mascara.js"></script>
 
 <script src="js/gameover.js"></script>
 
-<!-- CENÁRIO DA BATALHA -->
+
+<!-- =========================
+     CENÁRIO DA BATALHA
+========================= -->
 
 <script src="js/cenarioMascara.js"></script>
+
+
+<!-- =========================
+     SISTEMAS DE BATALHA
+========================= -->
 
 <script src="js/movimento.js"></script>
 
 <script src="js/batalhaMobile.js"></script>
 
+<script src="js/coracao.js"></script>
+
+<script src="js/ataqueMascara.js"></script>
+
 <script src="js/batalhaRender.js"></script>
 
 <script src="js/batalha.js"></script>
+
 
 <!-- =========================
      MOBILE
@@ -151,17 +187,20 @@
 
 <script src="js/teclado.js"></script>
 
+
 <!-- =========================
      ENGINE
 ========================= -->
 
 <script src="js/engine.js"></script>
 
+
 <!-- =========================
      START
 ========================= -->
 
 <script src="js/script.js"></script>
+
 
 </body>
 
