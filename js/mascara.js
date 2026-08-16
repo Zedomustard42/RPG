@@ -1,9 +1,9 @@
 const Mascara = {
 
 
-    hp:400,
+    hp:2367,
 
-    hpMax:400,
+    hpMax:2367,
 
 
     fase:1,
