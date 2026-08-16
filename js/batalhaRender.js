@@ -1,22 +1,6 @@
 const BatalhaRender = {
 
-    // =====================================================
-    // ELEMENTOS
-    // =====================================================
-
-    arena: null,
-
-    jogadorElemento: null,
-
-    mascaraElemento: null,
-
-    caixaEsquiva: null,
-
-    menuAcoes: null,
-
-    opcaoAtiva: 0,
-
-    teclasIniciadas: false,
+    elementos: {},
 
 
     // =====================================================
@@ -25,21 +9,16 @@ const BatalhaRender = {
 
     iniciar() {
 
-        console.log(
-            "BATALHA RENDER INICIADO"
-        );
-
-
-        this.arena =
+        const arena =
             document.getElementById(
                 "arena"
             );
 
 
-        if (!this.arena) {
+        if(!arena){
 
             console.error(
-                "Arena não encontrada."
+                "ARENA NÃO ENCONTRADA"
             );
 
             return;
@@ -47,809 +26,271 @@ const BatalhaRender = {
         }
 
 
-        // =================================================
-        // LIMPAR ARENA
-        // =================================================
+        arena.style.display =
+            "block";
 
-        this.arena.innerHTML = "";
 
+        arena.innerHTML = `
 
-        // =================================================
-        // CRIAR JOGADOR
-        // =================================================
+            <div id="batalha">
 
-        this.criarJogador();
+                <!-- ======================================
+                     CAMPO
+                ======================================= -->
 
+                <div id="campoBatalha">
 
-        // =================================================
-        // CRIAR MÁSCARA
-        // =================================================
+                    <div
+                        id="personagemAsh"
+                        class="spriteBatalha"
+                    >
 
-        this.criarMascara();
+                        <img
+                            draggable="false"
+                            alt=""
+                        >
 
+                    </div>
 
-        // =================================================
-        // CRIAR MENU
-        // =================================================
 
-        this.criarMenuAcoes();
+                    <div
+                        id="personagemSpike"
+                        class="spriteBatalha"
+                    >
 
+                        <img
+                            draggable="false"
+                            alt=""
+                        >
 
-        // =================================================
-        // CRIAR CAIXA DE ESQUIVA
-        // =================================================
+                    </div>
 
-        this.criarCaixaEsquiva();
 
+                    <div
+                        id="personagemManel"
+                        class="spriteBatalha"
+                    >
 
-        // =================================================
-        // TECLADO
-        // =================================================
+                        <img
+                            draggable="false"
+                            alt=""
+                        >
 
-        this.iniciarTeclado();
+                    </div>
 
+                </div>
 
-        // =================================================
-        // MOSTRAR MENU
-        // =================================================
 
-        this.mostrarMenuAcoes();
+                <!-- ======================================
+                     HUD
+                ======================================= -->
 
+                <div id="hudBatalha">
 
-        // =================================================
-        // ATUALIZAR
-        // =================================================
+                    <div id="cabecas">
 
-        this.atualizar();
+                        <button
+                            class="cabecaPersonagem"
+                            data-personagem="ash"
+                        >
 
-    },
+                            <img
+                                src="assets/imagens/batalha_imagens/cabeças/ash_cabeça.png"
+                                draggable="false"
+                                alt=""
+                            >
 
+                            <div class="nomeCabeca">
+                                ASH
+                            </div>
 
-    // =====================================================
-    // CRIAR JOGADOR
-    // =====================================================
+                            <div class="hpCabeca">
 
-    criarJogador() {
+                                <span
+                                    id="hpAsh"
+                                >
+                                    140
+                                </span>
 
-        this.jogadorElemento =
-            document.createElement(
-                "img"
-            );
+                                / 140
 
+                            </div>
 
-        this.jogadorElemento.id =
-            "jogador";
+                        </button>
 
 
-        this.jogadorElemento.src =
-            Batalha.jogador.sprite;
+                        <button
+                            class="cabecaPersonagem"
+                            data-personagem="spike"
+                        >
 
+                            <img
+                                src="assets/imagens/batalha_imagens/cabeças/ovo_cabeça.png"
+                                draggable="false"
+                                alt=""
+                            >
 
-        this.jogadorElemento.style.position =
-            "absolute";
+                            <div class="nomeCabeca">
+                                SPIKE
+                            </div>
 
+                            <div class="hpCabeca">
 
-        this.jogadorElemento.style.width =
-            (
-                CenarioMascara.jogador.largura ||
-                70
-            ) + "px";
+                                <span
+                                    id="hpSpike"
+                                >
+                                    100
+                                </span>
 
+                                / 100
 
-        this.jogadorElemento.style.height =
-            (
-                CenarioMascara.jogador.altura ||
-                70
-            ) + "px";
+                            </div>
 
+                        </button>
 
-        this.jogadorElemento.style.imageRendering =
-            "pixelated";
 
+                        <button
+                            class="cabecaPersonagem"
+                            data-personagem="manel"
+                        >
 
-        this.jogadorElemento.style.zIndex =
-            "15";
+                            <img
+                                src="assets/imagens/batalha_imagens/cabeças/manel_cabeça.png"
+                                draggable="false"
+                                alt=""
+                            >
 
+                            <div class="nomeCabeca">
+                                MANEL
+                            </div>
 
-        // =================================================
-        // RA NA ESQUERDA
-        // =================================================
+                            <div class="hpCabeca">
 
-        Batalha.jogador.x =
-            180;
+                                <span
+                                    id="hpManel"
+                                >
+                                    190
+                                </span>
 
-        Batalha.jogador.y =
-            350;
+                                / 190
 
+                            </div>
 
-        this.arena.appendChild(
-            this.jogadorElemento
-        );
+                        </button>
 
-    },
+                    </div>
 
 
-    // =====================================================
-    // CRIAR MÁSCARA
-    // =====================================================
+                    <!-- ==================================
+                         COMANDOS
+                    =================================== -->
 
-    criarMascara() {
+                    <div id="comandosBatalha">
 
-        this.mascaraElemento =
-            document.createElement(
-                "img"
-            );
+                        <div
+                            id="tituloComando"
+                        >
+                            Manel
+                        </div>
 
 
-        this.mascaraElemento.id =
-            "mascara";
+                        <div
+                            id="listaComandos"
+                        ></div>
 
+                    </div>
 
-        this.mascaraElemento.src =
-            Mascara.sprite;
+                </div>
 
-
-        this.mascaraElemento.style.position =
-            "absolute";
-
-
-        this.mascaraElemento.style.width =
-            (
-                CenarioMascara.mascara.largura ||
-                90
-            ) + "px";
-
-
-        this.mascaraElemento.style.height =
-            (
-                CenarioMascara.mascara.altura ||
-                90
-            ) + "px";
-
-
-        this.mascaraElemento.style.imageRendering =
-            "pixelated";
-
-
-        this.mascaraElemento.style.zIndex =
-            "10";
-
-
-        // =================================================
-        // MÁSCARA NA DIREITA
-        // =================================================
-
-        Mascara.x =
-            1050;
-
-        Mascara.y =
-            120;
-
-
-        this.arena.appendChild(
-            this.mascaraElemento
-        );
-
-    },
-
-
-    // =====================================================
-    // CRIAR MENU
-    // =====================================================
-
-    criarMenuAcoes() {
-
-        this.menuAcoes =
-            document.createElement(
-                "div"
-            );
-
-
-        this.menuAcoes.id =
-            "menuAcoes";
-
-
-        this.menuAcoes.innerHTML = `
-
-            <button
-                id="acaoAtacar"
-                class="acaoBatalha"
-            >
-                ATACAR
-            </button>
-
-            <button
-                id="acaoRitual"
-                class="acaoBatalha"
-            >
-                RITUAL
-            </button>
+            </div>
 
         `;
 
 
-        // =================================================
-        // POSIÇÃO
-        // =================================================
-
-        this.menuAcoes.style.position =
-            "fixed";
+        this.elementos.arena =
+            arena;
 
 
-        this.menuAcoes.style.left =
-            "50%";
+        this.elementos.batalha =
+            document.getElementById(
+                "batalha"
+            );
 
 
-        this.menuAcoes.style.bottom =
-            "35px";
+        this.elementos.ash =
+            document.querySelector(
+                "#personagemAsh img"
+            );
 
 
-        this.menuAcoes.style.transform =
-            "translateX(-50%)";
+        this.elementos.spike =
+            document.querySelector(
+                "#personagemSpike img"
+            );
 
 
-        this.menuAcoes.style.display =
-            "flex";
+        this.elementos.manel =
+            document.querySelector(
+                "#personagemManel img"
+            );
 
 
-        this.menuAcoes.style.gap =
-            "25px";
+        this.elementos.hpAsh =
+            document.getElementById(
+                "hpAsh"
+            );
 
 
-        this.menuAcoes.style.zIndex =
-            "100";
+        this.elementos.hpSpike =
+            document.getElementById(
+                "hpSpike"
+            );
 
 
-        // =================================================
-        // ESTILO DOS BOTÕES
-        // =================================================
+        this.elementos.hpManel =
+            document.getElementById(
+                "hpManel"
+            );
+
+
+        this.configurarCabecas();
+
+        this.atualizar();
+
+        Batalha.loop();
+
+    },
+
+
+    // =====================================================
+    // CABEÇAS
+    // =====================================================
+
+    configurarCabecas() {
 
         const botoes =
-            this.menuAcoes.querySelectorAll(
-                ".acaoBatalha"
+            document.querySelectorAll(
+                ".cabecaPersonagem"
             );
 
 
         botoes.forEach(
-            (botao) => {
+            botao => {
 
-                botao.style.width =
-                    "180px";
+                botao.addEventListener(
+                    "click",
+                    () => {
 
+                        const personagem =
+                            botao.dataset.personagem;
 
-                botao.style.height =
-                    "55px";
 
+                        Batalha.selecionarPersonagem(
+                            personagem
+                        );
 
-                botao.style.background =
-                    "#111";
-
-
-                botao.style.border =
-                    "3px solid white";
-
-
-                botao.style.color =
-                    "white";
-
-
-                botao.style.fontSize =
-                    "22px";
-
-
-                botao.style.fontWeight =
-                    "bold";
-
-
-                botao.style.fontFamily =
-                    "Arial";
-
-
-                botao.style.cursor =
-                    "pointer";
-
-
-                botao.style.zIndex =
-                    "101";
-
-            }
-        );
-
-
-        // =================================================
-        // ADICIONAR MENU
-        // =================================================
-
-        this.arena.appendChild(
-            this.menuAcoes
-        );
-
-
-        // =================================================
-        // BOTÃO ATACAR
-        // =================================================
-
-        const atacar =
-            this.menuAcoes.querySelector(
-                "#acaoAtacar"
-            );
-
-
-        if (atacar) {
-
-            atacar.onclick = () => {
-
-                this.opcaoAtiva =
-                    0;
-
-                this.confirmarAcao();
-
-            };
-
-        }
-
-
-        // =================================================
-        // BOTÃO RITUAL
-        // =================================================
-
-        const ritual =
-            this.menuAcoes.querySelector(
-                "#acaoRitual"
-            );
-
-
-        if (ritual) {
-
-            ritual.onclick = () => {
-
-                this.opcaoAtiva =
-                    1;
-
-                this.confirmarAcao();
-
-            };
-
-        }
-
-    },
-
-
-    // =====================================================
-    // MOSTRAR MENU
-    // =====================================================
-
-    mostrarMenuAcoes() {
-
-        if (!this.menuAcoes)
-            return;
-
-
-        this.menuAcoes.style.display =
-            "flex";
-
-
-        this.menuAcoes.style.visibility =
-            "visible";
-
-
-        this.menuAcoes.style.opacity =
-            "1";
-
-
-        this.opcaoAtiva =
-            0;
-
-
-        this.atualizarSelecao();
-
-
-        console.log(
-            "MENU DE AÇÕES MOSTRADO"
-        );
-
-    },
-
-
-    // =====================================================
-    // ESCONDER MENU
-    // =====================================================
-
-    esconderMenuAcoes() {
-
-        if (!this.menuAcoes)
-            return;
-
-
-        this.menuAcoes.style.display =
-            "none";
-
-
-        console.log(
-            "MENU DE AÇÕES ESCONDIDO"
-        );
-
-    },
-
-
-    // =====================================================
-    // SELEÇÃO
-    // =====================================================
-
-    atualizarSelecao() {
-
-        if (!this.menuAcoes)
-            return;
-
-
-        const botoes =
-            this.menuAcoes.querySelectorAll(
-                ".acaoBatalha"
-            );
-
-
-        botoes.forEach(
-            (botao, indice) => {
-
-                if (
-                    indice ===
-                    this.opcaoAtiva
-                ) {
-
-                    botao.style.border =
-                        "3px solid #b000ff";
-
-
-                    botao.style.color =
-                        "#b000ff";
-
-
-                    botao.style.transform =
-                        "scale(1.08)";
-
-                }
-
-                else {
-
-                    botao.style.border =
-                        "3px solid white";
-
-
-                    botao.style.color =
-                        "white";
-
-
-                    botao.style.transform =
-                        "scale(1)";
-
-                }
-
-            }
-        );
-
-    },
-
-
-    // =====================================================
-    // CONFIRMAR AÇÃO
-    // =====================================================
-
-    confirmarAcao() {
-
-        if (!Batalha.ativa)
-            return;
-
-
-        if (
-            Batalha.turno !==
-            "jogador"
-        )
-            return;
-
-
-        console.log(
-            "AÇÃO CONFIRMADA:",
-            this.opcaoAtiva
-        );
-
-
-        // =================================================
-        // ESCONDER MENU
-        // =================================================
-
-        this.esconderMenuAcoes();
-
-
-        // =================================================
-        // ATACAR
-        // =================================================
-
-        if (
-            this.opcaoAtiva ===
-            0
-        ) {
-
-            Batalha.escolherAcao(
-                "atacar"
-            );
-
-        }
-
-
-        // =================================================
-        // RITUAL
-        // =================================================
-
-        else {
-
-            Batalha.escolherAcao(
-                "ritual"
-            );
-
-        }
-
-    },
-
-
-    // =====================================================
-    // CRIAR CAIXA DE ESQUIVA
-    // =====================================================
-
-    criarCaixaEsquiva() {
-
-        this.caixaEsquiva =
-            document.createElement(
-                "div"
-            );
-
-
-        this.caixaEsquiva.id =
-            "caixaEsquiva";
-
-
-        // =================================================
-        // POSIÇÃO
-        // =================================================
-
-        this.caixaEsquiva.style.position =
-            "fixed";
-
-
-        this.caixaEsquiva.style.left =
-            "50%";
-
-
-        this.caixaEsquiva.style.top =
-            "50%";
-
-
-        this.caixaEsquiva.style.transform =
-            "translate(-50%, -50%)";
-
-
-        // =================================================
-        // TAMANHO
-        // =================================================
-
-        this.caixaEsquiva.style.width =
-            "500px";
-
-
-        this.caixaEsquiva.style.height =
-            "280px";
-
-
-        // =================================================
-        // VISUAL
-        // =================================================
-
-        this.caixaEsquiva.style.border =
-            "4px solid white";
-
-
-        this.caixaEsquiva.style.background =
-            "#000";
-
-
-        this.caixaEsquiva.style.boxSizing =
-            "border-box";
-
-
-        this.caixaEsquiva.style.zIndex =
-            "40";
-
-
-        this.caixaEsquiva.style.display =
-            "none";
-
-
-        this.caixaEsquiva.style.overflow =
-            "hidden";
-
-
-        // =================================================
-        // ADICIONAR
-        // =================================================
-
-        this.arena.appendChild(
-            this.caixaEsquiva
-        );
-
-    },
-
-
-    // =====================================================
-    // MOSTRAR CAIXA
-    // =====================================================
-
-    mostrarCaixaEsquiva() {
-
-        if (!this.caixaEsquiva)
-            return;
-
-
-        this.caixaEsquiva.style.display =
-            "block";
-
-
-        this.esconderMenuAcoes();
-
-
-        if (
-            typeof Coracao !==
-            "undefined"
-        ) {
-
-            Coracao.iniciar();
-
-        }
-
-
-        console.log(
-            "CAIXA DE ESQUIVA MOSTRADA"
-        );
-
-    },
-
-
-    // =====================================================
-    // ESCONDER CAIXA
-    // =====================================================
-
-    esconderCaixaEsquiva() {
-
-        if (!this.caixaEsquiva)
-            return;
-
-
-        this.caixaEsquiva.style.display =
-            "none";
-
-
-        if (
-            typeof Coracao !==
-            "undefined"
-        ) {
-
-            Coracao.parar();
-
-        }
-
-
-        console.log(
-            "CAIXA DE ESQUIVA ESCONDIDA"
-        );
-
-    },
-
-
-    // =====================================================
-    // TECLADO
-    // =====================================================
-
-    iniciarTeclado() {
-
-        if (
-            this.teclasIniciadas
-        )
-            return;
-
-
-        this.teclasIniciadas =
-            true;
-
-
-        document.addEventListener(
-            "keydown",
-            (e) => {
-
-                if (
-                    !Batalha.ativa
-                )
-                    return;
-
-
-                if (
-                    Batalha.turno !==
-                    "jogador"
-                )
-                    return;
-
-
-                // =========================================
-                // ESQUERDA
-                // =========================================
-
-                if (
-                    e.key ===
-                    "ArrowLeft"
-                ) {
-
-                    e.preventDefault();
-
-
-                    this.opcaoAtiva =
-                        0;
-
-
-                    this.atualizarSelecao();
-
-                }
-
-
-                // =========================================
-                // DIREITA
-                // =========================================
-
-                else if (
-                    e.key ===
-                    "ArrowRight"
-                ) {
-
-                    e.preventDefault();
-
-
-                    this.opcaoAtiva =
-                        1;
-
-
-                    this.atualizarSelecao();
-
-                }
-
-
-                // =========================================
-                // ENTER
-                // =========================================
-
-                else if (
-                    e.key ===
-                    "Enter"
-                ) {
-
-                    e.preventDefault();
-
-
-                    this.confirmarAcao();
-
-                }
-
-
-                // =========================================
-                // Z
-                // =========================================
-
-                else if (
-                    e.key.toLowerCase() ===
-                    "z"
-                ) {
-
-                    e.preventDefault();
-
-
-                    this.confirmarAcao();
-
-                }
+                    }
+                );
 
             }
         );
@@ -863,52 +304,209 @@ const BatalhaRender = {
 
     atualizar() {
 
-        if (!this.arena)
+        if(!Batalha.ativa)
             return;
 
 
-        // =================================================
-        // JOGADOR
-        // =================================================
+        this.atualizarSprites();
 
-        if (
-            this.jogadorElemento
-        ) {
+        this.atualizarHP();
 
-            this.jogadorElemento.src =
-                Batalha.jogador.sprite;
+        this.atualizarMenu();
 
+        this.atualizarSelecao();
 
-            this.jogadorElemento.style.left =
-                Batalha.jogador.x + "px";
+    },
 
 
-            this.jogadorElemento.style.top =
-                Batalha.jogador.y + "px";
+    // =====================================================
+    // SPRITES
+    // =====================================================
+
+    atualizarSprites() {
+
+        const ash =
+            Batalha.personagens.ash;
+
+        const spike =
+            Batalha.personagens.spike;
+
+        const manel =
+            Batalha.personagens.manel;
+
+
+        if(this.elementos.ash){
+
+            this.elementos.ash.src =
+                ash.spriteAtual;
+
+        }
+
+
+        if(this.elementos.spike){
+
+            this.elementos.spike.src =
+                spike.spriteAtual;
 
         }
 
 
-        // =================================================
-        // MÁSCARA
-        // =================================================
+        if(this.elementos.manel){
 
-        if (
-            this.mascaraElemento
-        ) {
-
-            this.mascaraElemento.src =
-                Mascara.sprite;
-
-
-            this.mascaraElemento.style.left =
-                Mascara.x + "px";
-
-
-            this.mascaraElemento.style.top =
-                Mascara.y + "px";
+            this.elementos.manel.src =
+                manel.spriteAtual;
 
         }
+
+    },
+
+
+    // =====================================================
+    // HP
+    // =====================================================
+
+    atualizarHP() {
+
+        if(this.elementos.hpAsh){
+
+            this.elementos.hpAsh.textContent =
+                Batalha.personagens.ash.hp;
+
+        }
+
+
+        if(this.elementos.hpSpike){
+
+            this.elementos.hpSpike.textContent =
+                Batalha.personagens.spike.hp;
+
+        }
+
+
+        if(this.elementos.hpManel){
+
+            this.elementos.hpManel.textContent =
+                Batalha.personagens.manel.hp;
+
+        }
+
+    },
+
+
+    // =====================================================
+    // MENU
+    // =====================================================
+
+    atualizarMenu() {
+
+        const lista =
+            document.getElementById(
+                "listaComandos"
+            );
+
+
+        const titulo =
+            document.getElementById(
+                "tituloComando"
+            );
+
+
+        if(!lista || !titulo)
+            return;
+
+
+        const personagem =
+            Batalha.personagens[
+                Batalha.personagemSelecionado
+            ];
+
+
+        if(!personagem)
+            return;
+
+
+        titulo.textContent =
+            personagem.nome;
+
+
+        lista.innerHTML = "";
+
+
+        personagem.acoes.forEach(
+            acao => {
+
+                const botao =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                botao.className =
+                    "botaoComando";
+
+
+                botao.textContent =
+                    acao;
+
+
+                botao.addEventListener(
+                    "click",
+                    () => {
+
+                        Batalha.executarAcao(
+                            acao
+                        );
+
+                    }
+                );
+
+
+                lista.appendChild(
+                    botao
+                );
+
+            }
+        );
+
+    },
+
+
+    // =====================================================
+    // SELEÇÃO
+    // =====================================================
+
+    atualizarSelecao() {
+
+        const botoes =
+            document.querySelectorAll(
+                ".cabecaPersonagem"
+            );
+
+
+        botoes.forEach(
+            botao => {
+
+                if(
+                    botao.dataset.personagem ===
+                    Batalha.personagemSelecionado
+                ){
+
+                    botao.classList.add(
+                        "selecionado"
+                    );
+
+                }
+
+                else{
+
+                    botao.classList.remove(
+                        "selecionado"
+                    );
+
+                }
+
+            }
+        );
 
     }
 
