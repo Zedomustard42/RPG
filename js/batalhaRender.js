@@ -1,15 +1,29 @@
 const BatalhaRender = {
 
     // =====================================================
+    // ORDEM FIXA
+    // =====================================================
+
+    ordemPersonagens: [
+        "ash",
+        "spike",
+        "manel"
+    ],
+
+
+    // =====================================================
     // ELEMENTOS
     // =====================================================
 
     arena: null,
     campo: null,
+    camadaRastrosMascara: null,
+
     interfaceBatalha: null,
     cabecas: null,
     comandos: null,
     tituloComando: null,
+
     caixaEsquiva: null,
 
     ataqueMinigame: null,
@@ -17,41 +31,50 @@ const BatalhaRender = {
     zonaCentroAtaque: null,
     ataqueAnimacao: null,
 
+    // =====================================================
+    // MENU
+    // =====================================================
+
+    menuModo: "acao",
+    menuIndice: 0,
+    menuDados: [],
+    menuCallback: null,
+    menuVoltar: true,
+
+    personagemSelecionado: "ash",
+
+    mensagemAtiva: false,
 
     // =====================================================
     // ATAQUE
     // =====================================================
 
     ataqueAtivo: false,
+    ataqueResolvido: false,
 
     ataquePersonagem: null,
 
     ataqueMin: 0,
-
     ataqueMax: 0,
 
     ataquePosicao: 0,
+    ataqueVelocidade: 8,
 
-    ataqueDirecao: 1,
+    // =====================================================
+    // MÁSCARA
+    // =====================================================
 
-    ataqueVelocidade: 5,
+    animacaoMascaraAtiva: false,
+    animacaoMascaraFrame: null,
+    tempoMascara: 0,
 
+    tamanhoMascara: 280,
 
     // =====================================================
     // TECLADO
     // =====================================================
 
     teclasIniciadas: false,
-
-
-    // =====================================================
-    // SELEÇÃO
-    // =====================================================
-
-    personagemSelecionado: "ash",
-
-    comandoSelecionado: 0,
-
 
     // =====================================================
     // PERSONAGENS
@@ -64,6 +87,8 @@ const BatalhaRender = {
             nome: "ASH",
 
             hpMax: 140,
+
+            corHP: "#d80000",
 
             spriteInicial:
                 "assets/imagens/batalha_imagens/ash/ash_lado.png",
@@ -96,6 +121,8 @@ const BatalhaRender = {
 
             hpMax: 100,
 
+            corHP: "#ffd400",
+
             spriteInicial:
                 "assets/imagens/batalha_imagens/spike/spike_lado.png",
 
@@ -124,6 +151,8 @@ const BatalhaRender = {
 
             hpMax: 190,
 
+            corHP: "#ffffff",
+
             spriteInicial:
                 "assets/imagens/batalha_imagens/manel/manel_lado.png",
 
@@ -137,6 +166,9 @@ const BatalhaRender = {
 
                 defender:
                     "assets/imagens/batalha_imagens/manel/manel_defesa.png",
+
+                ritual:
+                    "assets/imagens/batalha_imagens/manel/manel_ritual.png",
 
                 agir:
                     "assets/imagens/batalha_imagens/manel/manel_ritual.png"
@@ -155,15 +187,55 @@ const BatalhaRender = {
     pegarPersonagem(id) {
 
         if (
-            typeof Batalha ===
-            "undefined"
-        ) {
-
+            typeof Batalha === "undefined"
+        )
             return null;
+
+        return Batalha[id] || null;
+
+    },
+
+
+    // =====================================================
+    // LIMPAR
+    // =====================================================
+
+    limpar() {
+
+        if (this.ataqueAnimacao) {
+
+            cancelAnimationFrame(
+                this.ataqueAnimacao
+            );
 
         }
 
-        return Batalha[id] || null;
+        this.ataqueAnimacao = null;
+
+        if (this.animacaoMascaraFrame) {
+
+            cancelAnimationFrame(
+                this.animacaoMascaraFrame
+            );
+
+        }
+
+        this.animacaoMascaraFrame = null;
+
+        this.animacaoMascaraAtiva = false;
+
+        this.ataqueAtivo = false;
+        this.ataqueResolvido = false;
+
+        this.mensagemAtiva = false;
+
+        this.tempoMascara = 0;
+
+        if (this.arena) {
+
+            this.arena.innerHTML = "";
+
+        }
 
     },
 
@@ -178,10 +250,10 @@ const BatalhaRender = {
             "BATALHA RENDER INICIADO"
         );
 
-
         this.arena =
-            document.getElementById("arena");
-
+            document.getElementById(
+                "arena"
+            );
 
         if (!this.arena) {
 
@@ -193,131 +265,1096 @@ const BatalhaRender = {
 
         }
 
-
-        // =================================================
-        // LIMPAR ANIMAÇÃO ANTIGA
-        // =================================================
-
-        if (
-            this.ataqueAnimacao
-        ) {
-
-            cancelAnimationFrame(
-                this.ataqueAnimacao
-            );
-
-            this.ataqueAnimacao =
-                null;
-
-        }
-
-
-        // =================================================
-        // LIMPAR ARENA
-        // =================================================
-
-        this.arena.innerHTML = "";
-
-
-        this.campo =
-            null;
-
-        this.interfaceBatalha =
-            null;
-
-        this.cabecas =
-            null;
-
-        this.comandos =
-            null;
-
-        this.tituloComando =
-            null;
-
-        this.caixaEsquiva =
-            null;
-
-        this.ataqueMinigame =
-            null;
-
-        this.ponteiroAtaque =
-            null;
-
-        this.zonaCentroAtaque =
-            null;
-
-
-        this.ataqueAtivo =
-            false;
-
-        this.ataquePersonagem =
-            null;
-
-        this.ataquePosicao =
-            0;
-
-        this.ataqueDirecao =
-            1;
-
+        this.limpar();
 
         this.personagemSelecionado =
             "ash";
 
-        this.comandoSelecionado =
+        this.menuModo =
+            "acao";
+
+        this.menuIndice =
             0;
 
+        this.menuDados =
+            [];
 
-        // =================================================
-        // CRIAÇÃO
-        // =================================================
+        this.menuCallback =
+            null;
+
+        this.menuVoltar =
+            true;
+
+        this.injetarEstilo();
 
         this.criarCampo();
 
-        this.criarPersonagem(
-            "ash"
-        );
-
-        this.criarPersonagem(
-            "spike"
-        );
-
-        this.criarPersonagem(
-            "manel"
-        );
+        this.criarPersonagem("ash");
+        this.criarPersonagem("spike");
+        this.criarPersonagem("manel");
 
         this.criarMascara();
 
-        this.criarInterface();
-
         this.criarCaixaEsquiva();
+
+        this.criarInterface();
 
         this.criarMinigameAtaque();
 
-
-        // =================================================
-        // TECLADO
-        // =================================================
-
         this.iniciarTeclado();
-
-
-        // =================================================
-        // ESTADO INICIAL
-        // =================================================
 
         this.resetarSprites();
 
-
-        this.selecionarPersonagem(
-            "ash"
-        );
-
-
-        this.atualizar();
-
+        this.atualizarCabecas();
 
         console.log(
             "BATALHA RENDER PRONTO"
+        );
+
+    },
+
+
+    // =====================================================
+    // ESTILO
+    // =====================================================
+
+    injetarEstilo() {
+
+        const antigo =
+            document.getElementById(
+                "batalhaRenderStyle"
+            );
+
+        if (antigo)
+            antigo.remove();
+
+
+        const style =
+            document.createElement(
+                "style"
+            );
+
+        style.id =
+            "batalhaRenderStyle";
+
+
+        style.textContent = `
+
+            @font-face {
+
+                font-family:
+                    "Determination";
+
+                src:
+                    url("../assets/fonts/determination.ttf");
+
+            }
+
+
+            #arena {
+
+                position:
+                    relative !important;
+
+                width:
+                    100vw !important;
+
+                height:
+                    100vh !important;
+
+                min-width:
+                    100vw !important;
+
+                min-height:
+                    100vh !important;
+
+                max-width:
+                    none !important;
+
+                max-height:
+                    none !important;
+
+                margin:
+                    0 !important;
+
+                padding:
+                    0 !important;
+
+                overflow:
+                    hidden;
+
+                background:
+                    #000;
+
+                color:
+                    #fff;
+
+                box-sizing:
+                    border-box;
+
+                font-family:
+                    "Determination",
+                    monospace;
+
+            }
+
+
+            #arena,
+            #arena * {
+
+                font-family:
+                    "Determination",
+                    monospace;
+
+            }
+
+
+            /* ==========================================
+               CAMPO
+            ========================================== */
+
+            #campoBatalha {
+
+                position:
+                    absolute;
+
+                inset:
+                    0;
+
+                width:
+                    100%;
+
+                height:
+                    100%;
+
+                overflow:
+                    hidden;
+
+                z-index:
+                    1;
+
+            }
+
+
+            /* ==========================================
+               CAMADA DOS RASTROS
+               SEMPRE ATRÁS DA MÁSCARA
+            ========================================== */
+
+            #camadaRastrosMascara {
+
+                position:
+                    absolute;
+
+                inset:
+                    0;
+
+                width:
+                    100%;
+
+                height:
+                    100%;
+
+                pointer-events:
+                    none;
+
+                overflow:
+                    hidden;
+
+                z-index:
+                    5;
+
+            }
+
+
+            .rastroMascara {
+
+                position:
+                    absolute !important;
+
+                width:
+                    280px !important;
+
+                height:
+                    280px !important;
+
+                object-fit:
+                    contain;
+
+                image-rendering:
+                    pixelated;
+
+                pointer-events:
+                    none;
+
+                user-select:
+                    none;
+
+                -webkit-user-drag:
+                    none;
+
+                opacity:
+                    0.20;
+
+                z-index:
+                    5 !important;
+
+            }
+
+
+            /* ==========================================
+               PERSONAGENS
+            ========================================== */
+
+            .personagemBatalha {
+
+                position:
+                    absolute;
+
+                width:
+                    190px;
+
+                height:
+                    190px;
+
+                display:
+                    flex;
+
+                align-items:
+                    flex-end;
+
+                justify-content:
+                    center;
+
+                pointer-events:
+                    none;
+
+                z-index:
+                    10;
+
+            }
+
+
+            #personagem_ash {
+
+                left:
+                    100px;
+
+                top:
+                    70px;
+
+            }
+
+
+            #personagem_spike {
+
+                left:
+                    100px;
+
+                top:
+                    265px;
+
+            }
+
+
+            #personagem_manel {
+
+                left:
+                    100px;
+
+                top:
+                    460px;
+
+            }
+
+
+            .spritePersonagem {
+
+                width:
+                    190px;
+
+                height:
+                    190px;
+
+                object-fit:
+                    contain;
+
+                display:
+                    block;
+
+                image-rendering:
+                    pixelated;
+
+                user-select:
+                    none;
+
+                -webkit-user-drag:
+                    none;
+
+            }
+
+
+            /* ==========================================
+               MÁSCARA PRINCIPAL
+               MESMO TAMANHO DO RASTRO
+            ========================================== */
+
+            #mascaraBatalha {
+
+                position:
+                    absolute !important;
+
+                right:
+                    90px !important;
+
+                top:
+                    120px !important;
+
+                width:
+                    280px !important;
+
+                height:
+                    280px !important;
+
+                object-fit:
+                    contain;
+
+                image-rendering:
+                    pixelated;
+
+                user-select:
+                    none;
+
+                pointer-events:
+                    none;
+
+                z-index:
+                    50 !important;
+
+                will-change:
+                    transform;
+
+            }
+
+
+            /* ==========================================
+               STATUS
+            ========================================== */
+
+            #statusBatalha {
+
+                position:
+                    absolute;
+
+                left:
+                    30px;
+
+                right:
+                    30px;
+
+                bottom:
+                    185px;
+
+                height:
+                    130px;
+
+                z-index:
+                    200;
+
+                pointer-events:
+                    none;
+
+            }
+
+
+            #cabecasBatalha {
+
+                position:
+                    absolute;
+
+                left:
+                    0;
+
+                right:
+                    0;
+
+                top:
+                    0;
+
+                height:
+                    94px;
+
+                display:
+                    flex;
+
+                gap:
+                    12px;
+
+                z-index:
+                    2;
+
+            }
+
+
+            .cabecaPersonagem {
+
+                flex:
+                    1;
+
+                height:
+                    94px;
+
+                display:
+                    flex;
+
+                align-items:
+                    center;
+
+                gap:
+                    10px;
+
+                padding:
+                    8px;
+
+                background:
+                    #050505;
+
+                color:
+                    #fff;
+
+                border:
+                    3px solid #fff;
+
+                box-sizing:
+                    border-box;
+
+            }
+
+
+            .cabecaPersonagem.feito {
+
+                opacity:
+                    .45;
+
+            }
+
+
+            .cabecaPersonagem.morto {
+
+                opacity:
+                    .25;
+
+            }
+
+
+            .cabecaPersonagem img {
+
+                width:
+                    62px;
+
+                height:
+                    62px;
+
+                object-fit:
+                    contain;
+
+                image-rendering:
+                    pixelated;
+
+                flex:
+                    0 0 62px;
+
+            }
+
+
+            .status-info {
+
+                flex:
+                    1;
+
+                min-width:
+                    0;
+
+            }
+
+
+            .status-nome {
+
+                font-size:
+                    22px;
+
+                margin-bottom:
+                    5px;
+
+            }
+
+
+            .hp-linha {
+
+                display:
+                    flex;
+
+                align-items:
+                    center;
+
+                gap:
+                    7px;
+
+            }
+
+
+            .hp-label {
+
+                font-size:
+                    18px;
+
+            }
+
+
+            .hp-trilho {
+
+                flex:
+                    1;
+
+                height:
+                    18px;
+
+                background:
+                    #000;
+
+                border:
+                    2px solid #fff;
+
+                overflow:
+                    hidden;
+
+            }
+
+
+            .hp-fill {
+
+                height:
+                    100%;
+
+                width:
+                    100%;
+
+                transition:
+                    width .2s linear;
+
+            }
+
+
+            .hp-valor {
+
+                width:
+                    44px;
+
+                font-size:
+                    18px;
+
+                text-align:
+                    right;
+
+            }
+
+
+            /* ==========================================
+               PE
+            ========================================== */
+
+            #statusBatalha .pe-trilho {
+
+                position:
+                    absolute;
+
+                left:
+                    0;
+
+                right:
+                    0;
+
+                bottom:
+                    0;
+
+                height:
+                    24px;
+
+                background:
+                    #000;
+
+                border:
+                    3px solid #fff;
+
+                overflow:
+                    hidden;
+
+                z-index:
+                    0;
+
+            }
+
+
+            #statusBatalha .pe-fill {
+
+                width:
+                    100%;
+
+                height:
+                    100%;
+
+                background:
+                    #087cff;
+
+                transition:
+                    width .2s linear;
+
+            }
+
+
+            #statusBatalha .pe-text {
+
+                position:
+                    absolute;
+
+                left:
+                    50%;
+
+                bottom:
+                    0;
+
+                transform:
+                    translateX(-50%);
+
+                font-size:
+                    17px;
+
+                z-index:
+                    5;
+
+                color:
+                    #fff;
+
+                text-shadow:
+                    2px 2px #000;
+
+            }
+
+
+            /* ==========================================
+               MENU
+            ========================================== */
+
+            #interfaceBatalha {
+
+                position:
+                    absolute;
+
+                left:
+                    30px;
+
+                right:
+                    30px;
+
+                bottom:
+                    20px;
+
+                height:
+                    155px;
+
+                z-index:
+                    500;
+
+            }
+
+
+            #comandosBatalha {
+
+                width:
+                    100%;
+
+                height:
+                    100%;
+
+                background:
+                    #050505;
+
+                border:
+                    4px solid #fff;
+
+                padding:
+                    10px;
+
+                box-sizing:
+                    border-box;
+
+            }
+
+
+            #tituloComando {
+
+                font-size:
+                    25px;
+
+                height:
+                    32px;
+
+                margin-bottom:
+                    8px;
+
+            }
+
+
+            #listaComandos {
+
+                display:
+                    grid;
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+                gap:
+                    8px;
+
+                height:
+                    100px;
+
+            }
+
+
+            .botaoComando {
+
+                background:
+                    #111;
+
+                color:
+                    #fff;
+
+                border:
+                    3px solid #fff;
+
+                font-size:
+                    21px;
+
+                box-sizing:
+                    border-box;
+
+            }
+
+
+            .botaoComando.selecionado {
+
+                background:
+                    #fff;
+
+                color:
+                    #000;
+
+            }
+
+
+            /* ==========================================
+               CAIXA DO CORAÇÃO
+            ========================================== */
+
+            #caixaEsquiva {
+
+                position:
+                    absolute;
+
+                left:
+                    50%;
+
+                top:
+                    50%;
+
+                transform:
+                    translate(-50%, -50%);
+
+                width:
+                    620px;
+
+                height:
+                    360px;
+
+                background:
+                    #050505;
+
+                border:
+                    5px solid #fff;
+
+                z-index:
+                    300;
+
+                display:
+                    none;
+
+                overflow:
+                    hidden;
+
+            }
+
+
+            /* ==========================================
+               MINIGAME
+            ========================================== */
+
+            #minigameAtaque {
+
+                position:
+                    absolute;
+
+                left:
+                    50%;
+
+                top:
+                    50%;
+
+                transform:
+                    translate(-50%, -50%);
+
+                width:
+                    760px;
+
+                height:
+                    220px;
+
+                background:
+                    #050505;
+
+                border:
+                    5px solid #fff;
+
+                z-index:
+                    900;
+
+                display:
+                    none;
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    center;
+
+                padding-top:
+                    22px;
+
+                box-sizing:
+                    border-box;
+
+            }
+
+
+            #textoMinigame {
+
+                font-size:
+                    30px;
+
+                margin-bottom:
+                    25px;
+
+            }
+
+
+            #barraAtaque {
+
+                width:
+                    650px;
+
+                height:
+                    32px;
+
+                position:
+                    relative;
+
+                background:
+                    #222;
+
+                border:
+                    3px solid #fff;
+
+                box-sizing:
+                    border-box;
+
+            }
+
+
+            #zonaCentroAtaque {
+
+                position:
+                    absolute;
+
+                left:
+                    50%;
+
+                top:
+                    0;
+
+                transform:
+                    translateX(-50%);
+
+                width:
+                    110px;
+
+                height:
+                    100%;
+
+                border-left:
+                    3px solid #fff;
+
+                border-right:
+                    3px solid #fff;
+
+                box-sizing:
+                    border-box;
+
+            }
+
+
+            #ponteiroAtaque {
+
+                position:
+                    absolute;
+
+                left:
+                    0;
+
+                top:
+                    -10px;
+
+                width:
+                    8px;
+
+                height:
+                    52px;
+
+                background:
+                    #fff;
+
+            }
+
+
+            /* ==========================================
+               MENSAGEM
+            ========================================== */
+
+            #mensagemBatalha {
+
+                position:
+                    absolute;
+
+                left:
+                    50%;
+
+                bottom:
+                    30px;
+
+                transform:
+                    translateX(-50%);
+
+                width:
+                    90%;
+
+                min-height:
+                    120px;
+
+                padding:
+                    18px;
+
+                background:
+                    #050505;
+
+                border:
+                    4px solid #fff;
+
+                z-index:
+                    1000;
+
+                font-size:
+                    25px;
+
+                white-space:
+                    pre-line;
+
+                box-sizing:
+                    border-box;
+
+            }
+
+
+            /* ==========================================
+               DANO
+            ========================================== */
+
+            .danoFlutuante {
+
+                position:
+                    absolute;
+
+                z-index:
+                    1100;
+
+                pointer-events:
+                    none;
+
+                color:
+                    #fff;
+
+                font-size:
+                    34px;
+
+                font-weight:
+                    bold;
+
+                text-shadow:
+                    3px 3px #000;
+
+                animation:
+                    danoSubir .9s ease-out forwards;
+
+            }
+
+
+            .danoFlutuante.cura {
+
+                color:
+                    #4dff65;
+
+            }
+
+
+            @keyframes danoSubir {
+
+                from {
+
+                    opacity:
+                        1;
+
+                    transform:
+                        translate(-50%, 0)
+                        scale(1);
+
+                }
+
+                to {
+
+                    opacity:
+                        0;
+
+                    transform:
+                        translate(-50%, -70px)
+                        scale(1.15);
+
+                }
+
+            }
+
+        `;
+
+
+        document.head.appendChild(
+            style
         );
 
     },
@@ -330,22 +1367,38 @@ const BatalhaRender = {
     criarCampo() {
 
         this.campo =
-            document.createElement("div");
-
+            document.createElement(
+                "div"
+            );
 
         this.campo.id =
             "campoBatalha";
 
-
         this.arena.appendChild(
             this.campo
+        );
+
+
+        // Camada EXCLUSIVA dos rastros.
+        // Fica atrás de tudo.
+
+        this.camadaRastrosMascara =
+            document.createElement(
+                "div"
+            );
+
+        this.camadaRastrosMascara.id =
+            "camadaRastrosMascara";
+
+        this.campo.appendChild(
+            this.camadaRastrosMascara
         );
 
     },
 
 
     // =====================================================
-    // CRIAR PERSONAGEM
+    // PERSONAGEM
     // =====================================================
 
     criarPersonagem(id) {
@@ -353,39 +1406,36 @@ const BatalhaRender = {
         const dados =
             this.personagens[id];
 
-
         if (!dados)
             return;
 
 
         const elemento =
-            document.createElement("div");
-
+            document.createElement(
+                "div"
+            );
 
         elemento.id =
             "personagem_" +
             id;
-
 
         elemento.className =
             "personagemBatalha";
 
 
         const imagem =
-            document.createElement("img");
-
+            document.createElement(
+                "img"
+            );
 
         imagem.className =
             "spritePersonagem";
 
-
         imagem.src =
             dados.spriteInicial;
 
-
         imagem.alt =
             dados.nome;
-
 
         imagem.draggable =
             false;
@@ -394,8 +1444,8 @@ const BatalhaRender = {
         imagem.onerror =
             () => {
 
-                console.error(
-                    "ERRO AO CARREGAR SPRITE:",
+                console.warn(
+                    "SPRITE FALHOU:",
                     id,
                     imagem.src
                 );
@@ -406,7 +1456,6 @@ const BatalhaRender = {
         elemento.appendChild(
             imagem
         );
-
 
         this.campo.appendChild(
             elemento
@@ -422,34 +1471,33 @@ const BatalhaRender = {
     criarMascara() {
 
         const imagem =
-            document.createElement("img");
-
+            document.createElement(
+                "img"
+            );
 
         imagem.id =
             "mascaraBatalha";
-
 
         imagem.className =
             "mascaraBatalha";
 
 
-        if (
-            typeof Mascara !==
-            "undefined" &&
-            Mascara.sprite
-        ) {
+        imagem.src =
+            "assets/imagens/batalha_imagens/bruno/mascara.png";
 
-            imagem.src =
-                Mascara.sprite;
 
-        }
+        imagem.alt =
+            "Máscara";
+
+        imagem.draggable =
+            false;
 
 
         imagem.onerror =
             () => {
 
                 console.error(
-                    "ERRO AO CARREGAR SPRITE DA MÁSCARA:",
+                    "ERRO AO CARREGAR MÁSCARA:",
                     imagem.src
                 );
 
@@ -458,6 +1506,213 @@ const BatalhaRender = {
 
         this.campo.appendChild(
             imagem
+        );
+
+
+        this.iniciarMovimentoMascara();
+
+    },
+
+
+    // =====================================================
+    // MOVIMENTO DA MÁSCARA
+    // =====================================================
+
+    iniciarMovimentoMascara() {
+
+        if (
+            this.animacaoMascaraAtiva
+        )
+            return;
+
+
+        this.animacaoMascaraAtiva =
+            true;
+
+        this.tempoMascara =
+            0;
+
+
+        const mover =
+            () => {
+
+                const mascara =
+                    document.getElementById(
+                        "mascaraBatalha"
+                    );
+
+
+                if (
+                    !mascara
+                ) {
+
+                    this.animacaoMascaraAtiva =
+                        false;
+
+                    this.animacaoMascaraFrame =
+                        null;
+
+                    return;
+
+                }
+
+
+                this.tempoMascara +=
+                    0.025;
+
+
+                const movimento =
+                    Math.sin(
+                        this.tempoMascara
+                    ) *
+                    18;
+
+
+                // A máscara principal SEMPRE fica
+                // na frente.
+
+                mascara.style.transform =
+                    `translateY(${movimento}px)`;
+
+                mascara.style.zIndex =
+                    "50";
+
+
+                // Pequena chance de criar
+                // um novo rastro.
+
+                if (
+                    Math.random() <
+                    0.16
+                ) {
+
+                    this.criarRastroMascara(
+                        movimento
+                    );
+
+                }
+
+
+                this.animacaoMascaraFrame =
+                    requestAnimationFrame(
+                        mover
+                    );
+
+            };
+
+
+        mover();
+
+    },
+
+
+    // =====================================================
+    // RASTRO
+    // =====================================================
+
+    criarRastroMascara(
+        movimento
+    ) {
+
+        if (
+            !this.camadaRastrosMascara
+        )
+            return;
+
+
+        const rastro =
+            document.createElement(
+                "img"
+            );
+
+
+        rastro.className =
+            "rastroMascara";
+
+
+        rastro.src =
+            "assets/imagens/batalha_imagens/bruno/mascara.png";
+
+
+        rastro.alt =
+            "";
+
+        rastro.draggable =
+            false;
+
+
+        // MESMA posição da máscara.
+
+        rastro.style.right =
+            "90px";
+
+        rastro.style.top =
+            "120px";
+
+
+        // MESMO TAMANHO da máscara.
+
+        rastro.style.width =
+            this.tamanhoMascara +
+            "px";
+
+        rastro.style.height =
+            this.tamanhoMascara +
+            "px";
+
+
+        rastro.style.transform =
+            `translateY(${movimento}px)`;
+
+
+        // IMPORTANTE:
+        // fica dentro da camada de rastros,
+        // que está atrás da máscara.
+
+        rastro.style.zIndex =
+            "5";
+
+
+        rastro.style.opacity =
+            "0.20";
+
+
+        rastro.style.transition =
+            "opacity .65s ease-out, transform .65s ease-out";
+
+
+        this.camadaRastrosMascara.appendChild(
+            rastro
+        );
+
+
+        requestAnimationFrame(
+            () => {
+
+                rastro.style.opacity =
+                    "0";
+
+
+                rastro.style.transform =
+                    `translateY(${movimento + 28}px) scale(1.02)`;
+
+            }
+        );
+
+
+        setTimeout(
+            () => {
+
+                if (
+                    rastro.parentNode
+                ) {
+
+                    rastro.remove();
+
+                }
+
+            },
+            700
         );
 
     },
@@ -470,75 +1725,27 @@ const BatalhaRender = {
     criarInterface() {
 
         this.interfaceBatalha =
-            document.createElement("div");
-
+            document.createElement(
+                "div"
+            );
 
         this.interfaceBatalha.id =
             "interfaceBatalha";
 
 
-        // =================================================
-        // PE
-        // =================================================
-
-        const pe =
-            document.createElement("div");
-
-
-        pe.id =
-            "peBatalha";
-
-
-        this.interfaceBatalha.appendChild(
-            pe
-        );
-
-
-        // =================================================
-        // CABEÇAS
-        // =================================================
-
-        this.cabecas =
-            document.createElement("div");
-
-
-        this.cabecas.id =
-            "cabecasBatalha";
-
-
-        this.criarCabeca(
-            "ash"
-        );
-
-        this.criarCabeca(
-            "spike"
-        );
-
-        this.criarCabeca(
-            "manel"
-        );
-
-
-        this.interfaceBatalha.appendChild(
-            this.cabecas
-        );
-
-
-        // =================================================
-        // COMANDOS
-        // =================================================
-
         this.comandos =
-            document.createElement("div");
-
+            document.createElement(
+                "div"
+            );
 
         this.comandos.id =
             "comandosBatalha";
 
 
         this.tituloComando =
-            document.createElement("div");
-
+            document.createElement(
+                "div"
+            );
 
         this.tituloComando.id =
             "tituloComando";
@@ -550,8 +1757,9 @@ const BatalhaRender = {
 
 
         const lista =
-            document.createElement("div");
-
+            document.createElement(
+                "div"
+            );
 
         lista.id =
             "listaComandos";
@@ -571,11 +1779,95 @@ const BatalhaRender = {
             this.interfaceBatalha
         );
 
+
+        // =================================================
+        // STATUS
+        // =================================================
+
+        const status =
+            document.createElement(
+                "div"
+            );
+
+        status.id =
+            "statusBatalha";
+
+
+        const peBar =
+            document.createElement(
+                "div"
+            );
+
+        peBar.className =
+            "pe-trilho";
+
+
+        const peFill =
+            document.createElement(
+                "div"
+            );
+
+        peFill.id =
+            "peFillBatalha";
+
+        peFill.className =
+            "pe-fill";
+
+
+        peBar.appendChild(
+            peFill
+        );
+
+        status.appendChild(
+            peBar
+        );
+
+
+        const peText =
+            document.createElement(
+                "div"
+            );
+
+        peText.id =
+            "peTextoBatalha";
+
+        peText.className =
+            "pe-text";
+
+
+        status.appendChild(
+            peText
+        );
+
+
+        this.cabecas =
+            document.createElement(
+                "div"
+            );
+
+        this.cabecas.id =
+            "cabecasBatalha";
+
+
+        this.criarCabeca("ash");
+        this.criarCabeca("spike");
+        this.criarCabeca("manel");
+
+
+        status.appendChild(
+            this.cabecas
+        );
+
+
+        this.arena.appendChild(
+            status
+        );
+
     },
 
 
     // =====================================================
-    // CABEÇA
+    // CABEÇA / STATUS
     // =====================================================
 
     criarCabeca(id) {
@@ -583,129 +1875,156 @@ const BatalhaRender = {
         const dados =
             this.personagens[id];
 
-
         if (!dados)
             return;
 
 
         const botao =
-            document.createElement("button");
-
+            document.createElement(
+                "button"
+            );
 
         botao.className =
             "cabecaPersonagem";
 
-
         botao.dataset.personagem =
             id;
 
+        botao.type =
+            "button";
+
 
         const imagem =
-            document.createElement("img");
-
+            document.createElement(
+                "img"
+            );
 
         imagem.src =
             dados.cabeca;
 
-
         imagem.alt =
             dados.nome;
-
 
         imagem.draggable =
             false;
 
 
-        imagem.onerror =
-            () => {
+        const info =
+            document.createElement(
+                "div"
+            );
 
-                console.error(
-                    "ERRO AO CARREGAR CABEÇA:",
-                    id,
-                    imagem.src
-                );
+        info.className =
+            "status-info";
 
-            };
+
+        const nome =
+            document.createElement(
+                "div"
+            );
+
+        nome.className =
+            "status-nome";
+
+        nome.textContent =
+            dados.nome;
+
+
+        info.appendChild(
+            nome
+        );
+
+
+        const linha =
+            document.createElement(
+                "div"
+            );
+
+        linha.className =
+            "hp-linha";
+
+
+        const label =
+            document.createElement(
+                "span"
+            );
+
+        label.className =
+            "hp-label";
+
+        label.textContent =
+            "HP:";
+
+
+        linha.appendChild(
+            label
+        );
+
+
+        const trilho =
+            document.createElement(
+                "div"
+            );
+
+        trilho.className =
+            "hp-trilho";
+
+
+        const fill =
+            document.createElement(
+                "div"
+            );
+
+        fill.id =
+            "hpBar_" +
+            id;
+
+        fill.className =
+            "hp-fill";
+
+        fill.style.background =
+            dados.corHP;
+
+
+        trilho.appendChild(
+            fill
+        );
+
+        linha.appendChild(
+            trilho
+        );
+
+
+        const valor =
+            document.createElement(
+                "span"
+            );
+
+        valor.id =
+            "hpValor_" +
+            id;
+
+        valor.className =
+            "hp-valor";
+
+
+        linha.appendChild(
+            valor
+        );
+
+
+        info.appendChild(
+            linha
+        );
 
 
         botao.appendChild(
             imagem
         );
 
-
-        const hp =
-            document.createElement("div");
-
-
-        hp.className =
-            "hpPersonagem";
-
-
-        hp.id =
-            "hp_" +
-            id;
-
-
         botao.appendChild(
-            hp
+            info
         );
-
-
-        botao.onclick =
-            () => {
-
-                if (
-                    typeof Batalha ===
-                    "undefined"
-                )
-                    return;
-
-
-                if (
-                    Batalha.turno !==
-                    "jogador"
-                )
-                    return;
-
-
-                const personagem =
-                    this.pegarPersonagem(id);
-
-
-                if (!personagem)
-                    return;
-
-
-                if (
-                    personagem.hp <= 0
-                )
-                    return;
-
-
-                if (
-                    Batalha.personagensAgiram &&
-                    Batalha.personagensAgiram[id]
-                )
-                    return;
-
-
-                if (
-                    typeof Batalha.tocarSomBatalha ===
-                    "function"
-                ) {
-
-                    Batalha.tocarSomBatalha(
-                        "selecionar"
-                    );
-
-                }
-
-
-                this.selecionarPersonagem(
-                    id
-                );
-
-            };
 
 
         this.cabecas.appendChild(
@@ -716,41 +2035,206 @@ const BatalhaRender = {
 
 
     // =====================================================
-    // SELECIONAR PERSONAGEM
+    // AÇÕES
     // =====================================================
 
-    selecionarPersonagem(id) {
+    obterAcoes(id) {
+
+        if (id === "ash") {
+
+            return [
+
+                {
+                    nome:
+                        "ATACAR",
+
+                    acao:
+                        "atacar"
+                },
+
+                {
+                    nome:
+                        "RITUAL",
+
+                    acao:
+                        "ritual"
+                },
+
+                {
+                    nome:
+                        "DEFENDER",
+
+                    acao:
+                        "defender"
+                },
+
+                {
+                    nome:
+                        "AGIR",
+
+                    acao:
+                        "agir"
+                }
+
+            ];
+
+        }
+
+
+        if (id === "spike") {
+
+            return [
+
+                {
+                    nome:
+                        "RITUAL",
+
+                    acao:
+                        "ritual"
+                },
+
+                {
+                    nome:
+                        "DEFENDER",
+
+                    acao:
+                        "defender"
+                },
+
+                {
+                    nome:
+                        "AGIR",
+
+                    acao:
+                        "agir"
+                }
+
+            ];
+
+        }
+
+
+        return [
+
+            {
+                nome:
+                    "ATACAR",
+
+                acao:
+                    "atacar"
+            },
+
+            {
+                nome:
+                    "DEFENDER",
+
+                acao:
+                    "defender"
+            },
+
+            {
+                nome:
+                    "AGIR",
+
+                acao:
+                    "agir"
+            }
+
+        ];
+
+    },
+
+
+    // =====================================================
+    // PERSONAGEM ATUAL
+    // =====================================================
+
+    obterPersonagemAtual() {
+
+        for (
+            const id of
+            this.ordemPersonagens
+        ) {
+
+            const p =
+                this.pegarPersonagem(id);
+
+
+            if (
+                p &&
+                p.hp > 0 &&
+                !Batalha.personagensAgiram[id]
+            ) {
+
+                return id;
+
+            }
+
+        }
+
+
+        return null;
+
+    },
+
+
+    // =====================================================
+    // MENU PERSONAGEM
+    // =====================================================
+
+    mostrarMenuPersonagens() {
 
         if (
             typeof Batalha ===
-            "undefined"
+                "undefined" ||
+            !Batalha.ativa
         )
             return;
 
 
-        const personagem =
-            this.pegarPersonagem(id);
+        const id =
+            this.obterPersonagemAtual();
 
 
-        if (!personagem)
+        if (!id)
             return;
 
 
+        this.abrirAcoes(
+            id
+        );
+
+    },
+
+
+    // =====================================================
+    // ABRIR AÇÕES
+    // =====================================================
+
+    abrirAcoes(id) {
+
         if (
-            personagem.hp <= 0
+            typeof Batalha ===
+                "undefined" ||
+            !Batalha.ativa
+        )
+            return;
+
+
+        const p =
+            this.pegarPersonagem(
+                id
+            );
+
+
+        if (
+            !p ||
+            p.hp <= 0
         )
             return;
 
 
         if (
-            Batalha.turno !==
-            "jogador"
-        )
-            return;
-
-
-        if (
-            Batalha.personagensAgiram &&
             Batalha.personagensAgiram[id]
         )
             return;
@@ -760,219 +2244,37 @@ const BatalhaRender = {
             id;
 
 
-        this.comandoSelecionado =
+        this.menuModo =
+            "acao";
+
+
+        this.menuDados =
+            this.obterAcoes(
+                id
+            );
+
+
+        this.menuIndice =
             0;
 
 
-        this.atualizarCabecas();
-
-        this.mostrarComandos();
-
-    },
+        this.mensagemAtiva =
+            false;
 
 
-    // =====================================================
-    // CABEÇAS / HP
-    // =====================================================
-
-    atualizarCabecas() {
-
-        if (
-            !this.cabecas
-        )
-            return;
-
-
-        if (
-            typeof Batalha ===
-            "undefined"
-        )
-            return;
-
-
-        const botoes =
-            this.cabecas.querySelectorAll(
-                ".cabecaPersonagem"
-            );
-
-
-        botoes.forEach(
-            botao => {
-
-                const id =
-                    botao.dataset.personagem;
-
-
-                const personagem =
-                    this.pegarPersonagem(id);
-
-
-                if (!personagem)
-                    return;
-
-
-                botao.classList.toggle(
-                    "selecionado",
-                    id ===
-                    this.personagemSelecionado
-                );
-
-
-                botao.classList.toggle(
-                    "morto",
-                    personagem.hp <= 0
-                );
-
-
-                botao.classList.toggle(
-                    "feito",
-                    !!(
-                        Batalha.personagensAgiram &&
-                        Batalha.personagensAgiram[id]
-                    )
-                );
-
-
-                const hp =
-                    botao.querySelector(
-                        ".hpPersonagem"
-                    );
-
-
-                if (hp) {
-
-                    hp.textContent =
-                        personagem.hp +
-                        " / " +
-                        (
-                            personagem.hpMax ||
-                            this.personagens[id].hpMax
-                        );
-
-                }
-
-            }
-        );
-
-
-        const pe =
-            document.getElementById(
-                "peBatalha"
-            );
-
-
-        if (
-            pe &&
-            typeof Batalha.pe !==
-            "undefined"
-        ) {
-
-            pe.textContent =
-                "PE: " +
-                Batalha.pe +
-                " / " +
-                Batalha.peMax;
-
-        }
+        this.mostrarMenuAcoes();
 
     },
 
 
     // =====================================================
-    // MOSTRAR MENU
+    // MENU ATUAL
     // =====================================================
 
-    mostrarMenuAcoes() {
+    mostrarMenuAtual() {
 
-        if (
-            this.interfaceBatalha
-        ) {
-
-            this.interfaceBatalha.style.display =
-                "flex";
-
-        }
-
-
-        this.mostrarComandos();
-
-        this.atualizarCabecas();
-
-    },
-
-
-    // =====================================================
-    // ESCONDER MENU
-    // =====================================================
-
-    esconderMenuAcoes() {
-
-        if (
-            this.interfaceBatalha
-        ) {
-
-            this.interfaceBatalha.style.display =
-                "none";
-
-        }
-
-    },
-
-
-    // =====================================================
-    // COMANDOS
-    // =====================================================
-
-    mostrarComandos() {
-
-        if (
-            typeof Batalha ===
-            "undefined"
-        )
+        if (!this.comandos)
             return;
-
-
-        if (
-            Batalha.turno !==
-            "jogador"
-        )
-            return;
-
-
-        if (
-            !this.comandos ||
-            !this.tituloComando
-        )
-            return;
-
-
-        const id =
-            this.personagemSelecionado;
-
-
-        const personagem =
-            this.pegarPersonagem(id);
-
-
-        if (!personagem)
-            return;
-
-
-        if (
-            personagem.hp <= 0
-        )
-            return;
-
-
-        if (
-            Batalha.personagensAgiram &&
-            Batalha.personagensAgiram[id]
-        )
-            return;
-
-
-        this.tituloComando.textContent =
-            personagem.nome;
 
 
         const lista =
@@ -985,125 +2287,182 @@ const BatalhaRender = {
             return;
 
 
-        lista.innerHTML = "";
-
-
-        let botoes = [];
+        lista.innerHTML =
+            "";
 
 
         if (
-            id ===
-            "ash"
+            this.menuModo ===
+            "acao"
         ) {
 
-            botoes = [
+            const dados =
+                this.personagens[
+                    this.personagemSelecionado
+                ];
 
-                [
-                    "ATACAR",
-                    "atacar"
-                ],
 
-                [
-                    "RITUAL",
-                    "ritual"
-                ],
+            if (!dados)
+                return;
 
-                [
-                    "DEFENDER",
-                    "defender"
-                ],
 
-                [
-                    "AGIR",
-                    "agir"
-                ]
+            this.tituloComando.textContent =
+                dados.nome;
 
-            ];
 
-        }
+            this.menuDados.forEach(
+                (
+                    item,
+                    index
+                ) => {
 
-        else if (
-            id ===
-            "spike"
-        ) {
+                    const botao =
+                        document.createElement(
+                            "button"
+                        );
 
-            botoes = [
+                    botao.className =
+                        "botaoComando";
 
-                [
-                    "RITUAL",
-                    "ritual"
-                ],
 
-                [
-                    "DEFENDER",
-                    "defender"
-                ],
+                    if (
+                        index ===
+                        this.menuIndice
+                    ) {
 
-                [
-                    "AGIR",
-                    "agir"
-                ]
+                        botao.classList.add(
+                            "selecionado"
+                        );
 
-            ];
+                    }
 
-        }
 
-        else if (
-            id ===
-            "manel"
-        ) {
+                    botao.textContent =
+                        item.nome;
 
-            botoes = [
 
-                [
-                    "ATACAR",
-                    "atacar"
-                ],
+                    lista.appendChild(
+                        botao
+                    );
 
-                [
-                    "DEFENDER",
-                    "defender"
-                ],
+                }
+            );
 
-                [
-                    "AGIR",
-                    "agir"
-                ]
 
-            ];
+            this.atualizarCabecas();
+
+            return;
 
         }
 
 
-        botoes.forEach(
-            ([texto, acao], indice) => {
+        if (
+            this.menuModo ===
+            "submenu"
+        ) {
+
+            this.atualizarSubmenu();
+
+        }
+
+    },
+
+
+    // =====================================================
+    // SUBMENU
+    // =====================================================
+
+    mostrarEscolhaGenerica(
+        titulo,
+        itens,
+        callback,
+        voltar = true
+    ) {
+
+        if (!this.comandos)
+            return;
+
+
+        this.menuModo =
+            "submenu";
+
+
+        this.menuIndice =
+            0;
+
+
+        this.menuDados =
+            Array.isArray(itens)
+                ? itens
+                : [];
+
+
+        this.menuCallback =
+            callback;
+
+
+        this.menuVoltar =
+            voltar;
+
+
+        this.tituloComando.textContent =
+            titulo;
+
+
+        this.atualizarSubmenu();
+
+    },
+
+
+    atualizarSubmenu() {
+
+        if (!this.comandos)
+            return;
+
+
+        const lista =
+            this.comandos.querySelector(
+                "#listaComandos"
+            );
+
+
+        if (!lista)
+            return;
+
+
+        lista.innerHTML =
+            "";
+
+
+        this.menuDados.forEach(
+            (
+                item,
+                index
+            ) => {
 
                 const botao =
                     document.createElement(
                         "button"
                     );
 
-
                 botao.className =
                     "botaoComando";
 
 
+                if (
+                    index ===
+                    this.menuIndice
+                ) {
+
+                    botao.classList.add(
+                        "selecionado"
+                    );
+
+                }
+
+
                 botao.textContent =
-                    texto;
-
-
-                botao.dataset.indice =
-                    indice;
-
-
-                botao.onclick =
-                    () => {
-
-                        this.executarComando(
-                            acao
-                        );
-
-                    };
+                    item.nome;
 
 
                 lista.appendChild(
@@ -1112,6 +2471,79 @@ const BatalhaRender = {
 
             }
         );
+
+
+        if (
+            this.menuVoltar
+        ) {
+
+            const botao =
+                document.createElement(
+                    "button"
+                );
+
+            botao.className =
+                "botaoComando";
+
+
+            if (
+                this.menuIndice ===
+                this.menuDados.length
+            ) {
+
+                botao.classList.add(
+                    "selecionado"
+                );
+
+            }
+
+
+            botao.textContent =
+                "VOLTAR";
+
+
+            lista.appendChild(
+                botao
+            );
+
+        }
+
+    },
+
+
+    executarSubmenu() {
+
+        if (
+            this.menuIndice >=
+            this.menuDados.length
+        ) {
+
+            this.abrirAcoes(
+                this.personagemSelecionado
+            );
+
+            return;
+
+        }
+
+
+        const item =
+            this.menuDados[
+                this.menuIndice
+            ];
+
+
+        if (
+            item &&
+            typeof this.menuCallback ===
+                "function"
+        ) {
+
+            this.menuCallback(
+                item.valor
+            );
+
+        }
 
     },
 
@@ -1124,14 +2556,8 @@ const BatalhaRender = {
 
         if (
             typeof Batalha ===
-            "undefined"
-        )
-            return;
-
-
-        if (
-            Batalha.turno !==
-            "jogador"
+                "undefined" ||
+            !Batalha.ativa
         )
             return;
 
@@ -1141,7 +2567,6 @@ const BatalhaRender = {
 
 
         if (
-            Batalha.personagensAgiram &&
             Batalha.personagensAgiram[id]
         )
             return;
@@ -1152,16 +2577,9 @@ const BatalhaRender = {
             "atacar"
         ) {
 
-            if (
-                typeof Batalha.prepararAtaque ===
-                "function"
-            ) {
-
-                Batalha.prepararAtaque(
-                    id
-                );
-
-            }
+            Batalha.prepararAtaque(
+                id
+            );
 
             return;
 
@@ -1173,21 +2591,13 @@ const BatalhaRender = {
             "ritual"
         ) {
 
-            if (
-                id === "ash" &&
-                typeof Batalha.mostrarRituaisAsh ===
-                "function"
-            ) {
+            if (id === "ash") {
 
                 Batalha.mostrarRituaisAsh();
 
             }
 
-            else if (
-                id === "spike" &&
-                typeof Batalha.mostrarRituaisSpike ===
-                "function"
-            ) {
+            else {
 
                 Batalha.mostrarRituaisSpike();
 
@@ -1203,16 +2613,9 @@ const BatalhaRender = {
             "defender"
         ) {
 
-            if (
-                typeof Batalha.defender ===
-                "function"
-            ) {
-
-                Batalha.defender(
-                    id
-                );
-
-            }
+            Batalha.defender(
+                id
+            );
 
             return;
 
@@ -1224,34 +2627,19 @@ const BatalhaRender = {
             "agir"
         ) {
 
-            if (
-                id ===
-                "ash" &&
-                typeof Batalha.mostrarAgirAsh ===
-                "function"
-            ) {
+            if (id === "ash") {
 
                 Batalha.mostrarAgirAsh();
 
             }
 
-            else if (
-                id ===
-                "spike" &&
-                typeof Batalha.mostrarAgirSpike ===
-                "function"
-            ) {
+            else if (id === "spike") {
 
                 Batalha.mostrarAgirSpike();
 
             }
 
-            else if (
-                id ===
-                "manel" &&
-                typeof Batalha.mostrarAgirManel ===
-                "function"
-            ) {
+            else {
 
                 Batalha.mostrarAgirManel();
 
@@ -1263,113 +2651,36 @@ const BatalhaRender = {
 
 
     // =====================================================
-    // PRÓXIMO PERSONAGEM
+    // MOSTRAR / ESCONDER MENU
     // =====================================================
 
-    selecionarProximoPersonagem() {
+    mostrarMenuAcoes() {
 
-        const ordem = [
-            "ash",
-            "spike",
-            "manel"
-        ];
-
-
-        for (
-            const id of ordem
+        if (
+            this.interfaceBatalha
         ) {
 
-            const personagem =
-                this.pegarPersonagem(id);
-
-
-            if (!personagem)
-                continue;
-
-
-            const agiu =
-                Batalha.personagensAgiram &&
-                Batalha.personagensAgiram[id];
-
-
-            if (
-                personagem.hp > 0 &&
-                !agiu
-            ) {
-
-                this.selecionarPersonagem(
-                    id
-                );
-
-                return true;
-
-            }
+            this.interfaceBatalha.style.display =
+                "block";
 
         }
 
 
-        return false;
+        this.mostrarMenuAtual();
 
     },
 
 
-    // =====================================================
-    // INICIAR BARRA DE ATAQUE
-    // =====================================================
-
-    iniciarBarraAtaque(
-        id,
-        min,
-        max
-    ) {
+    esconderMenuAcoes() {
 
         if (
-            this.ataqueAtivo
-        )
-            return;
+            this.interfaceBatalha
+        ) {
 
+            this.interfaceBatalha.style.display =
+                "none";
 
-        if (
-            !this.ataqueMinigame
-        )
-            return;
-
-
-        this.ataqueAtivo =
-            true;
-
-
-        this.ataquePersonagem =
-            id;
-
-
-        this.ataqueMin =
-            min;
-
-
-        this.ataqueMax =
-            max;
-
-
-        this.ataquePosicao =
-            0;
-
-
-        this.ataqueDirecao =
-            1;
-
-
-        this.esconderMenuAcoes();
-
-
-        this.ataqueMinigame.style.display =
-            "flex";
-
-
-        this.atualizarPonteiroAtaque();
-
-
-        this.animarAtaque();
+        }
 
     },
 
@@ -1393,7 +2704,7 @@ const BatalhaRender = {
         this.ataqueMinigame.innerHTML = `
 
             <div id="textoMinigame">
-                PRESSIONE ENTER!
+                APERTE ENTER NO MEIO!
             </div>
 
             <div id="barraAtaque">
@@ -1423,21 +2734,66 @@ const BatalhaRender = {
                 "#zonaCentroAtaque"
             );
 
+    },
+
+
+    iniciarBarraAtaque(
+        id,
+        min,
+        max
+    ) {
+
+        if (
+            this.ataqueAtivo
+        )
+            return;
+
+
+        if (
+            !this.ataqueMinigame
+        )
+            return;
+
+
+        this.ataqueAtivo =
+            true;
+
+        this.ataqueResolvido =
+            false;
+
+        this.ataquePersonagem =
+            id;
+
+        this.ataqueMin =
+            min;
+
+        this.ataqueMax =
+            max;
+
+        this.ataquePosicao =
+            0;
+
+
+        this.esconderMenuAcoes();
+
 
         this.ataqueMinigame.style.display =
-            "none";
+            "flex";
+
+
+        this.atualizarPonteiroAtaque();
+
+
+        this.animarAtaque();
 
     },
 
 
-    // =====================================================
-    // ANIMAR BARRA
-    // =====================================================
-
     animarAtaque() {
 
         if (
-            !this.ataqueAtivo
+            !this.ataqueAtivo ||
+            this.ataqueResolvido
         )
             return;
 
@@ -1448,30 +2804,19 @@ const BatalhaRender = {
             );
 
 
-        if (!barra) {
-
-            this.ataqueAtivo =
-                false;
-
+        if (!barra)
             return;
-
-        }
-
-
-        const largura =
-            barra.clientWidth;
 
 
         const limite =
             Math.max(
                 0,
-                largura - 8
+                barra.clientWidth - 8
             );
 
 
         this.ataquePosicao +=
-            this.ataqueVelocidade *
-            this.ataqueDirecao;
+            this.ataqueVelocidade;
 
 
         if (
@@ -1482,22 +2827,15 @@ const BatalhaRender = {
             this.ataquePosicao =
                 limite;
 
-            this.ataqueDirecao =
-                -1;
 
-        }
+            this.atualizarPonteiroAtaque();
 
 
-        if (
-            this.ataquePosicao <=
-            0
-        ) {
+            this.finalizarBarraAtaque(
+                true
+            );
 
-            this.ataquePosicao =
-                0;
-
-            this.ataqueDirecao =
-                1;
+            return;
 
         }
 
@@ -1514,10 +2852,6 @@ const BatalhaRender = {
     },
 
 
-    // =====================================================
-    // PONTEIRO
-    // =====================================================
-
     atualizarPonteiroAtaque() {
 
         if (
@@ -1533,17 +2867,19 @@ const BatalhaRender = {
     },
 
 
-    // =====================================================
-    // FINALIZAR BARRA
-    // =====================================================
-
-    finalizarBarraAtaque() {
+    finalizarBarraAtaque(
+        errou = false
+    ) {
 
         if (
-            !this.ataqueAtivo
+            !this.ataqueAtivo ||
+            this.ataqueResolvido
         )
             return;
 
+
+        this.ataqueResolvido =
+            true;
 
         this.ataqueAtivo =
             false;
@@ -1557,65 +2893,65 @@ const BatalhaRender = {
                 this.ataqueAnimacao
             );
 
-            this.ataqueAnimacao =
-                null;
-
         }
 
 
-        const barra =
-            document.getElementById(
-                "barraAtaque"
-            );
-
-
-        if (!barra)
-            return;
-
-
-        const largura =
-            barra.clientWidth;
-
-
-        const centro =
-            largura / 2;
-
-
-        const centroPonteiro =
-            this.ataquePosicao + 4;
-
-
-        const distancia =
-            Math.abs(
-                centroPonteiro -
-                centro
-            );
-
-
-        const metade =
-            largura / 2;
-
-
-        let precisao =
-            1 -
-            (
-                distancia /
-                metade
-            );
-
-
-        precisao =
-            Math.max(
-                0,
-                Math.min(
-                    1,
-                    precisao
-                )
-            );
+        this.ataqueAnimacao =
+            null;
 
 
         const id =
             this.ataquePersonagem;
+
+
+        let precisao =
+            0;
+
+
+        if (!errou) {
+
+            const barra =
+                document.getElementById(
+                    "barraAtaque"
+                );
+
+
+            if (barra) {
+
+                const centro =
+                    barra.clientWidth / 2;
+
+
+                const ponteiro =
+                    this.ataquePosicao +
+                    4;
+
+
+                precisao =
+                    1 -
+                    (
+                        Math.abs(
+                            ponteiro -
+                            centro
+                        ) /
+                        (
+                            barra.clientWidth / 2
+                        )
+                    );
+
+
+                precisao =
+                    Math.max(
+                        0,
+                        Math.min(
+                            1,
+                            precisao
+                        )
+                    );
+
+            }
+
+        }
 
 
         if (
@@ -1628,24 +2964,28 @@ const BatalhaRender = {
         }
 
 
-        console.log(
-            "ATAQUE:",
-            id,
-            "PRECISÃO:",
-            precisao
-        );
+        if (errou) {
+
+            this.mostrarDanoTexto(
+                "ERROU!",
+                "#fff",
+                "#personagem_" + id
+            );
+
+        }
 
 
         if (
             typeof Batalha !==
-            "undefined" &&
+                "undefined" &&
             typeof Batalha.executarAtaqueComPrecisao ===
-            "function"
+                "function"
         ) {
 
             Batalha.executarAtaqueComPrecisao(
                 id,
-                precisao
+                precisao,
+                errou
             );
 
         }
@@ -1654,7 +2994,7 @@ const BatalhaRender = {
 
 
     // =====================================================
-    // ESQUIVA
+    // CAIXA DE ESQUIVA
     // =====================================================
 
     criarCaixaEsquiva() {
@@ -1680,10 +3020,6 @@ const BatalhaRender = {
     },
 
 
-    // =====================================================
-    // MOSTRAR ESQUIVA
-    // =====================================================
-
     mostrarCaixaEsquiva() {
 
         console.log(
@@ -1691,23 +3027,11 @@ const BatalhaRender = {
         );
 
 
-        // =================================================
-        // RESETAR PERSONAGENS
-        // =================================================
-
-        this.resetarSprites();
-
-
-        // =================================================
-        // ESCONDER MENU
-        // =================================================
-
         this.esconderMenuAcoes();
 
 
-        // =================================================
-        // ESCONDER MINIGAME
-        // =================================================
+        this.resetarSprites();
+
 
         if (
             this.ataqueMinigame
@@ -1719,10 +3043,6 @@ const BatalhaRender = {
         }
 
 
-        // =================================================
-        // MOSTRAR CAIXA
-        // =================================================
-
         if (
             this.caixaEsquiva
         ) {
@@ -1732,10 +3052,6 @@ const BatalhaRender = {
 
         }
 
-
-        // =================================================
-        // INICIAR CORAÇÃO
-        // =================================================
 
         if (
             typeof Coracao !==
@@ -1748,10 +3064,6 @@ const BatalhaRender = {
 
     },
 
-
-    // =====================================================
-    // ESCONDER ESQUIVA
-    // =====================================================
 
     esconderCaixaEsquiva() {
 
@@ -1780,28 +3092,6 @@ const BatalhaRender = {
         }
 
 
-        // =================================================
-        // CANCELAR MINIGAME
-        // =================================================
-
-        this.ataqueAtivo =
-            false;
-
-
-        if (
-            this.ataqueAnimacao
-        ) {
-
-            cancelAnimationFrame(
-                this.ataqueAnimacao
-            );
-
-            this.ataqueAnimacao =
-                null;
-
-        }
-
-
         if (
             this.ataqueMinigame
         ) {
@@ -1815,7 +3105,7 @@ const BatalhaRender = {
 
 
     // =====================================================
-    // TROCAR SPRITE
+    // SPRITES
     // =====================================================
 
     trocarSprite(
@@ -1826,7 +3116,6 @@ const BatalhaRender = {
         const dados =
             this.personagens[id];
 
-
         if (!dados)
             return;
 
@@ -1834,18 +3123,8 @@ const BatalhaRender = {
         const caminho =
             dados.sprites[tipo];
 
-
-        if (!caminho) {
-
-            console.warn(
-                "SPRITE NÃO CONFIGURADO:",
-                id,
-                tipo
-            );
-
+        if (!caminho)
             return;
-
-        }
 
 
         const imagem =
@@ -1856,16 +3135,25 @@ const BatalhaRender = {
             );
 
 
-        if (!imagem) {
-
-            console.warn(
-                "SPRITE NÃO ENCONTRADO:",
-                id
-            );
-
+        if (!imagem)
             return;
 
-        }
+
+        imagem.onerror =
+            () => {
+
+                console.warn(
+                    "SPRITE NÃO CARREGOU:",
+                    caminho
+                );
+
+                imagem.onerror =
+                    null;
+
+                imagem.src =
+                    dados.spriteInicial;
+
+            };
 
 
         imagem.src =
@@ -1873,12 +3161,12 @@ const BatalhaRender = {
 
 
         const personagem =
-            this.pegarPersonagem(id);
+            this.pegarPersonagem(
+                id
+            );
 
 
-        if (
-            personagem
-        ) {
+        if (personagem) {
 
             personagem.sprite =
                 caminho;
@@ -1889,22 +3177,16 @@ const BatalhaRender = {
         console.log(
             "SPRITE ALTERADO:",
             id,
-            tipo,
-            caminho
+            tipo
         );
 
     },
 
 
-    // =====================================================
-    // VOLTAR SPRITE NORMAL
-    // =====================================================
-
     voltarSprite(id) {
 
         const dados =
             this.personagens[id];
-
 
         if (!dados)
             return;
@@ -1918,9 +3200,10 @@ const BatalhaRender = {
             );
 
 
-        if (
-            imagem
-        ) {
+        if (imagem) {
+
+            imagem.onerror =
+                null;
 
             imagem.src =
                 dados.spriteInicial;
@@ -1929,105 +3212,165 @@ const BatalhaRender = {
 
 
         const personagem =
-            this.pegarPersonagem(id);
+            this.pegarPersonagem(
+                id
+            );
 
 
-        if (
-            personagem
-        ) {
+        if (personagem) {
 
             personagem.sprite =
                 dados.spriteInicial;
 
         }
 
-
-        console.log(
-            "SPRITE VOLTOU:",
-            id
-        );
-
     },
 
-
-    // =====================================================
-    // RESETAR TODOS OS SPRITES
-    // =====================================================
 
     resetarSprites() {
 
-        this.voltarSprite(
-            "ash"
-        );
-
-        this.voltarSprite(
-            "spike"
-        );
-
-        this.voltarSprite(
-            "manel"
-        );
+        this.voltarSprite("ash");
+        this.voltarSprite("spike");
+        this.voltarSprite("manel");
 
     },
 
 
     // =====================================================
-    // SINCRONIZAR SPRITES DO BATALHA
+    // DANO
     // =====================================================
 
-    sincronizarSprites() {
+    mostrarDanoPersonagem(
+        id,
+        valor
+    ) {
 
-        if (
-            typeof Batalha ===
-            "undefined"
-        )
+        this.mostrarDanoTexto(
+            "-" +
+            Math.round(valor),
+            "#fff",
+            "#personagem_" + id
+        );
+
+    },
+
+
+    mostrarDanoMascara(
+        valor
+    ) {
+
+        this.mostrarDanoTexto(
+            "-" +
+            Math.round(valor),
+            "#ff5555",
+            "#mascaraBatalha"
+        );
+
+    },
+
+
+    mostrarCuraPersonagem(
+        id,
+        valor
+    ) {
+
+        this.mostrarDanoTexto(
+            "+" +
+            Math.round(valor),
+            "#4dff65",
+            "#personagem_" + id
+        );
+
+    },
+
+
+    mostrarDanoTexto(
+        texto,
+        cor,
+        seletor
+    ) {
+
+        if (!this.arena)
             return;
 
 
-        const ids = [
-            "ash",
-            "spike",
-            "manel"
-        ];
+        let alvo =
+            document.querySelector(
+                seletor
+            );
 
 
-        ids.forEach(
-            id => {
+        if (!alvo)
+            alvo =
+                this.campo;
 
-                const personagem =
-                    this.pegarPersonagem(id);
 
+        if (!alvo)
+            return;
+
+
+        const box =
+            document.createElement(
+                "div"
+            );
+
+
+        box.className =
+            "danoFlutuante";
+
+
+        box.textContent =
+            texto;
+
+
+        box.style.color =
+            cor;
+
+
+        const rect =
+            alvo.getBoundingClientRect();
+
+
+        const arenaRect =
+            this.arena.getBoundingClientRect();
+
+
+        box.style.left =
+            (
+                rect.left -
+                arenaRect.left +
+                rect.width / 2
+            ) +
+            "px";
+
+
+        box.style.top =
+            (
+                rect.top -
+                arenaRect.top +
+                20
+            ) +
+            "px";
+
+
+        this.arena.appendChild(
+            box
+        );
+
+
+        setTimeout(
+            () => {
 
                 if (
-                    !personagem ||
-                    !personagem.sprite
-                )
-                    return;
-
-
-                const imagem =
-                    document.querySelector(
-                        "#personagem_" +
-                        id +
-                        " .spritePersonagem"
-                    );
-
-
-                if (
-                    imagem &&
-                    imagem.src !==
-                    new URL(
-                        personagem.sprite,
-                        window.location.href
-                    ).href
+                    box.parentNode
                 ) {
 
-                    imagem.src =
-                        personagem.sprite;
+                    box.remove();
 
                 }
 
-            }
+            },
+            900
         );
 
     },
@@ -2048,10 +3391,15 @@ const BatalhaRender = {
             );
 
 
-        if (
-            antiga
-        )
+        if (antiga)
             antiga.remove();
+
+
+        this.mensagemAtiva =
+            true;
+
+
+        this.esconderMenuAcoes();
 
 
         const caixa =
@@ -2064,12 +3412,8 @@ const BatalhaRender = {
             "mensagemBatalha";
 
 
-        caixa.innerHTML =
-            String(texto)
-                .replace(
-                    /\n/g,
-                    "<br>"
-                );
+        caixa.textContent =
+            texto;
 
 
         this.arena.appendChild(
@@ -2077,16 +3421,25 @@ const BatalhaRender = {
         );
 
 
+        let fechando =
+            false;
+
+
         const fechar =
             () => {
 
+                if (fechando)
+                    return;
+
+
+                fechando =
+                    true;
+
+
                 if (
                     caixa.parentNode
-                ) {
-
+                )
                     caixa.remove();
-
-                }
 
 
                 document.removeEventListener(
@@ -2095,8 +3448,13 @@ const BatalhaRender = {
                 );
 
 
+                this.mensagemAtiva =
+                    false;
+
+
                 if (
-                    callback
+                    typeof callback ===
+                    "function"
                 ) {
 
                     callback();
@@ -2109,12 +3467,17 @@ const BatalhaRender = {
         const tecla =
             e => {
 
+                if (e.repeat)
+                    return;
+
+
                 if (
                     e.key ===
                     "Enter"
                 ) {
 
                     e.preventDefault();
+                    e.stopPropagation();
 
                     fechar();
 
@@ -2128,9 +3491,175 @@ const BatalhaRender = {
             tecla
         );
 
+    },
 
-        caixa.onclick =
-            fechar;
+
+    // =====================================================
+    // HP / PE
+    // =====================================================
+
+    atualizarCabecas() {
+
+        if (
+            !this.cabecas ||
+            typeof Batalha ===
+                "undefined"
+        )
+            return;
+
+
+        this.ordemPersonagens.forEach(
+            id => {
+
+                const botao =
+                    this.cabecas.querySelector(
+                        `[data-personagem="${id}"]`
+                    );
+
+
+                const p =
+                    this.pegarPersonagem(
+                        id
+                    );
+
+
+                if (
+                    !botao ||
+                    !p
+                )
+                    return;
+
+
+                botao.classList.toggle(
+                    "feito",
+                    !!Batalha.personagensAgiram[id]
+                );
+
+
+                botao.classList.toggle(
+                    "morto",
+                    p.hp <= 0
+                );
+
+
+                const max =
+                    p.hpMax ||
+                    this.personagens[id].hpMax;
+
+
+                const porcentagem =
+                    max > 0
+                        ? (
+                            p.hp /
+                            max
+                        ) *
+                        100
+                        : 0;
+
+
+                const fill =
+                    document.getElementById(
+                        "hpBar_" +
+                        id
+                    );
+
+
+                if (fill) {
+
+                    fill.style.width =
+                        Math.max(
+                            0,
+                            Math.min(
+                                100,
+                                porcentagem
+                            )
+                        ) +
+                        "%";
+
+                }
+
+
+                const valor =
+                    document.getElementById(
+                        "hpValor_" +
+                        id
+                    );
+
+
+                if (valor) {
+
+                    valor.textContent =
+                        Math.max(
+                            0,
+                            Math.round(
+                                p.hp
+                            )
+                        );
+
+                }
+
+            }
+        );
+
+
+        const pe =
+            Math.max(
+                0,
+                Number(
+                    Batalha.pe
+                ) ||
+                0
+            );
+
+
+        const peMax =
+            Number(
+                Batalha.peMax
+            ) ||
+            100;
+
+
+        const porcentagemPE =
+            (
+                pe /
+                peMax
+            ) *
+            100;
+
+
+        const peFill =
+            document.getElementById(
+                "peFillBatalha"
+            );
+
+
+        if (peFill) {
+
+            peFill.style.width =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        porcentagemPE
+                    )
+                ) +
+                "%";
+
+        }
+
+
+        const peTexto =
+            document.getElementById(
+                "peTextoBatalha"
+            );
+
+
+        if (peTexto) {
+
+            peTexto.textContent =
+                `PE: ${Math.round(pe)}/${peMax}`;
+
+        }
 
     },
 
@@ -2155,9 +3684,27 @@ const BatalhaRender = {
             "keydown",
             e => {
 
-                // =========================================
-                // MINIGAME DE ATAQUE
-                // =========================================
+                // -----------------------------------------
+                // NÃO REPETIR
+                // -----------------------------------------
+
+                if (e.repeat)
+                    return;
+
+
+                // -----------------------------------------
+                // MENSAGEM
+                // -----------------------------------------
+
+                if (
+                    this.mensagemAtiva
+                )
+                    return;
+
+
+                // -----------------------------------------
+                // MINIGAME
+                // -----------------------------------------
 
                 if (
                     this.ataqueAtivo
@@ -2169,8 +3716,11 @@ const BatalhaRender = {
                     ) {
 
                         e.preventDefault();
+                        e.stopPropagation();
 
-                        this.finalizarBarraAtaque();
+                        this.finalizarBarraAtaque(
+                            false
+                        );
 
                     }
 
@@ -2179,18 +3729,13 @@ const BatalhaRender = {
                 }
 
 
-                // =========================================
+                // -----------------------------------------
                 // BATALHA
-                // =========================================
+                // -----------------------------------------
 
                 if (
                     typeof Batalha ===
-                    "undefined"
-                )
-                    return;
-
-
-                if (
+                        "undefined" ||
                     !Batalha.ativa
                 )
                     return;
@@ -2203,39 +3748,225 @@ const BatalhaRender = {
                     return;
 
 
-                // =========================================
-                // ENTER
-                // =========================================
+                const tecla =
+                    e.key;
+
 
                 if (
-                    e.key ===
-                    "Enter"
+                    ![
+                        "ArrowUp",
+                        "ArrowDown",
+                        "ArrowLeft",
+                        "ArrowRight",
+                        "Enter",
+                        "Escape"
+                    ].includes(
+                        tecla
+                    )
+                )
+                    return;
+
+
+                e.preventDefault();
+
+
+                // -----------------------------------------
+                // MENU DE AÇÃO
+                // -----------------------------------------
+
+                if (
+                    this.menuModo ===
+                    "acao"
                 ) {
 
-                    e.preventDefault();
+                    const total =
+                        this.menuDados.length;
 
 
-                    if (
-                        !this.comandos
-                    )
+                    if (!total)
                         return;
 
 
-                    const botoes =
-                        this.comandos.querySelectorAll(
-                            ".botaoComando:not(:disabled)"
+                    if (
+                        tecla === "ArrowUp" ||
+                        tecla === "ArrowLeft"
+                    ) {
+
+                        this.menuIndice =
+                            (
+                                this.menuIndice -
+                                1 +
+                                total
+                            ) %
+                            total;
+
+
+                        this.tocarSomMenu(
+                            "mover"
                         );
 
 
+                        this.mostrarMenuAtual();
+
+                        return;
+
+                    }
+
+
                     if (
-                        botoes[
-                            this.comandoSelecionado
-                        ]
+                        tecla === "ArrowDown" ||
+                        tecla === "ArrowRight"
                     ) {
 
-                        botoes[
-                            this.comandoSelecionado
-                        ].click();
+                        this.menuIndice =
+                            (
+                                this.menuIndice +
+                                1
+                            ) %
+                            total;
+
+
+                        this.tocarSomMenu(
+                            "mover"
+                        );
+
+
+                        this.mostrarMenuAtual();
+
+                        return;
+
+                    }
+
+
+                    if (
+                        tecla === "Enter"
+                    ) {
+
+                        const item =
+                            this.menuDados[
+                                this.menuIndice
+                            ];
+
+
+                        if (item) {
+
+                            this.tocarSomMenu(
+                                "selecionar"
+                            );
+
+
+                            this.executarComando(
+                                item.acao
+                            );
+
+                        }
+
+                        return;
+
+                    }
+
+
+                    return;
+
+                }
+
+
+                // -----------------------------------------
+                // SUBMENU
+                // -----------------------------------------
+
+                if (
+                    this.menuModo ===
+                    "submenu"
+                ) {
+
+                    const total =
+                        this.menuDados.length +
+                        (
+                            this.menuVoltar
+                                ? 1
+                                : 0
+                        );
+
+
+                    if (!total)
+                        return;
+
+
+                    if (
+                        tecla === "ArrowUp" ||
+                        tecla === "ArrowLeft"
+                    ) {
+
+                        this.menuIndice =
+                            (
+                                this.menuIndice -
+                                1 +
+                                total
+                            ) %
+                            total;
+
+
+                        this.tocarSomMenu(
+                            "mover"
+                        );
+
+
+                        this.atualizarSubmenu();
+
+                        return;
+
+                    }
+
+
+                    if (
+                        tecla === "ArrowDown" ||
+                        tecla === "ArrowRight"
+                    ) {
+
+                        this.menuIndice =
+                            (
+                                this.menuIndice +
+                                1
+                            ) %
+                            total;
+
+
+                        this.tocarSomMenu(
+                            "mover"
+                        );
+
+
+                        this.atualizarSubmenu();
+
+                        return;
+
+                    }
+
+
+                    if (
+                        tecla === "Enter"
+                    ) {
+
+                        this.tocarSomMenu(
+                            "selecionar"
+                        );
+
+
+                        this.executarSubmenu();
+
+                        return;
+
+                    }
+
+
+                    if (
+                        tecla === "Escape"
+                    ) {
+
+                        this.abrirAcoes(
+                            this.personagemSelecionado
+                        );
 
                     }
 
@@ -2243,6 +3974,33 @@ const BatalhaRender = {
 
             }
         );
+
+    },
+
+
+    // =====================================================
+    // SOM DO MENU
+    // =====================================================
+
+    tocarSomMenu(nome) {
+
+        if (
+            typeof Batalha ===
+                "undefined"
+        )
+            return;
+
+
+        if (
+            typeof Batalha.tocarSomBatalha ===
+            "function"
+        ) {
+
+            Batalha.tocarSomBatalha(
+                nome
+            );
+
+        }
 
     },
 
@@ -2260,14 +4018,10 @@ const BatalhaRender = {
             return;
 
 
-        const ids = [
-            "ash",
-            "spike",
-            "manel"
-        ];
+        this.atualizarCabecas();
 
 
-        ids.forEach(
+        this.ordemPersonagens.forEach(
             id => {
 
                 const imagem =
@@ -2300,51 +4054,18 @@ const BatalhaRender = {
         );
 
 
-        // =================================================
-        // SINCRONIZAR SPRITES
-        // =================================================
-
-        this.sincronizarSprites();
-
-
-        // =================================================
-        // MÁSCARA
-        // =================================================
-
         const mascara =
             document.getElementById(
                 "mascaraBatalha"
             );
 
 
-        if (
-            mascara &&
-            typeof Mascara !==
-            "undefined" &&
-            Mascara.sprite
-        ) {
+        if (mascara) {
 
-            if (
-                mascara.src !==
-                new URL(
-                    Mascara.sprite,
-                    window.location.href
-                ).href
-            ) {
-
-                mascara.src =
-                    Mascara.sprite;
-
-            }
+            mascara.src =
+                "assets/imagens/batalha_imagens/bruno/mascara.png";
 
         }
-
-
-        // =================================================
-        // CABEÇAS / HP
-        // =================================================
-
-        this.atualizarCabecas();
 
     }
 

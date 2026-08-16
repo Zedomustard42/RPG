@@ -8,7 +8,7 @@ const AtaqueMascara = {
 
     tipoAtual: null,
 
-    tempoAtaque: 5000,
+    finalizando: false,
 
 
     // =====================================================
@@ -55,15 +55,107 @@ const AtaqueMascara = {
     atirando: false,
 
 
-    // =====================================================
-    // CONTROLE
-    // =====================================================
-
-    tempoInicio: 0,
-
     timeoutFinal: null,
 
-    finalizando: false,
+    tempoPerseguicaoTimeout: null,
+
+
+    // =====================================================
+    // RESETAR
+    // =====================================================
+
+    resetar() {
+
+        this.ativo =
+            false;
+
+        this.tipoAtual =
+            null;
+
+        this.finalizando =
+            false;
+
+
+        this.bolaAtiva =
+            false;
+
+        this.perseguindo =
+            false;
+
+
+        this.atirando =
+            false;
+
+
+        if (
+            this.timeoutFinal
+        ) {
+
+            clearTimeout(
+                this.timeoutFinal
+            );
+
+        }
+
+
+        if (
+            this.tempoPerseguicaoTimeout
+        ) {
+
+            clearTimeout(
+                this.tempoPerseguicaoTimeout
+            );
+
+        }
+
+
+        this.timeoutFinal =
+            null;
+
+        this.tempoPerseguicaoTimeout =
+            null;
+
+
+        if (
+            this.elementoBola
+        ) {
+
+            this.elementoBola.remove();
+
+        }
+
+
+        this.elementoBola =
+            null;
+
+
+        if (
+            this.arma
+        ) {
+
+            this.arma.remove();
+
+        }
+
+
+        this.arma =
+            null;
+
+
+        for (
+            const bala of [...this.balas]
+        ) {
+
+            this.removerBala(
+                bala
+            );
+
+        }
+
+
+        this.balas = [];
+
+    },
 
 
     // =====================================================
@@ -72,77 +164,40 @@ const AtaqueMascara = {
 
     escolherAtaque() {
 
-        if (!Batalha.ativa)
-            return;
-
-        if (Batalha.turno !== "mascara")
-            return;
-
-        if (Batalha.estado !== "ESQUIVA")
-            return;
-
-        if (this.ativo)
+        if (
+            !Batalha.ativa
+        )
             return;
 
 
-        // =================================================
-        // LIMPAR ESTADO ANTERIOR
-        // =================================================
-
-        this.finalizando = false;
-
-        this.bolaAtiva = false;
-
-        this.perseguindo = false;
-
-        this.atirando = false;
-
-        this.tipoAtual = null;
+        if (
+            Batalha.turno !==
+            "mascara"
+        )
+            return;
 
 
-        // =================================================
-        // GARANTIR QUE NÃO SOBROU NADA NA TELA
-        // =================================================
+        if (
+            Batalha.estado !==
+            "ESQUIVA"
+        )
+            return;
 
-        if (this.elementoBola) {
 
-            this.elementoBola.remove();
+        if (
+            this.ativo
+        )
+            return;
 
-            this.elementoBola = null;
 
-        }
-
-        if (this.arma) {
-
-            this.arma.remove();
-
-            this.arma = null;
-
-        }
-
-        for (
-            let i = this.balas.length - 1;
-            i >= 0;
-            i--
-        ) {
-
-            this.removerBala(
-                this.balas[i]
-            );
-
-        }
-
-        this.balas = [];
+        this.finalizando =
+            false;
 
 
         console.log(
             "MÁSCARA ESCOLHENDO ATAQUE"
         );
 
-
-        // =================================================
-        // ESCOLHER TIPO
-        // =================================================
 
         if (
             Math.random() < 0.5
@@ -167,30 +222,42 @@ const AtaqueMascara = {
 
     executarRitual() {
 
-        if (this.ativo)
-            return;
-
-        if (!Batalha.ativa)
-            return;
-
-        if (Batalha.turno !== "mascara")
-            return;
-
-        if (Batalha.estado !== "ESQUIVA")
+        if (
+            this.ativo
+        )
             return;
 
 
-        this.ativo = true;
+        if (
+            !Batalha.ativa
+        )
+            return;
 
-        this.tipoAtual = "RITUAL";
 
-        this.finalizando = false;
+        if (
+            Batalha.turno !==
+            "mascara"
+        )
+            return;
 
-        this.bolaAtiva = false;
 
-        this.perseguindo = false;
+        if (
+            Batalha.estado !==
+            "ESQUIVA"
+        )
+            return;
 
-        this.atirando = false;
+
+        this.ativo =
+            true;
+
+
+        this.tipoAtual =
+            "RITUAL";
+
+
+        this.finalizando =
+            false;
 
 
         console.log(
@@ -203,8 +270,10 @@ const AtaqueMascara = {
 
                 if (
                     !Batalha.ativa ||
-                    Batalha.turno !== "mascara" ||
-                    Batalha.estado !== "ESQUIVA"
+                    Batalha.turno !==
+                    "mascara" ||
+                    Batalha.estado !==
+                    "ESQUIVA"
                 ) {
 
                     this.finalizar();
@@ -217,7 +286,7 @@ const AtaqueMascara = {
                 this.criarBola();
 
             },
-            700
+            500
         );
 
     },
@@ -235,7 +304,9 @@ const AtaqueMascara = {
             );
 
 
-        if (!caixa) {
+        if (
+            !caixa
+        ) {
 
             this.finalizar();
 
@@ -244,25 +315,9 @@ const AtaqueMascara = {
         }
 
 
-        // =================================================
-        // LIMPAR BOLA ANTERIOR
-        // =================================================
+        this.bolaAtiva =
+            true;
 
-        if (this.elementoBola) {
-
-            this.elementoBola.remove();
-
-            this.elementoBola = null;
-
-        }
-
-
-        this.bolaAtiva = true;
-
-
-        // =================================================
-        // CRIAR ELEMENTO
-        // =================================================
 
         this.elementoBola =
             document.createElement(
@@ -274,7 +329,7 @@ const AtaqueMascara = {
             "bolaRitual";
 
 
-        this.elementoBola.innerText =
+        this.elementoBola.textContent =
             "●";
 
 
@@ -319,13 +374,8 @@ const AtaqueMascara = {
         );
 
 
-        // =================================================
-        // POSIÇÃO
-        // =================================================
-
         this.bolaX =
-            caixa.clientWidth / 2 -
-            12;
+            caixa.clientWidth / 2 - 12;
 
 
         this.bolaY =
@@ -335,28 +385,21 @@ const AtaqueMascara = {
         this.calcularDirecao();
 
 
-        // =================================================
-        // PERSEGUIÇÃO
-        // =================================================
-
         this.perseguindo =
             true;
 
 
-        setTimeout(
-            () => {
+        this.tempoPerseguicaoTimeout =
+            setTimeout(
+                () => {
 
-                this.perseguindo =
-                    false;
+                    this.perseguindo =
+                        false;
 
-            },
-            this.tempoPerseguicao
-        );
+                },
+                this.tempoPerseguicao
+            );
 
-
-        // =================================================
-        // COMEÇAR
-        // =================================================
 
         this.moverBola();
 
@@ -364,20 +407,10 @@ const AtaqueMascara = {
 
 
     // =====================================================
-    // CALCULAR DIREÇÃO
+    // DIREÇÃO
     // =====================================================
 
     calcularDirecao() {
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa)
-            return;
-
 
         if (
             typeof Coracao ===
@@ -386,22 +419,16 @@ const AtaqueMascara = {
             return;
 
 
-        const alvoX =
-            Coracao.x;
-
-
-        const alvoY =
-            Coracao.y;
-
-
         const dx =
-            alvoX -
-            this.bolaX;
+            Coracao.x -
+            this.bolaX -
+            12;
 
 
         const dy =
-            alvoY -
-            this.bolaY;
+            Coracao.y -
+            this.bolaY -
+            12;
 
 
         const distancia =
@@ -411,7 +438,9 @@ const AtaqueMascara = {
             );
 
 
-        if (distancia <= 0)
+        if (
+            distancia <= 0
+        )
             return;
 
 
@@ -439,14 +468,18 @@ const AtaqueMascara = {
 
     moverBola() {
 
-        if (!this.bolaAtiva)
+        if (
+            !this.bolaAtiva
+        )
             return;
 
 
         if (
             !Batalha.ativa ||
-            Batalha.turno !== "mascara" ||
-            Batalha.estado !== "ESQUIVA"
+            Batalha.turno !==
+            "mascara" ||
+            Batalha.estado !==
+            "ESQUIVA"
         ) {
 
             this.finalizar();
@@ -456,20 +489,14 @@ const AtaqueMascara = {
         }
 
 
-        // =================================================
-        // PERSEGUIR
-        // =================================================
-
-        if (this.perseguindo) {
+        if (
+            this.perseguindo
+        ) {
 
             this.calcularDirecao();
 
         }
 
-
-        // =================================================
-        // MOVIMENTO
-        // =================================================
 
         this.bolaX +=
             this.velX;
@@ -479,36 +506,30 @@ const AtaqueMascara = {
             this.velY;
 
 
-        // =================================================
-        // VISUAL
-        // =================================================
-
-        if (this.elementoBola) {
+        if (
+            this.elementoBola
+        ) {
 
             this.elementoBola.style.left =
-                this.bolaX + "px";
+                this.bolaX +
+                "px";
 
 
             this.elementoBola.style.top =
-                this.bolaY + "px";
+                this.bolaY +
+                "px";
 
         }
 
 
-        // =================================================
-        // COLISÃO
-        // =================================================
-
         this.verificarColisaoBola();
 
 
-        if (!this.bolaAtiva)
+        if (
+            !this.bolaAtiva
+        )
             return;
 
-
-        // =================================================
-        // LIMITE
-        // =================================================
 
         const caixa =
             document.getElementById(
@@ -516,27 +537,21 @@ const AtaqueMascara = {
             );
 
 
-        if (caixa) {
-
-            if (
-
+        if (
+            caixa &&
+            (
                 this.bolaX < -50 ||
-
                 this.bolaX >
-                caixa.clientWidth + 50 ||
-
+                    caixa.clientWidth + 50 ||
                 this.bolaY < -50 ||
-
                 this.bolaY >
-                caixa.clientHeight + 50
+                    caixa.clientHeight + 50
+            )
+        ) {
 
-            ) {
+            this.finalizar();
 
-                this.finalizar();
-
-                return;
-
-            }
+            return;
 
         }
 
@@ -550,12 +565,14 @@ const AtaqueMascara = {
 
 
     // =====================================================
-    // COLISÃO DA BOLA
+    // COLISÃO BOLA
     // =====================================================
 
     verificarColisaoBola() {
 
-        if (!this.bolaAtiva)
+        if (
+            !this.bolaAtiva
+        )
             return;
 
 
@@ -567,12 +584,14 @@ const AtaqueMascara = {
 
 
         const dx =
-            this.bolaX + 12 -
+            this.bolaX +
+            12 -
             Coracao.x;
 
 
         const dy =
-            this.bolaY + 12 -
+            this.bolaY +
+            12 -
             Coracao.y;
 
 
@@ -605,31 +624,52 @@ const AtaqueMascara = {
 
 
     // =====================================================
-    // ATAQUE DA ARMA
+    // ARMA
     // =====================================================
 
     executarArma() {
 
-        if (this.ativo)
-            return;
-
-        if (!Batalha.ativa)
-            return;
-
-        if (Batalha.turno !== "mascara")
-            return;
-
-        if (Batalha.estado !== "ESQUIVA")
+        if (
+            this.ativo
+        )
             return;
 
 
-        this.ativo = true;
+        if (
+            !Batalha.ativa
+        )
+            return;
 
-        this.tipoAtual = "ARMA";
 
-        this.atirando = true;
+        if (
+            Batalha.turno !==
+            "mascara"
+        )
+            return;
 
-        this.finalizando = false;
+
+        if (
+            Batalha.estado !==
+            "ESQUIVA"
+        )
+            return;
+
+
+        this.ativo =
+            true;
+
+
+        this.tipoAtual =
+            "ARMA";
+
+
+        this.atirando =
+            true;
+
+
+        this.finalizando =
+            false;
+
 
         this.balas = [];
 
@@ -645,7 +685,9 @@ const AtaqueMascara = {
             );
 
 
-        if (!caixa) {
+        if (
+            !caixa
+        ) {
 
             this.finalizar();
 
@@ -653,23 +695,6 @@ const AtaqueMascara = {
 
         }
 
-
-        // =================================================
-        // LIMPAR ARMA ANTERIOR
-        // =================================================
-
-        if (this.arma) {
-
-            this.arma.remove();
-
-            this.arma = null;
-
-        }
-
-
-        // =================================================
-        // CRIAR ARMA
-        // =================================================
 
         this.arma =
             document.createElement(
@@ -681,7 +706,7 @@ const AtaqueMascara = {
             "armaMascara";
 
 
-        this.arma.innerText =
+        this.arma.textContent =
             "▰";
 
 
@@ -710,16 +735,8 @@ const AtaqueMascara = {
         );
 
 
-        // =================================================
-        // ATUALIZAR ARMA
-        // =================================================
-
         this.atualizarArma();
 
-
-        // =================================================
-        // 3 TIROS
-        // =================================================
 
         this.dispararBalaArma();
 
@@ -728,8 +745,7 @@ const AtaqueMascara = {
             () => {
 
                 if (
-                    this.atirando &&
-                    this.ativo
+                    this.atirando
                 ) {
 
                     this.dispararBalaArma();
@@ -745,8 +761,7 @@ const AtaqueMascara = {
             () => {
 
                 if (
-                    this.atirando &&
-                    this.ativo
+                    this.atirando
                 ) {
 
                     this.dispararBalaArma();
@@ -757,10 +772,6 @@ const AtaqueMascara = {
             this.intervaloTiro * 2
         );
 
-
-        // =================================================
-        // FINALIZAR
-        // =================================================
 
         this.timeoutFinal =
             setTimeout(
@@ -788,45 +799,35 @@ const AtaqueMascara = {
             return;
 
 
-        if (
-            !Batalha.ativa ||
-            Batalha.turno !== "mascara" ||
-            Batalha.estado !== "ESQUIVA"
-        )
-            return;
-
-
         const caixa =
             document.getElementById(
                 "caixaEsquiva"
             );
 
 
-        if (!caixa)
+        if (
+            !caixa
+        )
             return;
 
 
         const armaX =
-            caixa.clientWidth -
-            45;
+            caixa.clientWidth - 45;
 
 
         const armaY =
-            caixa.clientHeight /
-            2;
+            caixa.clientHeight / 2;
 
 
         this.arma.style.left =
-            armaX + "px";
+            armaX +
+            "px";
 
 
         this.arma.style.top =
-            armaY + "px";
+            armaY +
+            "px";
 
-
-        // =================================================
-        // MIRAR NO CORAÇÃO
-        // =================================================
 
         if (
             typeof Coracao !==
@@ -885,7 +886,9 @@ const AtaqueMascara = {
             );
 
 
-        if (!caixa)
+        if (
+            !caixa
+        )
             return;
 
 
@@ -895,7 +898,7 @@ const AtaqueMascara = {
             );
 
 
-        bala.innerText =
+        bala.textContent =
             "●";
 
 
@@ -931,26 +934,22 @@ const AtaqueMascara = {
             "none";
 
 
-        // =================================================
-        // POSIÇÃO
-        // =================================================
-
         const x =
-            caixa.clientWidth -
-            55;
+            caixa.clientWidth - 55;
 
 
         const y =
-            caixa.clientHeight /
-            2;
+            caixa.clientHeight / 2;
 
 
         bala.style.left =
-            x + "px";
+            x +
+            "px";
 
 
         bala.style.top =
-            y + "px";
+            y +
+            "px";
 
 
         caixa.appendChild(
@@ -958,18 +957,12 @@ const AtaqueMascara = {
         );
 
 
-        // =================================================
-        // MIRAR NO CORAÇÃO
-        // =================================================
-
         let alvoX =
-            caixa.clientWidth /
-            2;
+            caixa.clientWidth / 2;
 
 
         let alvoY =
-            caixa.clientHeight /
-            2;
+            caixa.clientHeight / 2;
 
 
         if (
@@ -1015,22 +1008,6 @@ const AtaqueMascara = {
         }
 
 
-        const velX =
-            (
-                dx /
-                distancia
-            ) *
-            this.velocidadeBala;
-
-
-        const velY =
-            (
-                dy /
-                distancia
-            ) *
-            this.velocidadeBala;
-
-
         const dados = {
 
             elemento:
@@ -1043,10 +1020,18 @@ const AtaqueMascara = {
                 y,
 
             velX:
-                velX,
+                (
+                    dx /
+                    distancia
+                ) *
+                this.velocidadeBala,
 
             velY:
-                velY
+                (
+                    dy /
+                    distancia
+                ) *
+                this.velocidadeBala
 
         };
 
@@ -1079,8 +1064,10 @@ const AtaqueMascara = {
 
         if (
             !Batalha.ativa ||
-            Batalha.turno !== "mascara" ||
-            Batalha.estado !== "ESQUIVA"
+            Batalha.turno !==
+            "mascara" ||
+            Batalha.estado !==
+            "ESQUIVA"
         ) {
 
             this.removerBala(
@@ -1092,10 +1079,6 @@ const AtaqueMascara = {
         }
 
 
-        // =================================================
-        // MOVIMENTO
-        // =================================================
-
         bala.x +=
             bala.velX;
 
@@ -1105,16 +1088,14 @@ const AtaqueMascara = {
 
 
         bala.elemento.style.left =
-            bala.x + "px";
+            bala.x +
+            "px";
 
 
         bala.elemento.style.top =
-            bala.y + "px";
+            bala.y +
+            "px";
 
-
-        // =================================================
-        // COLISÃO
-        // =================================================
 
         if (
             typeof Coracao !==
@@ -1122,12 +1103,14 @@ const AtaqueMascara = {
         ) {
 
             const dx =
-                bala.x + 7 -
+                bala.x +
+                7 -
                 Coracao.x;
 
 
             const dy =
-                bala.y + 7 -
+                bala.y +
+                7 -
                 Coracao.y;
 
 
@@ -1164,39 +1147,29 @@ const AtaqueMascara = {
         }
 
 
-        // =================================================
-        // LIMITE
-        // =================================================
-
         const caixa =
             document.getElementById(
                 "caixaEsquiva"
             );
 
 
-        if (caixa) {
-
-            if (
-
+        if (
+            caixa &&
+            (
                 bala.x < -50 ||
-
                 bala.x >
-                caixa.clientWidth + 50 ||
-
+                    caixa.clientWidth + 50 ||
                 bala.y < -50 ||
-
                 bala.y >
-                caixa.clientHeight + 50
+                    caixa.clientHeight + 50
+            )
+        ) {
 
-            ) {
+            this.removerBala(
+                bala
+            );
 
-                this.removerBala(
-                    bala
-                );
-
-                return;
-
-            }
+            return;
 
         }
 
@@ -1217,11 +1190,15 @@ const AtaqueMascara = {
 
     removerBala(bala) {
 
-        if (!bala)
+        if (
+            !bala
+        )
             return;
 
 
-        if (bala.elemento) {
+        if (
+            bala.elemento
+        ) {
 
             bala.elemento.remove();
 
@@ -1237,7 +1214,9 @@ const AtaqueMascara = {
             );
 
 
-        if (index !== -1) {
+        if (
+            index !== -1
+        ) {
 
             this.balas.splice(
                 index,
@@ -1255,80 +1234,71 @@ const AtaqueMascara = {
 
     finalizarArma() {
 
-        if (this.finalizando)
+        if (
+            this.finalizando
+        )
             return;
 
 
-        this.finalizando = true;
+        this.finalizando =
+            true;
 
-        this.atirando = false;
+
+        this.atirando =
+            false;
 
 
-        // =================================================
-        // TIMEOUT
-        // =================================================
-
-        if (this.timeoutFinal) {
+        if (
+            this.timeoutFinal
+        ) {
 
             clearTimeout(
                 this.timeoutFinal
             );
 
-            this.timeoutFinal =
-                null;
-
         }
 
 
-        // =================================================
-        // REMOVER ARMA
-        // =================================================
+        this.timeoutFinal =
+            null;
 
-        if (this.arma) {
+
+        if (
+            this.arma
+        ) {
 
             this.arma.remove();
 
-            this.arma =
-                null;
-
         }
 
 
-        // =================================================
-        // REMOVER BALAS
-        // =================================================
+        this.arma =
+            null;
+
 
         for (
-            let i =
-                this.balas.length - 1;
-
-            i >= 0;
-
-            i--
+            const bala of [...this.balas]
         ) {
 
             this.removerBala(
-                this.balas[i]
+                bala
             );
 
         }
 
 
-        this.balas =
-            [];
+        this.balas = [];
 
-
-        // =================================================
-        // RESET
-        // =================================================
 
         this.ativo =
             false;
 
+
         this.tipoAtual =
             null;
 
-        this.atirando =
+
+        this.finalizando =
             false;
 
 
@@ -1337,36 +1307,26 @@ const AtaqueMascara = {
         );
 
 
-        // =================================================
-        // LIBERAR PARA PRÓXIMO TURNO
-        // =================================================
-
-        this.finalizando =
-            false;
-
-
         this.finalizarTurno();
 
     },
 
 
     // =====================================================
-    // FINALIZAR RITUAL / GERAL
+    // FINALIZAR GERAL
     // =====================================================
 
     finalizar() {
 
-        if (this.finalizando)
+        if (
+            this.finalizando
+        )
             return;
 
 
         this.finalizando =
             true;
 
-
-        // =================================================
-        // PARAR RITUAL
-        // =================================================
 
         this.bolaAtiva =
             false;
@@ -1376,99 +1336,95 @@ const AtaqueMascara = {
             false;
 
 
-        // =================================================
-        // REMOVER BOLA
-        // =================================================
-
-        if (this.elementoBola) {
-
-            this.elementoBola.remove();
-
-            this.elementoBola =
-                null;
-
-        }
-
-
-        // =================================================
-        // REMOVER ARMA
-        // =================================================
-
-        if (this.arma) {
-
-            this.arma.remove();
-
-            this.arma =
-                null;
-
-        }
-
-
-        // =================================================
-        // REMOVER BALAS
-        // =================================================
-
-        for (
-            let i =
-                this.balas.length - 1;
-
-            i >= 0;
-
-            i--
+        if (
+            this.tempoPerseguicaoTimeout
         ) {
 
-            this.removerBala(
-                this.balas[i]
+            clearTimeout(
+                this.tempoPerseguicaoTimeout
             );
 
         }
 
 
-        this.balas =
-            [];
+        this.tempoPerseguicaoTimeout =
+            null;
 
 
-        // =================================================
-        // RESET
-        // =================================================
+        if (
+            this.elementoBola
+        ) {
+
+            this.elementoBola.remove();
+
+        }
+
+
+        this.elementoBola =
+            null;
+
+
+        if (
+            this.arma
+        ) {
+
+            this.arma.remove();
+
+        }
+
+
+        this.arma =
+            null;
+
+
+        for (
+            const bala of [...this.balas]
+        ) {
+
+            this.removerBala(
+                bala
+            );
+
+        }
+
+
+        this.balas = [];
+
 
         this.atirando =
             false;
 
+
         this.ativo =
             false;
+
 
         this.tipoAtual =
             null;
 
 
-        // =================================================
-        // TIMEOUT
-        // =================================================
-
-        if (this.timeoutFinal) {
+        if (
+            this.timeoutFinal
+        ) {
 
             clearTimeout(
                 this.timeoutFinal
             );
 
-            this.timeoutFinal =
-                null;
-
         }
+
+
+        this.timeoutFinal =
+            null;
+
+
+        this.finalizando =
+            false;
 
 
         console.log(
             "ATAQUE DA MÁSCARA TERMINOU"
         );
-
-
-        // =================================================
-        // LIBERAR
-        // =================================================
-
-        this.finalizando =
-            false;
 
 
         this.finalizarTurno();
@@ -1482,30 +1438,46 @@ const AtaqueMascara = {
 
     finalizarTurno() {
 
-        if (!Batalha.ativa)
+        if (
+            !Batalha.ativa
+        )
             return;
 
 
-        if (Batalha.turno !== "mascara")
+        if (
+            Batalha.turno !==
+            "mascara"
+        )
             return;
 
 
-        if (Batalha.estado !== "ESQUIVA")
+        if (
+            Batalha.estado !==
+            "ESQUIVA"
+        )
             return;
 
 
         setTimeout(
             () => {
 
-                if (!Batalha.ativa)
+                if (
+                    !Batalha.ativa
+                )
                     return;
 
 
-                if (Batalha.turno !== "mascara")
+                if (
+                    Batalha.turno !==
+                    "mascara"
+                )
                     return;
 
 
-                if (Batalha.estado !== "ESQUIVA")
+                if (
+                    Batalha.estado !==
+                    "ESQUIVA"
+                )
                     return;
 
 
@@ -1514,26 +1486,10 @@ const AtaqueMascara = {
                 );
 
 
-                if (
-                    typeof Batalha.terminarTurnoMascara ===
-                    "function"
-                ) {
-
-                    Batalha.terminarTurnoMascara();
-
-                }
-
-                else if (
-                    typeof Batalha.terminarEsquiva ===
-                    "function"
-                ) {
-
-                    Batalha.terminarEsquiva();
-
-                }
+                Batalha.terminarTurnoMascara();
 
             },
-            500
+            450
         );
 
     }

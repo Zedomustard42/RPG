@@ -36,7 +36,9 @@ const AudioManager = {
 
     Clube: "assets/audio/clube.mp3",
 
-    chokito: "assets/audio/troll.mp3"
+    chokito: "assets/audio/troll.mp3",
+
+
 
     },
 
