@@ -10,7 +10,6 @@ const Coracao = {
 
     tecladoIniciado: false,
 
-
     // =====================================================
     // TAMANHO
     // =====================================================
@@ -19,22 +18,18 @@ const Coracao = {
 
     velocidade: 4,
 
-
     // =====================================================
     // POSIÇÃO
     // =====================================================
 
     x: 0,
-
     y: 0,
-
 
     // =====================================================
     // TECLAS
     // =====================================================
 
     teclas: {},
-
 
     // =====================================================
     // INICIAR
@@ -46,78 +41,49 @@ const Coracao = {
             "CORAÇÃO INICIADO"
         );
 
-
         this.ativo = true;
 
-
-        // =================================================
-        // POSIÇÃO INICIAL
-        // =================================================
+        // limpa qualquer direção anterior
+        this.limparTeclas();
 
         const caixa =
             document.getElementById(
                 "caixaEsquiva"
             );
 
-
         if (caixa) {
 
             this.x =
                 caixa.clientWidth / 2;
 
-
             this.y =
                 caixa.clientHeight / 2;
 
-        }
-
-        else {
+        } else {
 
             this.x = 200;
-
             this.y = 120;
 
         }
 
-
-        // =================================================
-        // CRIAR
-        // =================================================
-
         this.criar();
 
-
-        // =================================================
-        // TECLADO
-        // =================================================
-
         this.iniciarTeclado();
-
-
-        // =================================================
-        // VISUAL
-        // =================================================
 
         this.atualizarVisual();
 
     },
 
-
     // =====================================================
-    // CRIAR CORAÇÃO
+    // CRIAR
     // =====================================================
 
     criar() {
-
-        // =================================================
-        // REMOVER ANTIGO
-        // =================================================
 
         const antigo =
             document.getElementById(
                 "coracaoBatalha"
             );
-
 
         if (antigo) {
 
@@ -125,96 +91,60 @@ const Coracao = {
 
         }
 
-
-        // =================================================
-        // CRIAR
-        // =================================================
-
         this.elemento =
             document.createElement(
                 "div"
             );
 
-
         this.elemento.id =
             "coracaoBatalha";
-
-
-        // =================================================
-        // VISUAL
-        // =================================================
 
         this.elemento.innerText =
             "♥";
 
-
         this.elemento.style.position =
             "absolute";
-
 
         this.elemento.style.width =
             this.tamanho + "px";
 
-
         this.elemento.style.height =
             this.tamanho + "px";
-
 
         this.elemento.style.fontSize =
             this.tamanho + "px";
 
-
         this.elemento.style.lineHeight =
             this.tamanho + "px";
-
 
         this.elemento.style.textAlign =
             "center";
 
-
         this.elemento.style.color =
             "#b000ff";
-
 
         this.elemento.style.fontFamily =
             "Arial";
 
-
         this.elemento.style.fontWeight =
             "bold";
-
 
         this.elemento.style.pointerEvents =
             "none";
 
-
         this.elemento.style.userSelect =
             "none";
-
 
         this.elemento.style.zIndex =
             "100";
 
-
-        // =================================================
-        // IMPORTANTE
-        // =================================================
-        // O coração está dentro da caixa.
-        // Portanto suas coordenadas são relativas à caixa.
-
         this.elemento.style.transform =
             "translate(-50%, -50%)";
-
-
-        // =================================================
-        // ADICIONAR NA CAIXA
-        // =================================================
 
         const caixa =
             document.getElementById(
                 "caixaEsquiva"
             );
-
 
         if (!caixa) {
 
@@ -226,13 +156,165 @@ const Coracao = {
 
         }
 
-
         caixa.appendChild(
             this.elemento
         );
 
     },
 
+    // =====================================================
+    // LIMPAR TECLAS
+    // =====================================================
+
+    limparTeclas() {
+
+        this.teclas = {
+
+            w: false,
+            a: false,
+            s: false,
+            d: false,
+
+            arrowup: false,
+            arrowdown: false,
+            arrowleft: false,
+            arrowright: false
+
+        };
+
+    },
+
+    // =====================================================
+    // DEFINIR DIREÇÃO PELO MOBILE
+    // =====================================================
+
+    definirDirecaoMobile(direcao) {
+
+    if (!this.ativo)
+        return;
+
+
+    this.limparTeclas();
+
+
+    // =====================================================
+    // DIREÇÃO ANALÓGICA
+    // =====================================================
+
+    if (
+        typeof direcao === "object"
+    ) {
+
+        if (
+            direcao.x <
+            -0.25
+        ) {
+
+            this.teclas.arrowleft =
+                true;
+
+        }
+
+
+        if (
+            direcao.x >
+            0.25
+        ) {
+
+            this.teclas.arrowright =
+                true;
+
+        }
+
+
+        if (
+            direcao.y <
+            -0.25
+        ) {
+
+            this.teclas.arrowup =
+                true;
+
+        }
+
+
+        if (
+            direcao.y >
+            0.25
+        ) {
+
+            this.teclas.arrowdown =
+                true;
+
+        }
+
+
+        return;
+
+    }
+
+
+    // =====================================================
+    // COMPATIBILIDADE COM SETAS
+    // =====================================================
+
+    const tecla =
+        String(
+            direcao
+        ).toLowerCase();
+
+
+    if (
+        tecla === "arrowup" ||
+        tecla === "w"
+    ) {
+
+        this.teclas.arrowup =
+            true;
+
+    }
+
+    else if (
+        tecla === "arrowdown" ||
+        tecla === "s"
+    ) {
+
+        this.teclas.arrowdown =
+            true;
+
+    }
+
+    else if (
+        tecla === "arrowleft" ||
+        tecla === "a"
+    ) {
+
+        this.teclas.arrowleft =
+            true;
+
+    }
+
+    else if (
+        tecla === "arrowright" ||
+        tecla === "d"
+    ) {
+
+        this.teclas.arrowright =
+            true;
+
+    }
+
+},
+
+    // =====================================================
+    // PARAR DIREÇÃO MOBILE
+    // =====================================================
+
+    pararDirecaoMobile() {
+
+        this.limparTeclas();
+
+    },
 
     // =====================================================
     // TECLADO
@@ -245,65 +327,70 @@ const Coracao = {
         )
             return;
 
-
         this.tecladoIniciado =
             true;
 
-
-        // =================================================
-        // PRESSIONAR
-        // =================================================
-
         document.addEventListener(
             "keydown",
-            (e) => {
+            e => {
 
                 const tecla =
-                    e.key.toLowerCase();
-
-
-                this.teclas[tecla] =
-                    true;
-
-
-                // Evita a página
-                // de rolar com as setas
+                    String(
+                        e.key
+                    ).toLowerCase();
 
                 if (
                     tecla === "arrowup" ||
                     tecla === "arrowdown" ||
                     tecla === "arrowleft" ||
-                    tecla === "arrowright"
+                    tecla === "arrowright" ||
+                    tecla === "w" ||
+                    tecla === "a" ||
+                    tecla === "s" ||
+                    tecla === "d"
                 ) {
 
-                    e.preventDefault();
+                    this.teclas[tecla] =
+                        true;
+
+                    if (
+                        this.ativo
+                    ) {
+
+                        e.preventDefault();
+
+                    }
 
                 }
 
             }
         );
 
-
-        // =================================================
-        // SOLTAR
-        // =================================================
-
         document.addEventListener(
             "keyup",
-            (e) => {
+            e => {
 
                 const tecla =
-                    e.key.toLowerCase();
+                    String(
+                        e.key
+                    ).toLowerCase();
 
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        this.teclas,
+                        tecla
+                    )
+                ) {
 
-                this.teclas[tecla] =
-                    false;
+                    this.teclas[tecla] =
+                        false;
+
+                }
 
             }
         );
 
     },
-
 
     // =====================================================
     // ATUALIZAR
@@ -311,26 +398,14 @@ const Coracao = {
 
     atualizar() {
 
-        if (
-            !this.ativo
-        )
+        if (!this.ativo)
             return;
 
-
-        if (
-            !this.elemento
-        )
+        if (!this.elemento)
             return;
-
-
-        // =================================================
-        // MOVIMENTO
-        // =================================================
 
         let dx = 0;
-
         let dy = 0;
-
 
         // =================================================
         // CIMA
@@ -346,7 +421,6 @@ const Coracao = {
 
         }
 
-
         // =================================================
         // BAIXO
         // =================================================
@@ -360,7 +434,6 @@ const Coracao = {
                 this.velocidade;
 
         }
-
 
         // =================================================
         // ESQUERDA
@@ -376,7 +449,6 @@ const Coracao = {
 
         }
 
-
         // =================================================
         // DIREITA
         // =================================================
@@ -391,9 +463,8 @@ const Coracao = {
 
         }
 
-
         // =================================================
-        // MOVIMENTO DIAGONAL
+        // DIAGONAL
         // =================================================
 
         if (
@@ -402,50 +473,31 @@ const Coracao = {
         ) {
 
             const normalizacao =
-                1 /
-                Math.sqrt(2);
-
+                1 / Math.sqrt(2);
 
             dx *=
                 normalizacao;
-
 
             dy *=
                 normalizacao;
 
         }
 
-
         // =================================================
         // APLICAR
         // =================================================
 
-        this.x +=
-            dx;
-
-
-        this.y +=
-            dy;
-
-
-        // =================================================
-        // LIMITES
-        // =================================================
+        this.x += dx;
+        this.y += dy;
 
         this.limitar();
-
-
-        // =================================================
-        // VISUAL
-        // =================================================
 
         this.atualizarVisual();
 
     },
 
-
     // =====================================================
-    // LIMITAR CORAÇÃO
+    // LIMITAR
     // =====================================================
 
     limitar() {
@@ -455,60 +507,29 @@ const Coracao = {
                 "caixaEsquiva"
             );
 
-
         if (!caixa)
             return;
-
 
         const largura =
             caixa.clientWidth;
 
-
         const altura =
             caixa.clientHeight;
-
 
         const metade =
             this.tamanho / 2;
 
-
-        // =================================================
-        // LIMITE ESQUERDO
-        // =================================================
-
         const limiteEsquerdo =
             metade;
 
-
-        // =================================================
-        // LIMITE DIREITO
-        // =================================================
-
         const limiteDireito =
-            largura -
-            metade;
-
-
-        // =================================================
-        // LIMITE SUPERIOR
-        // =================================================
+            largura - metade;
 
         const limiteSuperior =
             metade;
 
-
-        // =================================================
-        // LIMITE INFERIOR
-        // =================================================
-
         const limiteInferior =
-            altura -
-            metade;
-
-
-        // =================================================
-        // APLICAR
-        // =================================================
+            altura - metade;
 
         if (
             this.x <
@@ -520,7 +541,6 @@ const Coracao = {
 
         }
 
-
         if (
             this.x >
             limiteDireito
@@ -531,7 +551,6 @@ const Coracao = {
 
         }
 
-
         if (
             this.y <
             limiteSuperior
@@ -541,7 +560,6 @@ const Coracao = {
                 limiteSuperior;
 
         }
-
 
         if (
             this.y >
@@ -555,49 +573,27 @@ const Coracao = {
 
     },
 
-
     // =====================================================
-    // ATUALIZAR VISUAL
+    // VISUAL
     // =====================================================
 
     atualizarVisual() {
 
-        if (
-            !this.elemento
-        )
+        if (!this.elemento)
             return;
-
 
         this.elemento.style.left =
             this.x + "px";
 
-
         this.elemento.style.top =
             this.y + "px";
 
-
-        // =================================================
-        // VISIBILIDADE
-        // =================================================
-
-        if (
+        this.elemento.style.display =
             this.ativo
-        ) {
-
-            this.elemento.style.display =
-                "block";
-
-        }
-
-        else {
-
-            this.elemento.style.display =
-                "none";
-
-        }
+                ? "block"
+                : "none";
 
     },
-
 
     // =====================================================
     // PARAR
@@ -609,10 +605,10 @@ const Coracao = {
             "CORAÇÃO PARADO"
         );
 
-
         this.ativo =
             false;
 
+        this.limparTeclas();
 
         if (
             this.elemento
@@ -625,7 +621,6 @@ const Coracao = {
 
     },
 
-
     // =====================================================
     // REMOVER
     // =====================================================
@@ -635,13 +630,13 @@ const Coracao = {
         this.ativo =
             false;
 
+        this.limparTeclas();
 
         if (
             this.elemento
         ) {
 
             this.elemento.remove();
-
 
             this.elemento =
                 null;
@@ -650,24 +645,23 @@ const Coracao = {
 
     },
 
-
     // =====================================================
-    // RECEBER DANO
+    // DANO
     // =====================================================
 
-    receberDano(valor) {
+    receberDano(
+        valor
+    ) {
 
         if (
             !this.ativo
         )
             return;
 
-
         console.log(
             "CORAÇÃO RECEBEU DANO:",
             valor
         );
-
 
         if (
             typeof Batalha !==
@@ -681,7 +675,6 @@ const Coracao = {
         }
 
     },
-
 
     // =====================================================
     // COLISÃO
@@ -699,44 +692,32 @@ const Coracao = {
         )
             return false;
 
-
         const metade =
             this.tamanho / 2;
 
-
         const esquerda =
-            this.x -
-            metade;
-
+            this.x - metade;
 
         const direita =
-            this.x +
-            metade;
-
+            this.x + metade;
 
         const cima =
-            this.y -
-            metade;
-
+            this.y - metade;
 
         const baixo =
-            this.y +
-            metade;
-
+            this.y + metade;
 
         return (
 
-            direita >
-            x &&
+            direita > x &&
 
             esquerda <
-            x + largura &&
+                x + largura &&
 
-            baixo >
-            y &&
+            baixo > y &&
 
             cima <
-            y + altura
+                y + altura
 
         );
 

@@ -163,7 +163,56 @@ const Batalha = {
 
     },
 
+esconderArena() {
 
+    document.body.classList.remove(
+        "batalhaAtiva"
+    );
+
+
+    const game =
+        document.getElementById(
+            "game"
+        );
+
+
+    const mobile =
+        document.getElementById(
+            "mobile"
+        );
+
+
+    const arena =
+        document.getElementById(
+            "arena"
+        );
+
+
+    if (game)
+        game.style.display = "";
+
+
+    /*
+     * Fora da batalha, o mobile volta a aparecer
+     * normalmente para movimentação no jogo.
+     */
+
+    if (mobile)
+        mobile.style.display = "";
+
+
+    if (arena) {
+
+        arena.style.display =
+            "none";
+
+        arena.classList.remove(
+            "batalhaAtiva"
+        );
+
+    }
+
+},
     // =====================================================
     // RESET
     // =====================================================
@@ -518,65 +567,87 @@ const Batalha = {
     },
 
 
-    esconderArena() {
+   // =====================================================
+// ARENA
+// =====================================================
 
-        document.body.classList.remove(
-            "batalhaAtiva"
+mostrarArena() {
+
+    document.body.classList.add(
+        "batalhaAtiva"
+    );
+
+
+    const game =
+        document.getElementById(
+            "game"
         );
 
 
-        const game =
-            document.getElementById(
-                "game"
-            );
+    const mobile =
+        document.getElementById(
+            "mobile"
+        );
 
 
-        const mobile =
-            document.getElementById(
-                "mobile"
-            );
+    const arena =
+        document.getElementById(
+            "arena"
+        );
 
 
-        const arena =
-            document.getElementById(
-                "arena"
-            );
+    if (game)
+        game.style.display = "none";
 
 
-        if (
-            game
-        ) {
+    /*
+     * IMPORTANTE:
+     *
+     * No modo mobile, o #mobile NÃO pode
+     * ser escondido durante a batalha.
+     *
+     * Ele contém o analógico, ENTER
+     * e a área de teclado.
+     */
 
-            game.style.display =
-                "";
-
-        }
-
-
-        if (
-            mobile
-        ) {
-
-            mobile.style.display =
-                "";
-
-        }
+    const modoMobile =
+        document.body.classList.contains(
+            "modoMobilePC"
+        ) ||
+        document.body.classList.contains(
+            "modoMobile"
+        ) ||
+        (
+            typeof BatalhaMobile !==
+            "undefined"
+        );
 
 
-        if (
-            arena
-        ) {
+    if (mobile) {
 
-            arena.style.display =
-                "none";
+        mobile.style.display =
+            modoMobile
+                ? "block"
+                : "none";
 
-            arena.classList.remove(
-                "batalhaAtiva"
-            );
+    }
 
-        }
 
-    },
+    if (arena) {
+
+        arena.style.display =
+            "block";
+
+        arena.classList.add(
+            "batalhaAtiva"
+        );
+
+        arena.style.position =
+            "relative";
+
+    }
+
+},
 
 
     // =====================================================

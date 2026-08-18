@@ -15,6 +15,67 @@ const GameOver = {
         "Levante."
 
     ],
+
+    receberTeclaMobile(tecla) {
+
+    if (!this.ativo)
+        return;
+
+
+    if (
+        tecla === "ArrowUp" ||
+        tecla === "ArrowLeft"
+    ) {
+
+        Game.gameOverSelecionado--;
+
+        if (
+            Game.gameOverSelecionado < 0
+        ) {
+
+            Game.gameOverSelecionado = 1;
+
+        }
+
+        this.atualizarMenu();
+
+        return;
+
+    }
+
+
+    if (
+        tecla === "ArrowDown" ||
+        tecla === "ArrowRight"
+    ) {
+
+        Game.gameOverSelecionado++;
+
+        if (
+            Game.gameOverSelecionado > 1
+        ) {
+
+            Game.gameOverSelecionado = 0;
+
+        }
+
+        this.atualizarMenu();
+
+        return;
+
+    }
+
+
+    if (
+        tecla === "Enter"
+    ) {
+
+        this.escolher();
+
+    }
+
+},
+
 atualizarMenu(){
 
     const opcoes =

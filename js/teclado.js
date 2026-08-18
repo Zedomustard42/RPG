@@ -1,139 +1,241 @@
-
 const TecladoMobile = {
 
+    input: null,
 
-    input:null,
+    iniciado: false,
 
-
-    iniciar(){
-
-
-        this.input = document.createElement("input");
+    // Evita processar a mesma entrada duas vezes
+    ultimoTexto: "",
 
 
-        this.input.id="tecladoMobile";
+    // =====================================================
+    // INICIAR
+    // =====================================================
+
+    iniciar() {
+
+        if (this.iniciado)
+            return;
+
+        this.iniciado = true;
 
 
-        this.input.type="text";
+        this.input =
+            document.createElement(
+                "input"
+            );
 
 
-        this.input.style.position="fixed";
-        this.input.style.opacity="0";
-        this.input.style.height="1px";
-        this.input.style.width="1px";
+        this.input.id =
+            "tecladoMobile";
 
 
-        this.input.autocomplete="off";
+        this.input.type =
+            "text";
 
 
-        document.body.appendChild(this.input);
+        this.input.autocomplete =
+            "off";
 
 
+        this.input.autocorrect =
+            "off";
 
 
+        this.input.autocapitalize =
+            "characters";
+
+
+        this.input.spellcheck =
+            false;
+
+
+        /*
+         * Invisível, mas focável.
+         */
+
+        this.input.style.position =
+            "fixed";
+
+
+        this.input.style.left =
+            "-1000px";
+
+
+        this.input.style.top =
+            "0";
+
+
+        this.input.style.width =
+            "1px";
+
+
+        this.input.style.height =
+            "1px";
+
+
+        this.input.style.opacity =
+            "0";
+
+
+        this.input.style.pointerEvents =
+            "none";
+
+
+        document.body.appendChild(
+            this.input
+        );
+
+
+        // =================================================
+        // INPUT
+        // =================================================
 
         this.input.addEventListener(
             "input",
-            ()=>{
+            e => {
 
-            if(
-    /Android|iPhone|iPad/i.test(
-        navigator.userAgent
-    ) === false
-){
+                e.stopPropagation();
 
-    return;
 
-}
                 const texto =
-                this.input.value;
+                    this.input.value;
 
 
+                if (!texto)
+                    return;
 
-                if(texto.length > 0){
 
+                /*
+                 * Processa exatamente o
+                 * conteúdo recebido.
+                 */
 
-                    for(const letra of texto){
+                for (
+                    const letra of texto
+                ) {
 
+                    if (
+                        typeof Input !==
+                        "undefined" &&
+                        typeof Input.tecla ===
+                        "function"
+                    ) {
 
                         Input.tecla({
-
-                            key:letra
-
+                            key: letra
                         });
 
-
                     }
-
 
                 }
 
 
-
-                this.input.value="";
-
-
+                this.input.value =
+                    "";
 
             }
         );
 
+
+        // =================================================
+        // KEYDOWN DO INPUT
+        // =================================================
+
+        this.input.addEventListener(
+            "keydown",
+            e => {
+
+                /*
+                 * MUITO IMPORTANTE:
+                 *
+                 * O teclado oculto não pode
+                 * deixar o keydown escapar
+                 * para os listeners normais
+                 * do jogo.
+                 *
+                 * Ele será processado pelo
+                 * evento "input".
+                 */
+
+                e.stopPropagation();
+
+            }
+        );
 
 
         console.log(
             "TECLADO MOBILE PRONTO"
         );
 
-
     },
 
 
+    // =====================================================
+    // ABRIR
+    // =====================================================
 
+    abrir() {
 
-
-    abrir(){
-
-
-        if(!this.input)
+        if (!this.input)
             return;
 
 
-
-        this.input.value="";
+        this.input.value =
+            "";
 
 
         this.input.focus();
 
 
+        /*
+         * Alguns navegadores mobile
+         * respeitam melhor o focus
+         * após um pequeno atraso.
+         */
+
+        setTimeout(
+            () => {
+
+                if (
+                    this.input
+                ) {
+
+                    this.input.focus();
+
+                }
+
+            },
+            50
+        );
 
     },
 
 
+    // =====================================================
+    // FECHAR
+    // =====================================================
 
+    fechar() {
 
-
-    fechar(){
-
-
-        if(this.input){
+        if (
+            this.input
+        ) {
 
             this.input.blur();
 
         }
 
-
     }
-
 
 };
 
 
-
-
 window.addEventListener(
-"load",
-()=>{
+    "load",
+    () => {
 
-    TecladoMobile.iniciar();
+        TecladoMobile.iniciar();
 
-});
-
+    }
+);

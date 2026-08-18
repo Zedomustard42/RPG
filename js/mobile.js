@@ -1,166 +1,199 @@
 const Mobile = {
 
+    iniciado: false,
 
-    iniciar(){
+    // =====================================================
+    // INICIAR
+    // =====================================================
 
+    iniciar() {
 
-        this.botao("btnUp","ArrowUp");
+        if (this.iniciado)
+            return;
 
-        this.botao("btnDown","ArrowDown");
+        this.iniciado = true;
 
-        this.botao("btnLeft","ArrowLeft");
+        this.botao("btnUp", "ArrowUp");
+        this.botao("btnDown", "ArrowDown");
+        this.botao("btnLeft", "ArrowLeft");
+        this.botao("btnRight", "ArrowRight");
+        this.botao("btnOk", "Enter");
 
-        this.botao("btnRight","ArrowRight");
-
-        this.botao("btnOk","Enter");
-
+        this.configurarAtaque();
 
         console.log("MOBILE INICIADO");
-
 
     },
 
 
+    // =====================================================
+    // BOTÕES ANTIGOS / CONTROLE GERAL
+    // =====================================================
 
-
-
-    botao(id, tecla){
-
+    botao(id, tecla) {
 
         const botao =
-        document.getElementById(id);
+            document.getElementById(id);
 
-
-
-        if(!botao)
+        if (!botao)
             return;
 
 
+        let pressionado = false;
 
 
+        const enviar = e => {
 
+            if (pressionado)
+                return;
 
-        const pressionar = (e)=>{
-
+            pressionado = true;
 
             e.preventDefault();
+            e.stopPropagation();
 
 
+            /*
+             * Envia para o sistema principal
+             */
+            if (
+                typeof Input !== "undefined" &&
+                typeof Input.tecla === "function"
+            ) {
 
-            Input.tecla({
-
-                key:tecla
-
-            });
-
-
-
-
-            // BATALHA
-
-            if(typeof Movimento !== "undefined"){
-
-                Movimento.teclas[tecla]=true;
+                Input.tecla({
+                    key: tecla
+                });
 
             }
 
 
+            /*
+             * Movimento físico
+             */
+            if (
+                typeof Movimento !== "undefined" &&
+                Movimento.teclas
+            ) {
 
-        };
-
-
-
-
-
-
-
-
-        const soltar = (e)=>{
-
-
-            e.preventDefault();
-
-
-
-            if(typeof Movimento !== "undefined"){
-
-                Movimento.teclas[tecla]=false;
+                Movimento.teclas[tecla] = true;
 
             }
 
+        };
 
+
+        const soltar = e => {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            pressionado = false;
+
+
+            if (
+                typeof Movimento !== "undefined" &&
+                Movimento.teclas
+            ) {
+
+                Movimento.teclas[tecla] = false;
+
+            }
 
         };
 
 
-
-
-
+        /*
+         * Pointer events evitam:
+         *
+         * touchstart + mousedown
+         * touchend + mouseup
+         *
+         * causando duplicação.
+         */
 
         botao.addEventListener(
-            "touchstart",
-            pressionar
+            "pointerdown",
+            enviar
         );
 
 
         botao.addEventListener(
-            "touchend",
+            "pointerup",
             soltar
         );
 
 
-
-
         botao.addEventListener(
-            "mousedown",
-            pressionar
-        );
-
-
-        botao.addEventListener(
-            "mouseup",
+            "pointercancel",
             soltar
         );
 
 
+        botao.addEventListener(
+            "pointerleave",
+            soltar
+        );
+
+    },
+
+
+    // =====================================================
+    // ATAQUE
+    // =====================================================
+
+    configurarAtaque() {
+
+        const ataque =
+            document.getElementById(
+                "btnAtaque"
+            );
+
+        if (!ataque)
+            return;
+
+
+        ataque.addEventListener(
+            "pointerdown",
+            e => {
+
+                e.preventDefault();
+                e.stopPropagation();
+
+
+                if (
+                    typeof Game !== "undefined" &&
+                    !Game.emBatalha
+                )
+                    return;
+
+
+                if (
+                    typeof Batalha !== "undefined" &&
+                    typeof Batalha.atacar === "function"
+                ) {
+
+                    Batalha.atacar();
+
+                }
+
+            }
+        );
 
     }
-
 
 };
 
 
-
-
+// =====================================================
+// INICIALIZAR
+// =====================================================
 
 window.addEventListener(
-"load",
-()=>{
+    "load",
+    () => {
 
-    Mobile.iniciar();
+        Mobile.iniciar();
 
-});
-
-const ataque =
-document.getElementById("btnAtaque");
-
-
-if(ataque){
-
-    ataque.addEventListener(
-        "click",
-        ()=>{
-
-            ataque.addEventListener("click",()=>{
-
-    if(!Game.emBatalha) return;
-
-    Batalha.atacar();
-
-});
-
-        }
-    );
-
-
-}
+    }
+);
