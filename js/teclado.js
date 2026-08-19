@@ -4,8 +4,59 @@ const TecladoMobile = {
 
     iniciado: false,
 
-    // Evita processar a mesma entrada duas vezes
-    ultimoTexto: "",
+
+    // =====================================================
+    // ENVIAR TECLA PARA O INPUT.JS
+    // =====================================================
+
+    enviarTecla(tecla) {
+
+        if (
+            typeof Input === "undefined" ||
+            typeof Input.tecla !== "function"
+        ) {
+            console.warn(
+                "Input.tecla não está disponível."
+            );
+
+            return;
+        }
+
+
+        /*
+         * O Input.js espera um evento que tenha:
+         *
+         * preventDefault()
+         * stopPropagation()
+         *
+         * Por isso não podemos mandar apenas:
+         *
+         * { key: "Enter" }
+         */
+
+        Input.tecla({
+
+            key: tecla,
+
+
+            preventDefault() {
+
+                // Simula preventDefault
+                return;
+
+            },
+
+
+            stopPropagation() {
+
+                // Simula stopPropagation
+                return;
+
+            }
+
+        });
+
+    },
 
 
     // =====================================================
@@ -14,11 +65,19 @@ const TecladoMobile = {
 
     iniciar() {
 
-        if (this.iniciado)
+        if (
+            this.iniciado
+        )
             return;
 
-        this.iniciado = true;
 
+        this.iniciado =
+            true;
+
+
+        // =================================================
+        // CRIAR INPUT INVISÍVEL
+        // =================================================
 
         this.input =
             document.createElement(
@@ -50,9 +109,9 @@ const TecladoMobile = {
             false;
 
 
-        /*
-         * Invisível, mas focável.
-         */
+        // =================================================
+        // ESTILO
+        // =================================================
 
         this.input.style.position =
             "fixed";
@@ -82,6 +141,10 @@ const TecladoMobile = {
             "none";
 
 
+        this.input.style.zIndex =
+            "-1";
+
+
         document.body.appendChild(
             this.input
         );
@@ -93,43 +156,46 @@ const TecladoMobile = {
 
         this.input.addEventListener(
             "input",
-            e => {
+            evento => {
 
-                e.stopPropagation();
+                evento.stopPropagation();
 
 
-                const texto =
+                const valor =
                     this.input.value;
 
 
-                if (!texto)
-                    return;
-
-
-                /*
-                 * Processa exatamente o
-                 * conteúdo recebido.
-                 */
-
-                for (
-                    const letra of texto
+                if (
+                    valor.length === 0
                 ) {
 
-                    if (
-                        typeof Input !==
-                        "undefined" &&
-                        typeof Input.tecla ===
-                        "function"
-                    ) {
-
-                        Input.tecla({
-                            key: letra
-                        });
-
-                    }
+                    return;
 
                 }
 
+
+                /*
+                 * Envia cada caractere
+                 * para o Input.js.
+                 */
+
+                for (
+                    const letra of valor
+                ) {
+
+                    this.enviarTecla(
+                        letra
+                    );
+
+                }
+
+
+                /*
+                 * Limpa o input interno.
+                 *
+                 * O texto verdadeiro fica
+                 * armazenado em Input.texto.
+                 */
 
                 this.input.value =
                     "";
@@ -139,26 +205,164 @@ const TecladoMobile = {
 
 
         // =================================================
-        // KEYDOWN DO INPUT
+        // KEYDOWN
         // =================================================
 
         this.input.addEventListener(
             "keydown",
-            e => {
+            evento => {
 
-                /*
-                 * MUITO IMPORTANTE:
-                 *
-                 * O teclado oculto não pode
-                 * deixar o keydown escapar
-                 * para os listeners normais
-                 * do jogo.
-                 *
-                 * Ele será processado pelo
-                 * evento "input".
-                 */
+                evento.stopPropagation();
 
-                e.stopPropagation();
+
+                const tecla =
+                    evento.key;
+
+
+                // =========================================
+                // BACKSPACE
+                // =========================================
+
+                if (
+                    tecla ===
+                    "Backspace"
+                ) {
+
+                    evento.preventDefault();
+
+
+                    this.enviarTecla(
+                        "Backspace"
+                    );
+
+
+                    return;
+
+                }
+
+
+                // =========================================
+                // ENTER
+                // =========================================
+
+                if (
+                    tecla ===
+                    "Enter"
+                ) {
+
+                    evento.preventDefault();
+
+
+                    this.enviarTecla(
+                        "Enter"
+                    );
+
+
+                    return;
+
+                }
+
+
+                // =========================================
+                // SETA PARA CIMA
+                // =========================================
+
+                if (
+                    tecla ===
+                    "ArrowUp"
+                ) {
+
+                    evento.preventDefault();
+
+
+                    this.enviarTecla(
+                        "ArrowUp"
+                    );
+
+
+                    return;
+
+                }
+
+
+                // =========================================
+                // SETA PARA BAIXO
+                // =========================================
+
+                if (
+                    tecla ===
+                    "ArrowDown"
+                ) {
+
+                    evento.preventDefault();
+
+
+                    this.enviarTecla(
+                        "ArrowDown"
+                    );
+
+
+                    return;
+
+                }
+
+
+                // =========================================
+                // SETA ESQUERDA
+                // =========================================
+
+                if (
+                    tecla ===
+                    "ArrowLeft"
+                ) {
+
+                    evento.preventDefault();
+
+
+                    this.enviarTecla(
+                        "ArrowLeft"
+                    );
+
+
+                    return;
+
+                }
+
+
+                // =========================================
+                // SETA DIREITA
+                // =========================================
+
+                if (
+                    tecla ===
+                    "ArrowRight"
+                ) {
+
+                    evento.preventDefault();
+
+
+                    this.enviarTecla(
+                        "ArrowRight"
+                    );
+
+
+                    return;
+
+                }
+
+            }
+        );
+
+
+        // =================================================
+        // KEYUP
+        // =================================================
+
+        this.input.addEventListener(
+            "keyup",
+            evento => {
+
+                evento.stopPropagation();
 
             }
         );
@@ -172,26 +376,46 @@ const TecladoMobile = {
 
 
     // =====================================================
-    // ABRIR
+    // ABRIR TECLADO
     // =====================================================
 
     abrir() {
 
-        if (!this.input)
+        if (
+            !this.input
+        ) {
+
+            this.iniciar();
+
+        }
+
+
+        if (
+            !this.input
+        )
             return;
 
+
+        /*
+         * O input interno deve começar vazio.
+         *
+         * O texto verdadeiro está no Input.js.
+         */
 
         this.input.value =
             "";
 
 
+        // =================================================
+        // FOCO
+        // =================================================
+
         this.input.focus();
 
 
         /*
-         * Alguns navegadores mobile
-         * respeitam melhor o focus
-         * após um pequeno atraso.
+         * Alguns celulares precisam
+         * de um segundo focus.
          */
 
         setTimeout(
@@ -219,17 +443,25 @@ const TecladoMobile = {
     fechar() {
 
         if (
-            this.input
-        ) {
+            !this.input
+        )
+            return;
 
-            this.input.blur();
 
-        }
+        this.input.blur();
+
+
+        this.input.value =
+            "";
 
     }
 
 };
 
+
+// =========================================================
+// INICIALIZAR
+// =========================================================
 
 window.addEventListener(
     "load",

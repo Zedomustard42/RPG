@@ -39,38 +39,384 @@ const Input = {
 
     tecla(evento){
 
-        const tecla =
-            evento.key;
+        const tecla = evento.key;
 
-// =================================================
-    // CENA SECRETA - PERDIDO
-    // =================================================
 
-    if(
-        typeof Perdido !== "undefined" &&
-        Perdido.ativo
-    ){
+        // =================================================
+        // CENA SECRETA - PERDIDO
+        // =================================================
 
-        evento.preventDefault();
+        if(
+            typeof Perdido !== "undefined" &&
+            Perdido.ativo
+        ){
 
-        Perdido.tecla(tecla);
+            evento.preventDefault();
 
-        return;
+            Perdido.tecla(tecla);
 
-    }
+            return;
+
+        }
+
+
+        // =================================================
+        // PEGAR CENA ATUAL
+        // =================================================
+
+        const cena =
+            Introducao[
+                Game.cenaAtual
+            ];
+
+
+        // =================================================
+        // ENTRADA DE TEXTO
+        //
+        // IMPORTANTE:
+        // Fica ANTES dos outros Enter.
+        // Assim Enter e Backspace não são capturados
+        // por outro sistema.
+        // =================================================
+
+        if(
+            cena &&
+            cena.tipo === "entrada"
+        ){
+
+            // =============================================
+            // BACKSPACE
+            // =============================================
+
+            if(
+                tecla === "Backspace"
+            ){
+
+                evento.preventDefault();
+
+                evento.stopPropagation();
+
+
+                if(
+                    this.texto.length > 0
+                ){
+
+                    this.texto =
+                        this.texto.slice(
+                            0,
+                            -1
+                        );
+
+                }
+
+
+                UI.atualizarEntrada(
+                    this.texto
+                );
+
+
+                console.log(
+                    "APAGOU:",
+                    this.texto
+                );
+
+
+                return;
+
+            }
+
+
+            // =============================================
+            // ENTER
+            // =============================================
+
+            if(
+                tecla === "Enter"
+            ){
+
+                evento.preventDefault();
+
+                evento.stopPropagation();
+
+
+                // Evita duplo Enter
+                if(
+                    this.pressionado
+                )
+                    return;
+
+
+                this.bloquearEnter();
+
+
+                // -----------------------------------------
+                // NÃO DEIXA CONFIRMAR VAZIO
+                // -----------------------------------------
+
+                if(
+                    this.texto.trim() === ""
+                ){
+
+                    console.log(
+                        "NOME VAZIO"
+                    );
+
+                    return;
+
+                }
+
+
+                // -----------------------------------------
+                // SALVAR NOME
+                // -----------------------------------------
+
+                Game.nome =
+                    this.texto.trim();
+
+
+                console.log(
+                    "ENTRADA:",
+                    Game.tipoEntrada,
+                    Game.nome
+                );
+
+
+                // -----------------------------------------
+                // FECHAR TECLADO MOBILE
+                // -----------------------------------------
+
+                if(
+                    typeof TecladoMobile !==
+                    "undefined"
+                ){
+
+                    if(
+                        typeof TecladoMobile.fechar ===
+                        "function"
+                    ){
+
+                        TecladoMobile.fechar();
+
+                    }
+
+                }
+
+
+                // =========================================
+                // ENTRADA DE PESSOA
+                // =========================================
+
+                if(
+                    Game.tipoEntrada === "pessoa"
+                ){
+
+                    // =====================================
+                    // MEME DAS MONTANHAS
+                    // =====================================
+
+                    if(
+                        Game.nome.toLowerCase() ===
+                        "montanhas"
+                    ){
+
+                        const mensagemOriginal =
+                            document.getElementById(
+                                "game"
+                            );
+
+
+                        if(
+                            mensagemOriginal
+                        ){
+
+                            mensagemOriginal.innerHTML =
+                                "";
+
+
+                            const caixa =
+                                document.createElement(
+                                    "div"
+                                );
+
+
+                            caixa.className =
+                                "caixa-texto";
+
+
+                            caixa.innerHTML = `
+
+                                <div class="titulo">
+                                    ...
+                                </div>
+
+                                <div class="mensagem">
+                                    O Segredo nas Montanhas são os amigos que fazemos pelo caminho.
+                                </div>
+
+                            `;
+
+
+                            mensagemOriginal.appendChild(
+                                caixa
+                            );
+
+
+                            setTimeout(
+                                () => {
+
+                                    if(
+                                        typeof Engine !==
+                                        "undefined" &&
+                                        typeof Engine.receberNome ===
+                                        "function"
+                                    ){
+
+                                        Engine.receberNome(
+                                            Game.nome
+                                        );
+
+                                    }
+
+                                },
+                                3000
+                            );
+
+                        }
+
+
+                        this.texto = "";
+
+
+                        return;
+
+                    }
+
+
+                    // =====================================
+                    // NOME NORMAL
+                    // =====================================
+
+                    if(
+                        typeof Engine !==
+                        "undefined" &&
+                        typeof Engine.receberNome ===
+                        "function"
+                    ){
+
+                        Engine.receberNome(
+                            Game.nome
+                        );
+
+                    }
+
+                }
+
+
+                // =========================================
+                // ENTRADA DE CRIAÇÃO
+                // =========================================
+
+                else if(
+                    Game.tipoEntrada === "criacao"
+                ){
+
+                    if(
+                        typeof Engine !==
+                        "undefined" &&
+                        typeof Engine.receberCriacao ===
+                        "function"
+                    ){
+
+                        Engine.receberCriacao(
+                            Game.nome
+                        );
+
+                    }
+
+                }
+
+
+                // =========================================
+                // LIMPAR TEXTO
+                // =========================================
+
+                this.texto = "";
+
+
+                return;
+
+            }
+
+
+            // =============================================
+            // DIGITAÇÃO
+            // =============================================
+
+            if(
+                tecla.length === 1
+            ){
+
+                // Evita caracteres estranhos de controle
+                if(
+                    !evento.ctrlKey &&
+                    !evento.altKey &&
+                    !evento.metaKey
+                ){
+
+                    if(
+                        this.texto.length <
+                        Game.limiteNome
+                    ){
+
+                        this.texto +=
+                            tecla;
+
+
+                        UI.atualizarEntrada(
+                            this.texto
+                        );
+
+
+                        console.log(
+                            "DIGITOU:",
+                            this.texto
+                        );
+
+                    }
+
+                }
+
+
+                return;
+
+            }
+
+
+            // Se estiver na entrada de nome,
+            // nenhuma outra lógica deve receber a tecla.
+            return;
+
+        }
+
+
         // =================================================
         // PERGUNTAS - INTRODUÇÃO
         // =================================================
 
-        if(Game.perguntasInicio){
+        if(
+            Game.perguntasInicio
+        ){
 
-            if(tecla === "Enter"){
+            if(
+                tecla === "Enter"
+            ){
 
                 evento.preventDefault();
 
                 Engine.avancarInicioPerguntas();
 
             }
+
 
             return;
 
@@ -81,11 +427,16 @@ const Input = {
         // VOCÊ ACEITA?
         // =================================================
 
-        if(Game.perguntasAceite){
+        if(
+            Game.perguntasAceite
+        ){
 
-            if(tecla === "ArrowDown"){
+            if(
+                tecla === "ArrowDown"
+            ){
 
                 evento.preventDefault();
+
 
                 Game.perguntaSelecionada++;
 
@@ -109,9 +460,12 @@ const Input = {
             }
 
 
-            if(tecla === "ArrowUp"){
+            if(
+                tecla === "ArrowUp"
+            ){
 
                 evento.preventDefault();
+
 
                 Game.perguntaSelecionada--;
 
@@ -135,17 +489,24 @@ const Input = {
             }
 
 
-            if(tecla === "Enter"){
+            if(
+                tecla === "Enter"
+            ){
 
                 evento.preventDefault();
 
-                if(this.pressionado)
+
+                if(
+                    this.pressionado
+                )
                     return;
 
 
                 this.bloquearEnter();
 
+
                 Engine.escolherAceitePerguntas();
+
 
                 return;
 
@@ -161,21 +522,30 @@ const Input = {
         // RESPOSTA DA PERGUNTA
         // =================================================
 
-        if(Game.perguntaRespostaAtiva){
+        if(
+            Game.perguntaRespostaAtiva
+        ){
 
-            if(tecla === "Enter"){
+            if(
+                tecla === "Enter"
+            ){
 
                 evento.preventDefault();
 
-                if(this.pressionado)
+
+                if(
+                    this.pressionado
+                )
                     return;
 
 
                 this.bloquearEnter();
 
+
                 Engine.avancarRespostaPergunta();
 
             }
+
 
             return;
 
@@ -186,7 +556,9 @@ const Input = {
         // PERGUNTA PRINCIPAL
         // =================================================
 
-        if(Game.perguntaAtual !== null){
+        if(
+            Game.perguntaAtual !== null
+        ){
 
             const pergunta =
                 Perguntas[
@@ -194,7 +566,9 @@ const Input = {
                 ];
 
 
-            if(!pergunta)
+            if(
+                !pergunta
+            )
                 return;
 
 
@@ -202,7 +576,9 @@ const Input = {
             // BAIXO
             // ---------------------------------------------
 
-            if(tecla === "ArrowDown"){
+            if(
+                tecla === "ArrowDown"
+            ){
 
                 evento.preventDefault();
 
@@ -225,12 +601,6 @@ const Input = {
                 );
 
 
-                console.log(
-                    "PERGUNTA SELECIONADA:",
-                    Game.perguntaSelecionada
-                );
-
-
                 return;
 
             }
@@ -240,7 +610,9 @@ const Input = {
             // CIMA
             // ---------------------------------------------
 
-            if(tecla === "ArrowUp"){
+            if(
+                tecla === "ArrowUp"
+            ){
 
                 evento.preventDefault();
 
@@ -263,12 +635,6 @@ const Input = {
                 );
 
 
-                console.log(
-                    "PERGUNTA SELECIONADA:",
-                    Game.perguntaSelecionada
-                );
-
-
                 return;
 
             }
@@ -278,12 +644,16 @@ const Input = {
             // ENTER
             // ---------------------------------------------
 
-            if(tecla === "Enter"){
+            if(
+                tecla === "Enter"
+            ){
 
                 evento.preventDefault();
 
 
-                if(this.pressionado)
+                if(
+                    this.pressionado
+                )
                     return;
 
 
@@ -312,9 +682,12 @@ const Input = {
             !GameOver.escrevendo
         ){
 
-            if(tecla === "ArrowDown"){
+            if(
+                tecla === "ArrowDown"
+            ){
 
                 evento.preventDefault();
+
 
                 Game.gameOverSelecionado++;
 
@@ -330,14 +703,18 @@ const Input = {
 
                 GameOver.atualizarMenu();
 
+
                 return;
 
             }
 
 
-            if(tecla === "ArrowUp"){
+            if(
+                tecla === "ArrowUp"
+            ){
 
                 evento.preventDefault();
+
 
                 Game.gameOverSelecionado--;
 
@@ -353,22 +730,30 @@ const Input = {
 
                 GameOver.atualizarMenu();
 
+
                 return;
 
             }
 
 
-            if(tecla === "Enter"){
+            if(
+                tecla === "Enter"
+            ){
 
                 evento.preventDefault();
 
-                if(this.pressionado)
+
+                if(
+                    this.pressionado
+                )
                     return;
 
 
                 this.bloquearEnter();
 
+
                 GameOver.escolher();
+
 
                 return;
 
@@ -381,17 +766,25 @@ const Input = {
         // PESSOA FALANDO
         // =================================================
 
-        if(Engine.pessoaAtual){
+        if(
+            Engine.pessoaAtual
+        ){
 
-            if(tecla === "Enter"){
+            if(
+                tecla === "Enter"
+            ){
 
                 evento.preventDefault();
 
-                if(this.pressionado)
+
+                if(
+                    this.pressionado
+                )
                     return;
 
 
                 this.bloquearEnter();
+
 
                 Engine.mostrarFalaPessoa();
 
@@ -404,221 +797,52 @@ const Input = {
 
 
         // =================================================
-        // CENA ATUAL
+        // SE NÃO TEM CENA
         // =================================================
 
-        const cena =
-            Introducao[
-                Game.cenaAtual
-            ];
-
-
-        if(!cena)
+        if(
+            !cena
+        )
             return;
-
-
-        // =================================================
-        // ENTRADA DE TEXTO
-        // =================================================
-
-        if(cena.tipo === "entrada"){
-
-            // ---------------------------------------------
-            // BACKSPACE
-            // ---------------------------------------------
-
-            if(tecla === "Backspace"){
-
-                evento.preventDefault();
-
-
-                this.texto =
-                    this.texto.slice(0, -1);
-
-
-                UI.atualizarEntrada(
-                    this.texto
-                );
-
-
-                return;
-
-            }
-
-
-            // ---------------------------------------------
-            // ENTER
-            // ---------------------------------------------
-
-            if(tecla === "Enter"){
-
-                evento.preventDefault();
-
-
-                if(
-                    this.texto.trim() === ""
-                ){
-
-                    return;
-
-                }
-
-
-                Game.nome =
-                    this.texto.trim();
-
-
-                console.log(
-                    "ENTRADA:",
-                    Game.tipoEntrada,
-                    Game.nome
-                );
-
-
-                if(
-                    typeof TecladoMobile !==
-                    "undefined"
-                ){
-
-                    TecladoMobile.fechar();
-
-                }
-
-
-                if(
-    Game.tipoEntrada === "pessoa"
-){
-
-    // =================================================
-    // MEME DAS MONTANHAS
-    // =================================================
-
-    if(
-        Game.nome.toLowerCase() === "montanhas"
-    ){
-
-        const mensagemOriginal =
-            document.getElementById("game");
-
-        if(mensagemOriginal){
-
-            mensagemOriginal.innerHTML = "";
-
-            const caixa =
-                document.createElement("div");
-
-            caixa.className =
-                "caixa-texto";
-
-            caixa.innerHTML = `
-                <div class="titulo">
-                    ...
-                </div>
-
-                <div class="mensagem">
-                    O Segredo nas Montanhas são os amigos que fazemos pelo caminho.
-                </div>
-            `;
-
-            mensagemOriginal.appendChild(
-                caixa
-            );
-
-            /*
-             * Depois de 3 segundos,
-             * volta para o jogo normalmente.
-             */
-            setTimeout(() => {
-
-                Engine.receberNome(
-                    Game.nome
-                );
-
-            }, 3000);
-
-        }
-
-        return;
-    }
-
-
-    // =================================================
-    // NOME NORMAL
-    // =================================================
-
-    Engine.receberNome(
-        Game.nome
-    );
-
-}
-
-
-                else if(
-                    Game.tipoEntrada === "criacao"
-                ){
-
-                    Engine.receberCriacao(
-                        Game.nome
-                    );
-
-                }
-
-
-                this.texto = "";
-
-                return;
-
-            }
-
-
-            // ---------------------------------------------
-            // DIGITAÇÃO
-            // ---------------------------------------------
-
-            if(tecla.length === 1){
-
-                if(
-                    this.texto.length <
-                    Game.limiteNome
-                ){
-
-                    this.texto += tecla;
-
-
-                    UI.atualizarEntrada(
-                        this.texto
-                    );
-
-                }
-
-            }
-
-
-            return;
-
-        }
 
 
         // =================================================
         // ENTER NORMAL
         // =================================================
 
-        if(tecla === "Enter"){
+        if(
+            tecla === "Enter"
+        ){
 
             evento.preventDefault();
 
 
-            if(this.pressionado)
+            if(
+                this.pressionado
+            )
                 return;
 
 
             this.bloquearEnter();
 
 
-            Engine.cancelarEspera();
+            if(
+                typeof Engine.cancelarEspera ===
+                "function"
+            ){
+
+                Engine.cancelarEspera();
+
+            }
 
 
-            if(cena.tipo === "menu"){
+            // ---------------------------------------------
+            // MENU
+            // ---------------------------------------------
+
+            if(
+                cena.tipo === "menu"
+            ){
 
                 Engine.escolher(
                     Game.selecionado
@@ -627,7 +851,13 @@ const Input = {
             }
 
 
-            else if(cena.tipo === "texto"){
+            // ---------------------------------------------
+            // TEXTO
+            // ---------------------------------------------
+
+            else if(
+                cena.tipo === "texto"
+            ){
 
                 if(
                     Game.cenaAtual <
@@ -650,7 +880,9 @@ const Input = {
         // MENU NORMAL
         // =================================================
 
-        if(cena.tipo !== "menu")
+        if(
+            cena.tipo !== "menu"
+        )
             return;
 
 
@@ -658,7 +890,9 @@ const Input = {
         // BAIXO
         // =================================================
 
-        if(tecla === "ArrowDown"){
+        if(
+            tecla === "ArrowDown"
+        ){
 
             evento.preventDefault();
 
@@ -678,6 +912,7 @@ const Input = {
 
             Engine.atualizar();
 
+
             return;
 
         }
@@ -687,7 +922,9 @@ const Input = {
         // CIMA
         // =================================================
 
-        if(tecla === "ArrowUp"){
+        if(
+            tecla === "ArrowUp"
+        ){
 
             evento.preventDefault();
 
@@ -707,6 +944,7 @@ const Input = {
 
             Engine.atualizar();
 
+
             return;
 
         }
@@ -723,11 +961,14 @@ const Input = {
         this.pressionado = true;
 
 
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            this.pressionado = false;
+                this.pressionado = false;
 
-        }, 250);
+            },
+            250
+        );
 
     }
 
