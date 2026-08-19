@@ -163,56 +163,7 @@ const Batalha = {
 
     },
 
-esconderArena() {
 
-    document.body.classList.remove(
-        "batalhaAtiva"
-    );
-
-
-    const game =
-        document.getElementById(
-            "game"
-        );
-
-
-    const mobile =
-        document.getElementById(
-            "mobile"
-        );
-
-
-    const arena =
-        document.getElementById(
-            "arena"
-        );
-
-
-    if (game)
-        game.style.display = "";
-
-
-    /*
-     * Fora da batalha, o mobile volta a aparecer
-     * normalmente para movimentação no jogo.
-     */
-
-    if (mobile)
-        mobile.style.display = "";
-
-
-    if (arena) {
-
-        arena.style.display =
-            "none";
-
-        arena.classList.remove(
-            "batalhaAtiva"
-        );
-
-    }
-
-},
     // =====================================================
     // RESET
     // =====================================================
@@ -567,87 +518,65 @@ esconderArena() {
     },
 
 
-   // =====================================================
-// ARENA
-// =====================================================
+    esconderArena() {
 
-mostrarArena() {
-
-    document.body.classList.add(
-        "batalhaAtiva"
-    );
-
-
-    const game =
-        document.getElementById(
-            "game"
-        );
-
-
-    const mobile =
-        document.getElementById(
-            "mobile"
-        );
-
-
-    const arena =
-        document.getElementById(
-            "arena"
-        );
-
-
-    if (game)
-        game.style.display = "none";
-
-
-    /*
-     * IMPORTANTE:
-     *
-     * No modo mobile, o #mobile NÃO pode
-     * ser escondido durante a batalha.
-     *
-     * Ele contém o analógico, ENTER
-     * e a área de teclado.
-     */
-
-    const modoMobile =
-        document.body.classList.contains(
-            "modoMobilePC"
-        ) ||
-        document.body.classList.contains(
-            "modoMobile"
-        ) ||
-        (
-            typeof BatalhaMobile !==
-            "undefined"
-        );
-
-
-    if (mobile) {
-
-        mobile.style.display =
-            modoMobile
-                ? "block"
-                : "none";
-
-    }
-
-
-    if (arena) {
-
-        arena.style.display =
-            "block";
-
-        arena.classList.add(
+        document.body.classList.remove(
             "batalhaAtiva"
         );
 
-        arena.style.position =
-            "relative";
 
-    }
+        const game =
+            document.getElementById(
+                "game"
+            );
 
-},
+
+        const mobile =
+            document.getElementById(
+                "mobile"
+            );
+
+
+        const arena =
+            document.getElementById(
+                "arena"
+            );
+
+
+        if (
+            game
+        ) {
+
+            game.style.display =
+                "";
+
+        }
+
+
+        if (
+            mobile
+        ) {
+
+            mobile.style.display =
+                "";
+
+        }
+
+
+        if (
+            arena
+        ) {
+
+            arena.style.display =
+                "none";
+
+            arena.classList.remove(
+                "batalhaAtiva"
+            );
+
+        }
+
+    },
 
 
     // =====================================================
@@ -728,31 +657,22 @@ mostrarArena() {
         }
 
 
-        let audio =
-            this.audiosBatalha[nome];
+        // =================================================
+        // NOVA INSTÂNCIA DE ÁUDIO
+        // =================================================
+
+        const audio =
+            new Audio(
+                caminho
+            );
 
 
-        if (
-            !audio
-        ) {
-
-            audio =
-                new Audio(
-                    caminho
-                );
+        audio.preload =
+            "auto";
 
 
-            audio.preload =
-                "auto";
-
-            audio.volume =
-                1;
-
-
-            this.audiosBatalha[nome] =
-                audio;
-
-        }
+        audio.volume =
+            1;
 
 
         let executado =
@@ -784,29 +704,6 @@ mostrarArena() {
             };
 
 
-        audio.pause();
-
-
-        try {
-
-            audio.currentTime =
-                0;
-
-        }
-
-        catch (
-            erro
-        ) {
-
-            console.warn(
-                "ERRO AO RESETAR ÁUDIO:",
-                nome,
-                erro
-            );
-
-        }
-
-
         audio.onended =
             executarCallback;
 
@@ -815,8 +712,43 @@ mostrarArena() {
             executarCallback;
 
 
-        const promessa =
-            audio.play();
+        // =================================================
+        // TOCAR
+        // =================================================
+
+        let promessa;
+
+        try {
+
+            promessa =
+                audio.play();
+
+        }
+
+        catch (
+            erro
+        ) {
+
+            if (
+                erro.name !==
+                "AbortError"
+            ) {
+
+                console.warn(
+                    "ERRO AO TOCAR:",
+                    nome,
+                    caminho,
+                    erro
+                );
+
+            }
+
+
+            executarCallback();
+
+            return;
+
+        }
 
 
         if (
@@ -828,12 +760,19 @@ mostrarArena() {
             promessa.catch(
                 erro => {
 
-                    console.warn(
-                        "ERRO AO TOCAR:",
-                        nome,
-                        caminho,
-                        erro
-                    );
+                    if (
+                        erro.name !==
+                        "AbortError"
+                    ) {
+
+                        console.warn(
+                            "ERRO AO TOCAR:",
+                            nome,
+                            caminho,
+                            erro
+                        );
+
+                    }
 
 
                     executarCallback();
@@ -1478,10 +1417,6 @@ mostrarArena() {
             return;
 
 
-        // ================================================
-        // ERRO
-        // ================================================
-
         if (
             errou
         ) {
@@ -1506,10 +1441,6 @@ mostrarArena() {
 
         }
 
-
-        // ================================================
-        // DANO
-        // ================================================
 
         const minimo =
             nome ===
@@ -1559,13 +1490,6 @@ mostrarArena() {
             "JOGADOR";
 
 
-        /*
-         * IMPORTANTE:
-         *
-         * Não toca selecionar aqui.
-         * O ataque usa SOMENTE slash.
-         */
-
         this.tocarSomBatalha(
             "slash",
             () => {
@@ -1583,12 +1507,6 @@ mostrarArena() {
             }
         );
 
-
-        /*
-         * Registra imediatamente a ação.
-         * Isso impede que ENTER repetido
-         * produza múltiplos ataques.
-         */
 
         this.registrarAcao(
             nome,
@@ -1733,10 +1651,6 @@ mostrarArena() {
         );
 
 
-        // ================================================
-        // ESPADA SANGRENTA
-        // ================================================
-
         if (
             tipo ===
             "espada"
@@ -1760,10 +1674,6 @@ mostrarArena() {
 
         }
 
-
-        // ================================================
-        // CONSUMIR MANANCIAL
-        // ================================================
 
         else if (
             tipo ===
@@ -1813,10 +1723,6 @@ mostrarArena() {
         }
 
 
-        // ================================================
-        // CORAÇÃO DE SANGUE
-        // ================================================
-
         else if (
             tipo ===
             "coracao"
@@ -1832,10 +1738,6 @@ mostrarArena() {
 
         }
 
-
-        // ================================================
-        // REGISTRA E PASSA PARA SPIKE
-        // ================================================
 
         this.registrarAcao(
             "ash",
@@ -2000,10 +1902,6 @@ mostrarArena() {
         );
 
 
-        // ================================================
-        // APROPRIAÇÃO
-        // ================================================
-
         if (
             tipo ===
             "apropriacao"
@@ -2024,10 +1922,6 @@ mostrarArena() {
         }
 
 
-        // ================================================
-        // CHAMAS DO CAOS
-        // ================================================
-
         else if (
             tipo ===
             "chamas"
@@ -2047,10 +1941,6 @@ mostrarArena() {
 
         }
 
-
-        // ================================================
-        // DESCARNAR
-        // ================================================
 
         else if (
             tipo ===
@@ -2813,10 +2703,6 @@ mostrarArena() {
 
         }
 
-
-        // =================================================
-        // SOM CORRETO
-        // =================================================
 
         this.tocarDanoInimigo(
             dano
