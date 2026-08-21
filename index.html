@@ -8,39 +8,62 @@
 
     <title>O Segredo nas Montanhas</title>
 
-    <meta name="viewport"
-          content="width=device-width,
-                   initial-scale=1,
-                   maximum-scale=1,
-                   user-scalable=no,
-                   viewport-fit=cover">
+    <meta
+        name="viewport"
+        content="
+            width=device-width,
+            initial-scale=1,
+            maximum-scale=1,
+            user-scalable=no,
+            viewport-fit=cover
+        "
+    >
 
-    <meta name="theme-color"
-          content="#000000">
+    <meta
+        name="theme-color"
+        content="#000000"
+    >
 
-    <link rel="manifest"
-          href="manifest.json">
 
-    <link rel="icon"
-          type="image/png"
-          href="assets/icon.png">
+    <!-- =========================
+         PWA
+    ========================== -->
 
-    <link rel="apple-touch-icon"
-          href="assets/icon.png">
+    <link
+        rel="manifest"
+        href="manifest.json"
+    >
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="assets/icon.png"
+    >
+
+    <link
+        rel="apple-touch-icon"
+        href="assets/icon.png"
+    >
 
 
     <!-- =========================
          CSS
     ========================== -->
 
-    <link rel="stylesheet"
-          href="css/style.css">
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
 
-    <link rel="stylesheet"
-          href="css/batalha.css">
+    <link
+        rel="stylesheet"
+        href="css/batalha.css"
+    >
 
-    <link rel="stylesheet"
-          href="css/mobile.css">
+    <link
+        rel="stylesheet"
+        href="css/mobile.css"
+    >
 
 </head>
 
@@ -56,7 +79,7 @@
 
 
 <!-- =========================
-     CONTROLE MOBILE
+     CONTROLE MOBILE NORMAL
 ========================= -->
 
 <div id="mobile">
@@ -65,21 +88,26 @@
         ◀
     </button>
 
+
     <button id="btnDown">
         ▼
     </button>
+
 
     <button id="btnUp">
         ▲
     </button>
 
+
     <button id="btnRight">
         ▶
     </button>
 
+
     <button id="btnOk">
         ●
     </button>
+
 
     <button id="btnAtaque">
         🩸
@@ -92,7 +120,10 @@
      ARENA DA BATALHA
 ========================= -->
 
-<div id="arena" style="display: none;"></div>
+<div
+    id="arena"
+    style="display: none;"
+></div>
 
 
 <!-- =========================
@@ -105,7 +136,7 @@
 
 
 <!-- =========================
-     BANCO
+     BANCO / NOME
 ========================= -->
 
 <script src="js/database.js"></script>
@@ -147,7 +178,7 @@
 
 
 <!-- =========================
-     MÁSCARA
+     MÁSCARA / GAME OVER
 ========================= -->
 
 <script src="js/mascara.js"></script>
@@ -163,27 +194,60 @@
 
 
 <!-- =========================
-     SISTEMAS DE BATALHA
+     MOVIMENTO
 ========================= -->
 
 <script src="js/movimento.js"></script>
 
-<script src="js/batalhaMobile.js"></script>
+
+<!-- =========================
+     CORAÇÃO
+========================= -->
 
 <script src="js/coracao.js"></script>
 
+
+<!-- =========================
+     ATAQUES DA MÁSCARA
+========================= -->
+
 <script src="js/ataqueMascara.js"></script>
 
+
+<!-- =========================
+     RENDER DA BATALHA
+========================= -->
+
 <script src="js/batalhaRender.js"></script>
+
+
+<!-- =========================
+     SISTEMA DA BATALHA
+========================= -->
 
 <script src="js/batalha.js"></script>
 
 
 <!-- =========================
-     MOBILE
+     BATALHA MOBILE
+     
+     Colocado depois da batalha,
+     coração e GameOver.
+========================= -->
+
+<script src="js/batalhaMobile.js"></script>
+
+
+<!-- =========================
+     MOBILE NORMAL
 ========================= -->
 
 <script src="js/mobile.js"></script>
+
+
+<!-- =========================
+     TECLADO MOBILE
+========================= -->
 
 <script src="js/teclado.js"></script>
 
@@ -196,7 +260,7 @@
 
 
 <!-- =========================
-     START
+     START DO JOGO
 ========================= -->
 
 <script src="js/script.js"></script>

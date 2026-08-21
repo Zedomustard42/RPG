@@ -1,23 +1,47 @@
+// =====================================================
+// INICIAR RENDER
+// =====================================================
+
 Render.iniciar();
+
+
+// =====================================================
+// INICIAR ENGINE
+// =====================================================
 
 Engine.iniciar();
 
-BatalhaMobile.iniciar();
 
-if ("serviceWorker" in navigator) {
+// =====================================================
+// SERVICE WORKER / PWA
+// =====================================================
 
-    navigator.serviceWorker.register("sw.js")
+if (
+    "serviceWorker" in navigator
+) {
 
-        .then(() => {
+    navigator.serviceWorker
+        .register("./sw.js")
 
-            console.log("PWA carregado!");
+        .then(
+            () => {
 
-        })
+                console.log(
+                    "PWA carregado!"
+                );
 
-        .catch(erro => {
+            }
+        )
 
-            console.log("Erro no PWA:", erro);
+        .catch(
+            erro => {
 
-        });
+                console.log(
+                    "Erro no PWA:",
+                    erro
+                );
+
+            }
+        );
 
 }
