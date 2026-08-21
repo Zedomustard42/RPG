@@ -24,7 +24,6 @@
         content="#000000"
     >
 
-
     <!-- =========================
          PWA
     ========================== -->
@@ -44,7 +43,6 @@
         rel="apple-touch-icon"
         href="assets/icon.png"
     >
-
 
     <!-- =========================
          CSS
@@ -70,200 +68,195 @@
 
 <body>
 
+    <!-- =========================
+         JOGO
+    ========================== -->
 
-<!-- =========================
-     JOGO PRINCIPAL
-========================= -->
+    <div id="game"></div>
 
-<div id="game"></div>
 
+    <!-- =========================
+         CONTROLES MOBILE NORMAL
+    ========================== -->
 
-<!-- =========================
-     CONTROLE MOBILE NORMAL
-========================= -->
+    <div id="mobile">
 
-<div id="mobile">
+        <button id="btnLeft">
+            ◀
+        </button>
 
-    <button id="btnLeft">
-        ◀
-    </button>
+        <button id="btnDown">
+            ▼
+        </button>
 
+        <button id="btnUp">
+            ▲
+        </button>
 
-    <button id="btnDown">
-        ▼
-    </button>
+        <button id="btnRight">
+            ▶
+        </button>
 
+        <button id="btnOk">
+            ●
+        </button>
 
-    <button id="btnUp">
-        ▲
-    </button>
+        <button id="btnAtaque">
+            🩸
+        </button>
 
+    </div>
 
-    <button id="btnRight">
-        ▶
-    </button>
 
+    <!-- =========================
+         ARENA DA BATALHA
+    ========================== -->
 
-    <button id="btnOk">
-        ●
-    </button>
+    <div
+        id="arena"
+        style="display: none;"
+    ></div>
 
 
-    <button id="btnAtaque">
-        🩸
-    </button>
+    <!-- =========================
+         CONFIG
+    ========================== -->
 
-</div>
+    <script src="js/config.js"></script>
 
+    <script src="js/fullscreen.js"></script>
 
-<!-- =========================
-     ARENA DA BATALHA
-========================= -->
 
-<div
-    id="arena"
-    style="display: none;"
-></div>
+    <!-- =========================
+         BANCO
+    ========================== -->
 
+    <script src="js/database.js"></script>
 
-<!-- =========================
-     CONFIG
-========================= -->
+    <script src="js/nome.js"></script>
 
-<script src="js/config.js"></script>
 
-<script src="js/fullscreen.js"></script>
+    <!-- =========================
+         CENAS
+    ========================== -->
 
+    <script src="js/scene/introducao.js"></script>
 
-<!-- =========================
-     BANCO / NOME
-========================= -->
+    <script src="js/scene/perguntas.js"></script>
 
-<script src="js/database.js"></script>
 
-<script src="js/nome.js"></script>
+    <!-- =========================
+         SISTEMAS PRINCIPAIS
+    ========================== -->
 
+    <script src="js/render.js"></script>
 
-<!-- =========================
-     CENAS
-========================= -->
+    <script src="js/audio.js"></script>
 
-<script src="js/scene/introducao.js"></script>
+    <script src="js/ui.js"></script>
 
-<script src="js/scene/perguntas.js"></script>
+    <script src="js/input.js"></script>
 
 
-<!-- =========================
-     SISTEMAS PRINCIPAIS
-========================= -->
+    <!-- =========================
+         JOGADOR
+    ========================== -->
 
-<script src="js/render.js"></script>
+    <script src="js/jogador.js"></script>
 
-<script src="js/audio.js"></script>
+    <script src="js/perdido.js"></script>
 
-<script src="js/ui.js"></script>
+    <script src="js/scene/boneco.js"></script>
 
-<script src="js/input.js"></script>
 
+    <!-- =========================
+         MÁSCARA / GAME OVER
+    ========================== -->
 
-<!-- =========================
-     JOGADOR
-========================= -->
+    <script src="js/mascara.js"></script>
 
-<script src="js/jogador.js"></script>
+    <script src="js/gameover.js"></script>
 
-<script src="js/perdido.js"></script>
 
-<script src="js/scene/boneco.js"></script>
+    <!-- =========================
+         CENÁRIO DA BATALHA
+    ========================== -->
 
+    <script src="js/cenarioMascara.js"></script>
 
-<!-- =========================
-     MÁSCARA / GAME OVER
-========================= -->
 
-<script src="js/mascara.js"></script>
+    <!-- =========================
+         MOVIMENTO
+    ========================== -->
 
-<script src="js/gameover.js"></script>
+    <script src="js/movimento.js"></script>
 
 
-<!-- =========================
-     CENÁRIO DA BATALHA
-========================= -->
+    <!-- =========================
+         CORAÇÃO
+    ========================== -->
 
-<script src="js/cenarioMascara.js"></script>
+    <script src="js/coracao.js"></script>
 
 
-<!-- =========================
-     MOVIMENTO
-========================= -->
+    <!-- =========================
+         ATAQUES
+    ========================== -->
 
-<script src="js/movimento.js"></script>
+    <script src="js/ataqueMascara.js"></script>
 
 
-<!-- =========================
-     CORAÇÃO
-========================= -->
+    <!-- =========================
+         RENDER DA BATALHA
+    ========================== -->
 
-<script src="js/coracao.js"></script>
+    <script src="js/batalhaRender.js"></script>
 
 
-<!-- =========================
-     ATAQUES DA MÁSCARA
-========================= -->
+    <!-- =========================
+         BATALHA
+    ========================== -->
 
-<script src="js/ataqueMascara.js"></script>
+    <script src="js/batalha.js"></script>
 
 
-<!-- =========================
-     RENDER DA BATALHA
-========================= -->
+    <!-- =========================
+         BATALHA MOBILE
+         
+         ATENÇÃO:
+         O nome precisa ser exatamente
+         igual ao arquivo.
+    ========================== -->
 
-<script src="js/batalhaRender.js"></script>
+    <script src="js/batalhamobile.js"></script>
 
 
-<!-- =========================
-     SISTEMA DA BATALHA
-========================= -->
+    <!-- =========================
+         MOBILE NORMAL
+    ========================== -->
 
-<script src="js/batalha.js"></script>
+    <script src="js/mobile.js"></script>
 
 
-<!-- =========================
-     BATALHA MOBILE
-     
-     Colocado depois da batalha,
-     coração e GameOver.
-========================= -->
+    <!-- =========================
+         TECLADO MOBILE
+    ========================== -->
 
-<script src="js/batalhaMobile.js"></script>
+    <script src="js/teclado.js"></script>
 
 
-<!-- =========================
-     MOBILE NORMAL
-========================= -->
+    <!-- =========================
+         ENGINE
+    ========================== -->
 
-<script src="js/mobile.js"></script>
+    <script src="js/engine.js"></script>
 
 
-<!-- =========================
-     TECLADO MOBILE
-========================= -->
+    <!-- =========================
+         SCRIPT PRINCIPAL
+    ========================== -->
 
-<script src="js/teclado.js"></script>
-
-
-<!-- =========================
-     ENGINE
-========================= -->
-
-<script src="js/engine.js"></script>
-
-
-<!-- =========================
-     START DO JOGO
-========================= -->
-
-<script src="js/script.js"></script>
+    <script src="js/script.js"></script>
 
 
 </body>

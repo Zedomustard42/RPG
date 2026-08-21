@@ -8,15 +8,15 @@ const BatalhaMobile = {
 
     pressionado: false,
 
-direcaoAtual: null,
+    direcaoAtual: null,
 
-intervaloMovimento: null,
+    intervaloMovimento: null,
 
-timeoutAceleracao: null,
+    timeoutAceleracao: null,
 
-tempoAceleracao: 1500,
+    tempoAceleracao: 1500,
 
-intervaloRapidoMs: 55,
+    intervaloRapidoMs: 55,
 
     modoMobilePC: false,
 
@@ -33,9 +33,13 @@ intervaloRapidoMs: 55,
         this.iniciado = true;
 
         this.criarInterface();
+
         this.configurarAnalogo();
+
         this.configurarEnter();
+
         this.configurarAreaTeclado();
+
         this.configurarModoMobilePC();
 
         console.log(
@@ -106,10 +110,12 @@ intervaloRapidoMs: 55,
                 "mobileAnalogo"
             );
 
+
         this.base =
             document.getElementById(
                 "mobileAnalogoBase"
             );
+
 
         this.cursor =
             document.getElementById(
@@ -144,7 +150,7 @@ intervaloRapidoMs: 55,
                         e.pointerId
                     );
 
-                } catch {}
+                } catch (erro) {}
 
 
                 this.calcularDirecao(e);
@@ -169,44 +175,45 @@ intervaloRapidoMs: 55,
         );
 
 
-      const terminar = e => {
+        const terminar = e => {
 
-    e.preventDefault();
-    e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
 
-    this.pressionado =
-        false;
+            this.pressionado = false;
 
-    this.direcaoAtual =
-        null;
+            this.direcaoAtual = null;
 
-    this.pararMovimento();
+            this.pararMovimento();
 
-    this.resetarCursor();
+            this.resetarCursor();
 
 
-    if (
-        typeof Coracao !== "undefined" &&
-        Coracao.ativo &&
-        typeof Coracao.pararDirecaoMobile ===
-            "function"
-    ) {
+            if (
+                typeof Coracao !== "undefined" &&
+                Coracao.ativo &&
+                typeof Coracao.pararDirecaoMobile ===
+                "function"
+            ) {
 
-        Coracao.pararDirecaoMobile();
+                Coracao.pararDirecaoMobile();
 
-    }
+            }
 
-};
+        };
+
 
         this.base.addEventListener(
             "pointerup",
             terminar
         );
 
+
         this.base.addEventListener(
             "pointercancel",
             terminar
         );
+
 
         this.base.addEventListener(
             "lostpointercapture",
@@ -222,231 +229,220 @@ intervaloRapidoMs: 55,
 
     calcularDirecao(evento) {
 
-    if (!this.base)
-        return;
+        if (!this.base)
+            return;
 
 
-    const rect =
-        this.base.getBoundingClientRect();
+        const rect =
+            this.base.getBoundingClientRect();
 
 
-    const centroX =
-        rect.left +
-        rect.width / 2;
+        const centroX =
+            rect.left +
+            rect.width / 2;
 
 
-    const centroY =
-        rect.top +
-        rect.height / 2;
+        const centroY =
+            rect.top +
+            rect.height / 2;
 
 
-    const dx =
-        evento.clientX -
-        centroX;
+        const dx =
+            evento.clientX -
+            centroX;
 
 
-    const dy =
-        evento.clientY -
-        centroY;
+        const dy =
+            evento.clientY -
+            centroY;
 
 
-    const distancia =
-        Math.sqrt(
-            dx * dx +
-            dy * dy
+        const distancia =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+
+        const raio =
+            rect.width / 2;
+
+
+        const distanciaLimitada =
+            Math.min(
+                distancia,
+                raio
+            );
+
+
+        let x = 0;
+
+        let y = 0;
+
+
+        if (distancia > 0) {
+
+            x =
+                dx / distancia;
+
+            y =
+                dy / distancia;
+
+        }
+
+
+        // =================================================
+        // CURSOR
+        // =================================================
+
+        if (this.cursor) {
+
+            this.cursor.style.transform =
+                `translate(
+                    ${x * distanciaLimitada}px,
+                    ${y * distanciaLimitada}px
+                )`;
+
+        }
+
+
+        // =================================================
+        // ZONA MORTA
+        // =================================================
+
+        const limite =
+            raio * 0.25;
+
+
+        if (
+            distancia <
+            limite
+        ) {
+
+            this.direcaoAtual = null;
+
+            this.pararMovimento();
+
+            return;
+
+        }
+
+
+        const direcao = {
+
+            x: x,
+
+            y: y
+
+        };
+
+
+        this.atualizarDirecao(
+            direcao
         );
 
-
-    const raio =
-        rect.width / 2;
-
-
-    const distanciaLimitada =
-        Math.min(
-            distancia,
-            raio
-        );
-
-
-    let x = 0;
-    let y = 0;
-
-
-    if (distancia > 0) {
-
-        x =
-            dx / distancia;
-
-        y =
-            dy / distancia;
-
-    }
+    },
 
 
     // =====================================================
-    // POSIÇÃO VISUAL DO CURSOR
+    // ATUALIZAR DIREÇÃO
     // =====================================================
 
-    if (this.cursor) {
+    atualizarDirecao(direcao) {
 
-        this.cursor.style.transform =
-            `translate(
-                ${x * distanciaLimitada}px,
-                ${y * distanciaLimitada}px
-            )`;
-
-    }
+        if (!direcao)
+            return;
 
 
-    // =====================================================
-    // ZONA MORTA
-    // =====================================================
+        if (
+            this.direcaoAtual &&
 
-    const limite =
-        raio * 0.25;
+            Math.abs(
+                this.direcaoAtual.x -
+                direcao.x
+            ) < 0.05 &&
+
+            Math.abs(
+                this.direcaoAtual.y -
+                direcao.y
+            ) < 0.05
+        ) {
+
+            return;
+
+        }
 
 
-    if (
-        distancia <
-        limite
-    ) {
+        this.direcaoAtual = {
 
-        this.direcaoAtual =
-            null;
+            x: direcao.x,
+
+            y: direcao.y
+
+        };
+
 
         this.pararMovimento();
 
-        return;
 
-    }
+        this.executarDirecao(
+            this.direcaoAtual
+        );
+
+
+        this.timeoutAceleracao =
+            setTimeout(
+                () => {
+
+                    if (
+                        !this.pressionado ||
+                        !this.direcaoAtual
+                    )
+                        return;
+
+
+                    this.iniciarMovimentoRapido();
+
+                },
+                this.tempoAceleracao
+            );
+
+    },
 
 
     // =====================================================
-    // DIREÇÃO ANALÓGICA
+    // MOVIMENTO RÁPIDO
     // =====================================================
 
-    const direcao = {
+    iniciarMovimentoRapido() {
 
-        x: x,
-
-        y: y
-
-    };
-
-
-    /*
-     * Exemplo:
-     *
-     * esquerda + cima
-     *
-     * x = -0.7
-     * y = -0.7
-     *
-     * continua sendo diagonal.
-     */
+        if (
+            this.intervaloMovimento
+        )
+            return;
 
 
-    this.atualizarDirecao(
-        direcao
-    );
+        this.intervaloMovimento =
+            setInterval(
+                () => {
 
-},
-// =====================================================
-// ATUALIZAR DIREÇÃO
-// =====================================================
-
-atualizarDirecao(direcao) {
-
-    if (!direcao)
-        return;
+                    if (
+                        !this.pressionado ||
+                        !this.direcaoAtual
+                    )
+                        return;
 
 
-    /*
-     * Se continua na mesma direção,
-     * não reinicia o processo.
-     */
-    if (
-        this.direcaoAtual &&
-        Math.abs(this.direcaoAtual.x - direcao.x) < 0.05 &&
-        Math.abs(this.direcaoAtual.y - direcao.y) < 0.05
-    ) {
-        return;
-    }
+                    this.executarDirecao(
+                        this.direcaoAtual
+                    );
 
+                },
+                this.intervaloRapidoMs
+            );
 
-    this.direcaoAtual = {
-        x: direcao.x,
-        y: direcao.y
-    };
+    },
 
-
-    this.pararMovimento();
-
-
-    /*
-     * PRIMEIRO MOVIMENTO:
-     * acontece UMA única vez.
-     */
-    this.executarDirecao(
-        this.direcaoAtual
-    );
-
-
-    /*
-     * FICA PARADO DURANTE 1,5s.
-     */
-    this.timeoutAceleracao =
-        setTimeout(
-            () => {
-
-                if (
-                    !this.pressionado ||
-                    !this.direcaoAtual
-                )
-                    return;
-
-
-                this.iniciarMovimentoRapido();
-
-            },
-            this.tempoAceleracao
-        );
-
-},
-
-
-// =====================================================
-// MOVIMENTO RÁPIDO
-// =====================================================
-
-iniciarMovimentoRapido() {
-
-    if (
-        this.intervaloMovimento
-    )
-        return;
-
-
-    this.intervaloMovimento =
-        setInterval(
-            () => {
-
-                if (
-                    !this.pressionado ||
-                    !this.direcaoAtual
-                )
-                    return;
-
-
-                this.executarDirecao(
-                    this.direcaoAtual
-                );
-
-            },
-            this.intervaloRapidoMs
-        );
-
-},
 
     // =====================================================
     // EXECUTAR DIREÇÃO
@@ -454,198 +450,209 @@ iniciarMovimentoRapido() {
 
     executarDirecao(direcao) {
 
-    // =====================================================
-    // GAME OVER
-    // =====================================================
+        if (!direcao)
+            return;
 
-    if (
-        typeof GameOver !== "undefined" &&
-        GameOver.ativo &&
-        typeof GameOver.receberTeclaMobile ===
+
+        // =================================================
+        // GAME OVER
+        // =================================================
+
+        if (
+            typeof GameOver !== "undefined" &&
+            GameOver.ativo &&
+            typeof GameOver.receberTeclaMobile ===
             "function"
-    ) {
+        ) {
 
-        /*
-         * Game Over trabalha melhor com
-         * direções cardinais.
-         */
+            const principal =
 
-        const principal =
-            Math.abs(direcao.x) >
-            Math.abs(direcao.y)
-                ? (
+                Math.abs(direcao.x) >
+                Math.abs(direcao.y)
+
+                    ?
+
+                (
                     direcao.x > 0
                         ? "ArrowRight"
                         : "ArrowLeft"
                 )
-                : (
+
+                    :
+
+                (
                     direcao.y > 0
                         ? "ArrowDown"
                         : "ArrowUp"
                 );
 
 
-        GameOver.receberTeclaMobile(
-            principal
-        );
+            GameOver.receberTeclaMobile(
+                principal
+            );
 
-        return;
+            return;
 
-    }
-
-
-    // =====================================================
-    // CORAÇÃO
-    // =====================================================
-
-    if (
-        typeof Batalha !== "undefined" &&
-        Batalha.ativa &&
-        Batalha.turno === "mascara" &&
-        typeof Coracao !== "undefined" &&
-        Coracao.ativo
-    ) {
-
-        Coracao.definirDirecaoMobile(
-            direcao
-        );
-
-        return;
-
-    }
+        }
 
 
-    // =====================================================
-    // MOVIMENTO / MENU NORMAL
-    // =====================================================
+        // =================================================
+        // CORAÇÃO
+        // =================================================
 
-    const teclas = [];
+        if (
+            typeof Batalha !== "undefined" &&
+            Batalha.ativa &&
+            Batalha.turno === "mascara" &&
+            typeof Coracao !== "undefined" &&
+            Coracao.ativo
+        ) {
 
+            if (
+                typeof Coracao.definirDirecaoMobile ===
+                "function"
+            ) {
 
-    if (
-        direcao.x <
-        -0.35
-    ) {
+                Coracao.definirDirecaoMobile(
+                    direcao
+                );
 
-        teclas.push(
-            "ArrowLeft"
-        );
+            }
 
-    }
+            return;
 
-
-    if (
-        direcao.x >
-        0.35
-    ) {
-
-        teclas.push(
-            "ArrowRight"
-        );
-
-    }
+        }
 
 
-    if (
-        direcao.y <
-        -0.35
-    ) {
+        // =================================================
+        // TECLAS
+        // =================================================
 
-        teclas.push(
-            "ArrowUp"
-        );
-
-    }
+        const teclas = [];
 
 
-    if (
-        direcao.y >
-        0.35
-    ) {
+        if (
+            direcao.x < -0.35
+        ) {
 
-        teclas.push(
-            "ArrowDown"
-        );
-
-    }
-
-
-    if (!teclas.length)
-        return;
-
-
-    /*
-     * Diagonal:
-     *
-     * ↖ = ArrowLeft + ArrowUp
-     *
-     * ↗ = ArrowRight + ArrowUp
-     *
-     * ↙ = ArrowLeft + ArrowDown
-     *
-     * ↘ = ArrowRight + ArrowDown
-     */
-
-    teclas.forEach(
-        tecla => {
-
-            document.dispatchEvent(
-                new KeyboardEvent(
-                    "keydown",
-                    {
-                        key: tecla,
-                        code: tecla,
-                        bubbles: true
-                    }
-                )
+            teclas.push(
+                "ArrowLeft"
             );
 
         }
-    );
 
-},
+
+        if (
+            direcao.x > 0.35
+        ) {
+
+            teclas.push(
+                "ArrowRight"
+            );
+
+        }
+
+
+        if (
+            direcao.y < -0.35
+        ) {
+
+            teclas.push(
+                "ArrowUp"
+            );
+
+        }
+
+
+        if (
+            direcao.y > 0.35
+        ) {
+
+            teclas.push(
+                "ArrowDown"
+            );
+
+        }
+
+
+        if (!teclas.length)
+            return;
+
+
+        // =================================================
+        // ENVIAR TECLAS
+        // =================================================
+
+        teclas.forEach(
+            tecla => {
+
+                /*
+                 * SEGURANÇA:
+                 * nunca cria KeyboardEvent
+                 * com key vazia.
+                 */
+
+                if (
+                    typeof tecla !== "string" ||
+                    tecla.length === 0
+                ) {
+
+                    return;
+
+                }
+
+
+                document.dispatchEvent(
+                    new KeyboardEvent(
+                        "keydown",
+                        {
+                            key: tecla,
+                            code: tecla,
+                            bubbles: true
+                        }
+                    )
+                );
+
+            }
+        );
+
+    },
 
 
     // =====================================================
-    // PARAR
+    // PARAR MOVIMENTO
     // =====================================================
 
-   pararMovimento() {
+    pararMovimento() {
 
-    /*
-     * Cancela a espera dos 1,5 segundos.
-     */
-    if (
-        this.timeoutAceleracao
-    ) {
-
-        clearTimeout(
+        if (
             this.timeoutAceleracao
-        );
+        ) {
 
-        this.timeoutAceleracao =
-            null;
+            clearTimeout(
+                this.timeoutAceleracao
+            );
 
-    }
+            this.timeoutAceleracao =
+                null;
+
+        }
 
 
-    /*
-     * Cancela o movimento rápido.
-     */
-    if (
-        this.intervaloMovimento
-    ) {
-
-        clearInterval(
+        if (
             this.intervaloMovimento
-        );
+        ) {
 
-        this.intervaloMovimento =
-            null;
+            clearInterval(
+                this.intervaloMovimento
+            );
 
-    }
+            this.intervaloMovimento =
+                null;
 
-},
+        }
+
+    },
 
 
     // =====================================================
@@ -656,6 +663,7 @@ iniciarMovimentoRapido() {
 
         if (!this.cursor)
             return;
+
 
         this.cursor.style.transform =
             "translate(0,0)";
@@ -684,6 +692,7 @@ iniciarMovimentoRapido() {
             e => {
 
                 e.preventDefault();
+
                 e.stopPropagation();
 
                 this.enviarEnter();
@@ -696,13 +705,18 @@ iniciarMovimentoRapido() {
 
     enviarEnter() {
 
+        /*
+         * Nunca usar key: "".
+         */
+
         document.dispatchEvent(
             new KeyboardEvent(
                 "keydown",
                 {
                     key: "Enter",
                     code: "Enter",
-                    bubbles: true
+                    bubbles: true,
+                    cancelable: true
                 }
             )
         );
@@ -731,12 +745,15 @@ iniciarMovimentoRapido() {
             e => {
 
                 e.preventDefault();
+
                 e.stopPropagation();
 
 
                 if (
                     typeof TecladoMobile !==
-                    "undefined"
+                    "undefined" &&
+                    typeof TecladoMobile.abrir ===
+                    "function"
                 ) {
 
                     TecladoMobile.abrir();
@@ -755,21 +772,24 @@ iniciarMovimentoRapido() {
 
     configurarModoMobilePC() {
 
-        /*
-         * Ctrl + M
-         *
-         * Também deixamos F8 como
-         * alternativa caso o navegador
-         * capture Ctrl + M.
-         */
-
         document.addEventListener(
             "keydown",
             e => {
 
+                if (
+                    typeof e.key !== "string" ||
+                    e.key.length === 0
+                ) {
+
+                    return;
+
+                }
+
+
                 const ctrlM =
                     e.ctrlKey &&
                     e.key.toLowerCase() === "m";
+
 
                 const f8 =
                     e.key === "F8";
@@ -783,6 +803,7 @@ iniciarMovimentoRapido() {
 
 
                 e.preventDefault();
+
                 e.stopPropagation();
 
 
@@ -799,6 +820,10 @@ iniciarMovimentoRapido() {
 
     },
 
+
+    // =====================================================
+    // ALTERNAR MOBILE PC
+    // =====================================================
 
     alternarModoMobilePC() {
 
@@ -835,15 +860,23 @@ iniciarMovimentoRapido() {
 
 
         console.log(
+
             this.modoMobilePC
+
                 ? "📱 MOBILE PC ATIVADO"
+
                 : "🖥️ MOBILE PC DESATIVADO"
+
         );
 
     }
 
 };
 
+
+// =========================================================
+// INICIALIZAÇÃO
+// =========================================================
 
 window.addEventListener(
     "load",

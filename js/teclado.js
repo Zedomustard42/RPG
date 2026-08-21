@@ -6,19 +6,16 @@ const TecladoMobile = {
 
 
     // =====================================================
-    // ENVIAR TECLA
+    // ENVIAR TECLA PARA O INPUT.JS
     // =====================================================
 
     enviarTecla(tecla) {
 
-        // Nunca enviar tecla vazia
         if (
             typeof tecla !== "string" ||
             tecla.length === 0
         ) {
-
             return;
-
         }
 
 
@@ -32,38 +29,25 @@ const TecladoMobile = {
             );
 
             return;
-
         }
 
 
-        // =================================================
-        // EVENTO REAL
-        // =================================================
+        /*
+         * NÃO criamos KeyboardEvent aqui.
+         *
+         * O Input precisa apenas de um objeto
+         * com key + preventDefault + stopPropagation.
+         */
 
-        const evento =
-            new KeyboardEvent(
-                "keydown",
-                {
-                    key: tecla,
+        Input.tecla({
 
-                    code:
-                        tecla === "Enter"
-                            ? "Enter"
-                            : tecla === "Backspace"
-                                ? "Backspace"
-                                : tecla.length === 1
-                                    ? "Key" +
-                                      tecla.toUpperCase()
-                                    : tecla,
+            key: tecla,
 
-                    bubbles: true,
+            preventDefault() {},
 
-                    cancelable: true
-                }
-            );
+            stopPropagation() {}
 
-
-        Input.tecla(evento);
+        });
 
     },
 
@@ -82,7 +66,7 @@ const TecladoMobile = {
 
 
         // =================================================
-        // CRIAR INPUT
+        // CRIAR INPUT INVISÍVEL
         // =================================================
 
         this.input =
@@ -135,6 +119,15 @@ const TecladoMobile = {
         this.input.style.opacity =
             "0";
 
+        /*
+         * IMPORTANTE:
+         *
+         * Não usamos pointer-events:none.
+         *
+         * Alguns navegadores mobile podem perder
+         * o foco do input.
+         */
+
         this.input.style.pointerEvents =
             "none";
 
@@ -162,9 +155,12 @@ const TecladoMobile = {
                     this.input.value;
 
 
-                // Ignora vazio
+                /*
+                 * Se estiver vazio, não faz nada.
+                 */
+
                 if (
-                    !valor ||
+                    typeof valor !== "string" ||
                     valor.length === 0
                 ) {
 
@@ -173,7 +169,10 @@ const TecladoMobile = {
                 }
 
 
-                // Envia cada caractere
+                /*
+                 * Envia cada caractere.
+                 */
+
                 for (
                     const letra of valor
                 ) {
@@ -195,7 +194,11 @@ const TecladoMobile = {
                 }
 
 
-                // Limpa o input interno
+                /*
+                 * LIMPA somente depois
+                 * de processar tudo.
+                 */
+
                 this.input.value = "";
 
             }
@@ -218,8 +221,16 @@ const TecladoMobile = {
                     evento.key;
 
 
+                /*
+                 * PROTEÇÃO PRINCIPAL
+                 *
+                 * Isso impede o erro:
+                 *
+                 * The key "" is not recognized and ignored.
+                 */
+
                 if (
-                    !tecla ||
+                    typeof tecla !== "string" ||
                     tecla.length === 0
                 ) {
 
@@ -324,12 +335,23 @@ const TecladoMobile = {
             return;
 
 
-        this.input.value =
-            "";
+        /*
+         * Começa vazio.
+         */
 
+        this.input.value = "";
+
+
+        /*
+         * Foca o input.
+         */
 
         this.input.focus();
 
+
+        /*
+         * Segundo foco para celulares.
+         */
 
         setTimeout(
             () => {
@@ -343,7 +365,7 @@ const TecladoMobile = {
                 }
 
             },
-            50
+            100
         );
 
     },
@@ -364,8 +386,7 @@ const TecladoMobile = {
         this.input.blur();
 
 
-        this.input.value =
-            "";
+        this.input.value = "";
 
     }
 

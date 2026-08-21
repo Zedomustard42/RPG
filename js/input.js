@@ -16,15 +16,12 @@ const Input = {
         if (this.iniciado)
             return;
 
-
         this.iniciado = true;
-
 
         document.addEventListener(
             "keydown",
             this.tecla.bind(this)
         );
-
 
         console.log(
             "INPUT INICIADO"
@@ -43,19 +40,30 @@ const Input = {
         // PROTEÇÃO CONTRA EVENTO INVÁLIDO
         // =================================================
 
-        if (
-            !evento ||
-            typeof evento.key !== "string" ||
-            evento.key.length === 0
-        ) {
-
+        if (!evento)
             return;
 
+        const tecla = evento.key;
+
+        if (
+            typeof tecla !== "string" ||
+            tecla.length === 0
+        ) {
+            return;
         }
 
 
-        const tecla =
-            evento.key;
+        // =================================================
+        // PREVENT DEFAULT SE EXISTIR
+        // =================================================
+
+        if (
+            typeof evento.preventDefault === "function"
+        ) {
+
+            evento.preventDefault();
+
+        }
 
 
         // =================================================
@@ -66,8 +74,6 @@ const Input = {
             typeof Perdido !== "undefined" &&
             Perdido.ativo
         ) {
-
-            evento.preventDefault();
 
             Perdido.tecla(tecla);
 
@@ -89,9 +95,14 @@ const Input = {
                 tecla === "Enter"
             ) {
 
-                evento.preventDefault();
+                if (
+                    typeof Engine !== "undefined" &&
+                    typeof Engine.avancarInicioPerguntas === "function"
+                ) {
 
-                Engine.avancarInicioPerguntas();
+                    Engine.avancarInicioPerguntas();
+
+                }
 
             }
 
@@ -113,11 +124,7 @@ const Input = {
                 tecla === "ArrowDown"
             ) {
 
-                evento.preventDefault();
-
-
                 Game.perguntaSelecionada++;
-
 
                 if (
                     Game.perguntaSelecionada >= 2
@@ -127,11 +134,16 @@ const Input = {
 
                 }
 
+                if (
+                    typeof UI !== "undefined" &&
+                    typeof UI.atualizarMenu === "function"
+                ) {
 
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
+                    UI.atualizarMenu(
+                        Game.perguntaSelecionada
+                    );
 
+                }
 
                 return;
 
@@ -142,11 +154,7 @@ const Input = {
                 tecla === "ArrowUp"
             ) {
 
-                evento.preventDefault();
-
-
                 Game.perguntaSelecionada--;
-
 
                 if (
                     Game.perguntaSelecionada < 0
@@ -156,11 +164,16 @@ const Input = {
 
                 }
 
+                if (
+                    typeof UI !== "undefined" &&
+                    typeof UI.atualizarMenu === "function"
+                ) {
 
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
+                    UI.atualizarMenu(
+                        Game.perguntaSelecionada
+                    );
 
+                }
 
                 return;
 
@@ -171,25 +184,25 @@ const Input = {
                 tecla === "Enter"
             ) {
 
-                evento.preventDefault();
-
-
                 if (
                     this.pressionado
                 )
                     return;
 
-
                 this.bloquearEnter();
 
+                if (
+                    typeof Engine !== "undefined" &&
+                    typeof Engine.escolherAceitePerguntas === "function"
+                ) {
 
-                Engine.escolherAceitePerguntas();
+                    Engine.escolherAceitePerguntas();
 
+                }
 
                 return;
 
             }
-
 
             return;
 
@@ -209,22 +222,23 @@ const Input = {
                 tecla === "Enter"
             ) {
 
-                evento.preventDefault();
-
-
                 if (
                     this.pressionado
                 )
                     return;
 
-
                 this.bloquearEnter();
 
+                if (
+                    typeof Engine !== "undefined" &&
+                    typeof Engine.avancarRespostaPergunta === "function"
+                ) {
 
-                Engine.avancarRespostaPergunta();
+                    Engine.avancarRespostaPergunta();
+
+                }
 
             }
-
 
             return;
 
@@ -241,10 +255,11 @@ const Input = {
         ) {
 
             const pergunta =
-                Perguntas[
-                    Game.perguntaAtual
-                ];
-
+                typeof Perguntas !== "undefined"
+                    ? Perguntas[
+                        Game.perguntaAtual
+                    ]
+                    : null;
 
             if (!pergunta)
                 return;
@@ -258,11 +273,7 @@ const Input = {
                 tecla === "ArrowDown"
             ) {
 
-                evento.preventDefault();
-
-
                 Game.perguntaSelecionada++;
-
 
                 if (
                     Game.perguntaSelecionada >=
@@ -273,11 +284,16 @@ const Input = {
 
                 }
 
+                if (
+                    typeof UI !== "undefined" &&
+                    typeof UI.atualizarMenu === "function"
+                ) {
 
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
+                    UI.atualizarMenu(
+                        Game.perguntaSelecionada
+                    );
 
+                }
 
                 return;
 
@@ -292,11 +308,7 @@ const Input = {
                 tecla === "ArrowUp"
             ) {
 
-                evento.preventDefault();
-
-
                 Game.perguntaSelecionada--;
-
 
                 if (
                     Game.perguntaSelecionada < 0
@@ -307,11 +319,16 @@ const Input = {
 
                 }
 
+                if (
+                    typeof UI !== "undefined" &&
+                    typeof UI.atualizarMenu === "function"
+                ) {
 
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
+                    UI.atualizarMenu(
+                        Game.perguntaSelecionada
+                    );
 
+                }
 
                 return;
 
@@ -326,25 +343,25 @@ const Input = {
                 tecla === "Enter"
             ) {
 
-                evento.preventDefault();
-
-
                 if (
                     this.pressionado
                 )
                     return;
 
-
                 this.bloquearEnter();
 
+                if (
+                    typeof Engine !== "undefined" &&
+                    typeof Engine.escolherPergunta === "function"
+                ) {
 
-                Engine.escolherPergunta();
+                    Engine.escolherPergunta();
 
+                }
 
                 return;
 
             }
-
 
             return;
 
@@ -366,11 +383,7 @@ const Input = {
                 tecla === "ArrowDown"
             ) {
 
-                evento.preventDefault();
-
-
                 Game.gameOverSelecionado++;
-
 
                 if (
                     Game.gameOverSelecionado > 1
@@ -380,9 +393,13 @@ const Input = {
 
                 }
 
+                if (
+                    typeof GameOver.atualizarMenu === "function"
+                ) {
 
-                GameOver.atualizarMenu();
+                    GameOver.atualizarMenu();
 
+                }
 
                 return;
 
@@ -393,11 +410,7 @@ const Input = {
                 tecla === "ArrowUp"
             ) {
 
-                evento.preventDefault();
-
-
                 Game.gameOverSelecionado--;
-
 
                 if (
                     Game.gameOverSelecionado < 0
@@ -407,9 +420,13 @@ const Input = {
 
                 }
 
+                if (
+                    typeof GameOver.atualizarMenu === "function"
+                ) {
 
-                GameOver.atualizarMenu();
+                    GameOver.atualizarMenu();
 
+                }
 
                 return;
 
@@ -420,20 +437,20 @@ const Input = {
                 tecla === "Enter"
             ) {
 
-                evento.preventDefault();
-
-
                 if (
                     this.pressionado
                 )
                     return;
 
-
                 this.bloquearEnter();
 
+                if (
+                    typeof GameOver.escolher === "function"
+                ) {
 
-                GameOver.escolher();
+                    GameOver.escolher();
 
+                }
 
                 return;
 
@@ -455,22 +472,22 @@ const Input = {
                 tecla === "Enter"
             ) {
 
-                evento.preventDefault();
-
-
                 if (
                     this.pressionado
                 )
                     return;
 
-
                 this.bloquearEnter();
 
+                if (
+                    typeof Engine.mostrarFalaPessoa === "function"
+                ) {
 
-                Engine.mostrarFalaPessoa();
+                    Engine.mostrarFalaPessoa();
+
+                }
 
             }
-
 
             return;
 
@@ -480,6 +497,16 @@ const Input = {
         // =================================================
         // CENA ATUAL
         // =================================================
+
+        if (
+            typeof Introducao === "undefined" ||
+            typeof Game === "undefined"
+        ) {
+
+            return;
+
+        }
+
 
         const cena =
             Introducao[
@@ -507,20 +534,22 @@ const Input = {
                 tecla === "Backspace"
             ) {
 
-                evento.preventDefault();
-
-
                 this.texto =
                     this.texto.slice(
                         0,
                         -1
                     );
 
+                if (
+                    typeof UI !== "undefined" &&
+                    typeof UI.atualizarEntrada === "function"
+                ) {
 
-                UI.atualizarEntrada(
-                    this.texto
-                );
+                    UI.atualizarEntrada(
+                        this.texto
+                    );
 
+                }
 
                 return;
 
@@ -534,9 +563,6 @@ const Input = {
             if (
                 tecla === "Enter"
             ) {
-
-                evento.preventDefault();
-
 
                 if (
                     this.texto.trim() === ""
@@ -560,7 +586,9 @@ const Input = {
 
                 if (
                     typeof TecladoMobile !==
-                    "undefined"
+                    "undefined" &&
+                    typeof TecladoMobile.fechar ===
+                    "function"
                 ) {
 
                     TecladoMobile.fechar();
@@ -630,9 +658,16 @@ const Input = {
                             setTimeout(
                                 () => {
 
-                                    Engine.receberNome(
-                                        Game.nome
-                                    );
+                                    if (
+                                        typeof Engine !== "undefined" &&
+                                        typeof Engine.receberNome === "function"
+                                    ) {
+
+                                        Engine.receberNome(
+                                            Game.nome
+                                        );
+
+                                    }
 
                                 },
                                 3000
@@ -652,9 +687,16 @@ const Input = {
                     // NOME NORMAL
                     // -------------------------------------
 
-                    Engine.receberNome(
-                        Game.nome
-                    );
+                    if (
+                        typeof Engine !== "undefined" &&
+                        typeof Engine.receberNome === "function"
+                    ) {
+
+                        Engine.receberNome(
+                            Game.nome
+                        );
+
+                    }
 
                 }
 
@@ -667,9 +709,16 @@ const Input = {
                     Game.tipoEntrada === "criacao"
                 ) {
 
-                    Engine.receberCriacao(
-                        Game.nome
-                    );
+                    if (
+                        typeof Engine !== "undefined" &&
+                        typeof Engine.receberCriacao === "function"
+                    ) {
+
+                        Engine.receberCriacao(
+                            Game.nome
+                        );
+
+                    }
 
                 }
 
@@ -698,9 +747,16 @@ const Input = {
                         tecla;
 
 
-                    UI.atualizarEntrada(
-                        this.texto
-                    );
+                    if (
+                        typeof UI !== "undefined" &&
+                        typeof UI.atualizarEntrada === "function"
+                    ) {
+
+                        UI.atualizarEntrada(
+                            this.texto
+                        );
+
+                    }
 
                 }
 
@@ -720,9 +776,6 @@ const Input = {
             tecla === "Enter"
         ) {
 
-            evento.preventDefault();
-
-
             if (
                 this.pressionado
             )
@@ -732,16 +785,29 @@ const Input = {
             this.bloquearEnter();
 
 
-            Engine.cancelarEspera();
+            if (
+                typeof Engine !== "undefined" &&
+                typeof Engine.cancelarEspera === "function"
+            ) {
+
+                Engine.cancelarEspera();
+
+            }
 
 
             if (
                 cena.tipo === "menu"
             ) {
 
-                Engine.escolher(
-                    Game.selecionado
-                );
+                if (
+                    typeof Engine.escolher === "function"
+                ) {
+
+                    Engine.escolher(
+                        Game.selecionado
+                    );
+
+                }
 
             }
 
@@ -755,7 +821,13 @@ const Input = {
                     Introducao.length - 1
                 ) {
 
-                    Engine.proximaCena();
+                    if (
+                        typeof Engine.proximaCena === "function"
+                    ) {
+
+                        Engine.proximaCena();
+
+                    }
 
                 }
 
@@ -785,9 +857,6 @@ const Input = {
             tecla === "ArrowDown"
         ) {
 
-            evento.preventDefault();
-
-
             Game.selecionado++;
 
 
@@ -801,7 +870,13 @@ const Input = {
             }
 
 
-            Engine.atualizar();
+            if (
+                typeof Engine.atualizar === "function"
+            ) {
+
+                Engine.atualizar();
+
+            }
 
 
             return;
@@ -817,9 +892,6 @@ const Input = {
             tecla === "ArrowUp"
         ) {
 
-            evento.preventDefault();
-
-
             Game.selecionado--;
 
 
@@ -833,7 +905,13 @@ const Input = {
             }
 
 
-            Engine.atualizar();
+            if (
+                typeof Engine.atualizar === "function"
+            ) {
+
+                Engine.atualizar();
+
+            }
 
 
             return;
