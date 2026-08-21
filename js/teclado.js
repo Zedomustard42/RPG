@@ -6,7 +6,7 @@ const TecladoMobile = {
 
 
     // =====================================================
-    // ENVIAR TECLA PARA O INPUT.JS
+    // ENVIAR TECLA PARA INPUT.JS
     // =====================================================
 
     enviarTecla(tecla) {
@@ -15,6 +15,7 @@ const TecladoMobile = {
             typeof Input === "undefined" ||
             typeof Input.tecla !== "function"
         ) {
+
             console.warn(
                 "Input.tecla não está disponível."
             );
@@ -24,37 +25,38 @@ const TecladoMobile = {
 
 
         /*
-         * O Input.js espera um evento que tenha:
+         * Cria um KeyboardEvent REAL.
          *
-         * preventDefault()
-         * stopPropagation()
+         * O Input.js usa:
          *
-         * Por isso não podemos mandar apenas:
-         *
-         * { key: "Enter" }
+         * evento.key
+         * evento.preventDefault()
+         * evento.stopPropagation()
          */
 
-        Input.tecla({
+        const evento =
+            new KeyboardEvent(
+                "keydown",
+                {
+                    key: tecla,
 
-            key: tecla,
+                    code:
+                        tecla === "Enter"
+                            ? "Enter"
+                            : tecla === "Backspace"
+                                ? "Backspace"
+                                : tecla,
+
+                    bubbles: true,
+
+                    cancelable: true
+                }
+            );
 
 
-            preventDefault() {
-
-                // Simula preventDefault
-                return;
-
-            },
-
-
-            stopPropagation() {
-
-                // Simula stopPropagation
-                return;
-
-            }
-
-        });
+        Input.tecla(
+            evento
+        );
 
     },
 
@@ -102,7 +104,7 @@ const TecladoMobile = {
 
 
         this.input.autocapitalize =
-            "characters";
+            "none";
 
 
         this.input.spellcheck =
@@ -116,30 +118,23 @@ const TecladoMobile = {
         this.input.style.position =
             "fixed";
 
-
         this.input.style.left =
             "-1000px";
-
 
         this.input.style.top =
             "0";
 
-
         this.input.style.width =
             "1px";
-
 
         this.input.style.height =
             "1px";
 
-
         this.input.style.opacity =
             "0";
 
-
         this.input.style.pointerEvents =
             "none";
-
 
         this.input.style.zIndex =
             "-1";
@@ -151,7 +146,7 @@ const TecladoMobile = {
 
 
         // =================================================
-        // INPUT
+        // INPUT — DIGITAÇÃO
         // =================================================
 
         this.input.addEventListener(
@@ -175,7 +170,7 @@ const TecladoMobile = {
 
 
                 /*
-                 * Envia cada caractere
+                 * Cada caractere é enviado
                  * para o Input.js.
                  */
 
@@ -192,9 +187,6 @@ const TecladoMobile = {
 
                 /*
                  * Limpa o input interno.
-                 *
-                 * O texto verdadeiro fica
-                 * armazenado em Input.texto.
                  */
 
                 this.input.value =
@@ -212,6 +204,8 @@ const TecladoMobile = {
             "keydown",
             evento => {
 
+                evento.preventDefault();
+
                 evento.stopPropagation();
 
 
@@ -220,43 +214,33 @@ const TecladoMobile = {
 
 
                 // =========================================
-                // BACKSPACE
-                // =========================================
-
-                if (
-                    tecla ===
-                    "Backspace"
-                ) {
-
-                    evento.preventDefault();
-
-
-                    this.enviarTecla(
-                        "Backspace"
-                    );
-
-
-                    return;
-
-                }
-
-
-                // =========================================
                 // ENTER
                 // =========================================
 
                 if (
-                    tecla ===
-                    "Enter"
+                    tecla === "Enter"
                 ) {
-
-                    evento.preventDefault();
-
 
                     this.enviarTecla(
                         "Enter"
                     );
 
+                    return;
+
+                }
+
+
+                // =========================================
+                // BACKSPACE
+                // =========================================
+
+                if (
+                    tecla === "Backspace"
+                ) {
+
+                    this.enviarTecla(
+                        "Backspace"
+                    );
 
                     return;
 
@@ -264,87 +248,19 @@ const TecladoMobile = {
 
 
                 // =========================================
-                // SETA PARA CIMA
+                // SETAS
                 // =========================================
 
                 if (
-                    tecla ===
-                    "ArrowUp"
+                    tecla === "ArrowUp" ||
+                    tecla === "ArrowDown" ||
+                    tecla === "ArrowLeft" ||
+                    tecla === "ArrowRight"
                 ) {
 
-                    evento.preventDefault();
-
-
                     this.enviarTecla(
-                        "ArrowUp"
+                        tecla
                     );
-
-
-                    return;
-
-                }
-
-
-                // =========================================
-                // SETA PARA BAIXO
-                // =========================================
-
-                if (
-                    tecla ===
-                    "ArrowDown"
-                ) {
-
-                    evento.preventDefault();
-
-
-                    this.enviarTecla(
-                        "ArrowDown"
-                    );
-
-
-                    return;
-
-                }
-
-
-                // =========================================
-                // SETA ESQUERDA
-                // =========================================
-
-                if (
-                    tecla ===
-                    "ArrowLeft"
-                ) {
-
-                    evento.preventDefault();
-
-
-                    this.enviarTecla(
-                        "ArrowLeft"
-                    );
-
-
-                    return;
-
-                }
-
-
-                // =========================================
-                // SETA DIREITA
-                // =========================================
-
-                if (
-                    tecla ===
-                    "ArrowRight"
-                ) {
-
-                    evento.preventDefault();
-
-
-                    this.enviarTecla(
-                        "ArrowRight"
-                    );
-
 
                     return;
 
@@ -362,6 +278,8 @@ const TecladoMobile = {
             "keyup",
             evento => {
 
+                evento.preventDefault();
+
                 evento.stopPropagation();
 
             }
@@ -376,7 +294,7 @@ const TecladoMobile = {
 
 
     // =====================================================
-    // ABRIR TECLADO
+    // ABRIR
     // =====================================================
 
     abrir() {
@@ -397,26 +315,18 @@ const TecladoMobile = {
 
 
         /*
-         * O input interno deve começar vazio.
+         * O input físico começa vazio.
          *
-         * O texto verdadeiro está no Input.js.
+         * O nome verdadeiro fica
+         * armazenado em Input.texto.
          */
 
         this.input.value =
             "";
 
 
-        // =================================================
-        // FOCO
-        // =================================================
-
         this.input.focus();
 
-
-        /*
-         * Alguns celulares precisam
-         * de um segundo focus.
-         */
 
         setTimeout(
             () => {
