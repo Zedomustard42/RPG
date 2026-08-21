@@ -6,10 +6,21 @@ const TecladoMobile = {
 
 
     // =====================================================
-    // ENVIAR TECLA PARA INPUT.JS
+    // ENVIAR TECLA
     // =====================================================
 
     enviarTecla(tecla) {
+
+        // Nunca enviar tecla vazia
+        if (
+            typeof tecla !== "string" ||
+            tecla.length === 0
+        ) {
+
+            return;
+
+        }
+
 
         if (
             typeof Input === "undefined" ||
@@ -21,18 +32,13 @@ const TecladoMobile = {
             );
 
             return;
+
         }
 
 
-        /*
-         * Cria um KeyboardEvent REAL.
-         *
-         * O Input.js usa:
-         *
-         * evento.key
-         * evento.preventDefault()
-         * evento.stopPropagation()
-         */
+        // =================================================
+        // EVENTO REAL
+        // =================================================
 
         const evento =
             new KeyboardEvent(
@@ -45,7 +51,10 @@ const TecladoMobile = {
                             ? "Enter"
                             : tecla === "Backspace"
                                 ? "Backspace"
-                                : tecla,
+                                : tecla.length === 1
+                                    ? "Key" +
+                                      tecla.toUpperCase()
+                                    : tecla,
 
                     bubbles: true,
 
@@ -54,9 +63,7 @@ const TecladoMobile = {
             );
 
 
-        Input.tecla(
-            evento
-        );
+        Input.tecla(evento);
 
     },
 
@@ -67,24 +74,19 @@ const TecladoMobile = {
 
     iniciar() {
 
-        if (
-            this.iniciado
-        )
+        if (this.iniciado)
             return;
 
 
-        this.iniciado =
-            true;
+        this.iniciado = true;
 
 
         // =================================================
-        // CRIAR INPUT INVISÍVEL
+        // CRIAR INPUT
         // =================================================
 
         this.input =
-            document.createElement(
-                "input"
-            );
+            document.createElement("input");
 
 
         this.input.id =
@@ -146,7 +148,7 @@ const TecladoMobile = {
 
 
         // =================================================
-        // INPUT — DIGITAÇÃO
+        // DIGITAÇÃO
         // =================================================
 
         this.input.addEventListener(
@@ -160,7 +162,9 @@ const TecladoMobile = {
                     this.input.value;
 
 
+                // Ignora vazio
                 if (
+                    !valor ||
                     valor.length === 0
                 ) {
 
@@ -169,14 +173,20 @@ const TecladoMobile = {
                 }
 
 
-                /*
-                 * Cada caractere é enviado
-                 * para o Input.js.
-                 */
-
+                // Envia cada caractere
                 for (
                     const letra of valor
                 ) {
+
+                    if (
+                        typeof letra !== "string" ||
+                        letra.length === 0
+                    ) {
+
+                        continue;
+
+                    }
+
 
                     this.enviarTecla(
                         letra
@@ -185,12 +195,8 @@ const TecladoMobile = {
                 }
 
 
-                /*
-                 * Limpa o input interno.
-                 */
-
-                this.input.value =
-                    "";
+                // Limpa o input interno
+                this.input.value = "";
 
             }
         );
@@ -205,12 +211,21 @@ const TecladoMobile = {
             evento => {
 
                 evento.preventDefault();
-
                 evento.stopPropagation();
 
 
                 const tecla =
                     evento.key;
+
+
+                if (
+                    !tecla ||
+                    tecla.length === 0
+                ) {
+
+                    return;
+
+                }
 
 
                 // =========================================
@@ -279,7 +294,6 @@ const TecladoMobile = {
             evento => {
 
                 evento.preventDefault();
-
                 evento.stopPropagation();
 
             }
@@ -299,27 +313,16 @@ const TecladoMobile = {
 
     abrir() {
 
-        if (
-            !this.input
-        ) {
+        if (!this.input) {
 
             this.iniciar();
 
         }
 
 
-        if (
-            !this.input
-        )
+        if (!this.input)
             return;
 
-
-        /*
-         * O input físico começa vazio.
-         *
-         * O nome verdadeiro fica
-         * armazenado em Input.texto.
-         */
 
         this.input.value =
             "";
@@ -370,7 +373,7 @@ const TecladoMobile = {
 
 
 // =========================================================
-// INICIALIZAR
+// INICIALIZAÇÃO
 // =========================================================
 
 window.addEventListener(

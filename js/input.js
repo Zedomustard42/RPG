@@ -11,9 +11,9 @@ const Input = {
     // INICIAR
     // =====================================================
 
-    iniciar(){
+    iniciar() {
 
-        if(this.iniciado)
+        if (this.iniciado)
             return;
 
 
@@ -37,19 +37,35 @@ const Input = {
     // TECLA
     // =====================================================
 
-    tecla(evento){
+    tecla(evento) {
 
-        const tecla = evento.key;
+        // =================================================
+        // PROTEÇÃO CONTRA EVENTO INVÁLIDO
+        // =================================================
+
+        if (
+            !evento ||
+            typeof evento.key !== "string" ||
+            evento.key.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        const tecla =
+            evento.key;
 
 
         // =================================================
         // CENA SECRETA - PERDIDO
         // =================================================
 
-        if(
+        if (
             typeof Perdido !== "undefined" &&
             Perdido.ativo
-        ){
+        ) {
 
             evento.preventDefault();
 
@@ -61,7 +77,408 @@ const Input = {
 
 
         // =================================================
-        // PEGAR CENA ATUAL
+        // PERGUNTAS - INTRODUÇÃO
+        // =================================================
+
+        if (
+            typeof Game !== "undefined" &&
+            Game.perguntasInicio
+        ) {
+
+            if (
+                tecla === "Enter"
+            ) {
+
+                evento.preventDefault();
+
+                Engine.avancarInicioPerguntas();
+
+            }
+
+            return;
+
+        }
+
+
+        // =================================================
+        // VOCÊ ACEITA?
+        // =================================================
+
+        if (
+            typeof Game !== "undefined" &&
+            Game.perguntasAceite
+        ) {
+
+            if (
+                tecla === "ArrowDown"
+            ) {
+
+                evento.preventDefault();
+
+
+                Game.perguntaSelecionada++;
+
+
+                if (
+                    Game.perguntaSelecionada >= 2
+                ) {
+
+                    Game.perguntaSelecionada = 0;
+
+                }
+
+
+                UI.atualizarMenu(
+                    Game.perguntaSelecionada
+                );
+
+
+                return;
+
+            }
+
+
+            if (
+                tecla === "ArrowUp"
+            ) {
+
+                evento.preventDefault();
+
+
+                Game.perguntaSelecionada--;
+
+
+                if (
+                    Game.perguntaSelecionada < 0
+                ) {
+
+                    Game.perguntaSelecionada = 1;
+
+                }
+
+
+                UI.atualizarMenu(
+                    Game.perguntaSelecionada
+                );
+
+
+                return;
+
+            }
+
+
+            if (
+                tecla === "Enter"
+            ) {
+
+                evento.preventDefault();
+
+
+                if (
+                    this.pressionado
+                )
+                    return;
+
+
+                this.bloquearEnter();
+
+
+                Engine.escolherAceitePerguntas();
+
+
+                return;
+
+            }
+
+
+            return;
+
+        }
+
+
+        // =================================================
+        // RESPOSTA DA PERGUNTA
+        // =================================================
+
+        if (
+            typeof Game !== "undefined" &&
+            Game.perguntaRespostaAtiva
+        ) {
+
+            if (
+                tecla === "Enter"
+            ) {
+
+                evento.preventDefault();
+
+
+                if (
+                    this.pressionado
+                )
+                    return;
+
+
+                this.bloquearEnter();
+
+
+                Engine.avancarRespostaPergunta();
+
+            }
+
+
+            return;
+
+        }
+
+
+        // =================================================
+        // PERGUNTA PRINCIPAL
+        // =================================================
+
+        if (
+            typeof Game !== "undefined" &&
+            Game.perguntaAtual !== null
+        ) {
+
+            const pergunta =
+                Perguntas[
+                    Game.perguntaAtual
+                ];
+
+
+            if (!pergunta)
+                return;
+
+
+            // ---------------------------------------------
+            // BAIXO
+            // ---------------------------------------------
+
+            if (
+                tecla === "ArrowDown"
+            ) {
+
+                evento.preventDefault();
+
+
+                Game.perguntaSelecionada++;
+
+
+                if (
+                    Game.perguntaSelecionada >=
+                    pergunta.pergunta.opcoes.length
+                ) {
+
+                    Game.perguntaSelecionada = 0;
+
+                }
+
+
+                UI.atualizarMenu(
+                    Game.perguntaSelecionada
+                );
+
+
+                return;
+
+            }
+
+
+            // ---------------------------------------------
+            // CIMA
+            // ---------------------------------------------
+
+            if (
+                tecla === "ArrowUp"
+            ) {
+
+                evento.preventDefault();
+
+
+                Game.perguntaSelecionada--;
+
+
+                if (
+                    Game.perguntaSelecionada < 0
+                ) {
+
+                    Game.perguntaSelecionada =
+                        pergunta.pergunta.opcoes.length - 1;
+
+                }
+
+
+                UI.atualizarMenu(
+                    Game.perguntaSelecionada
+                );
+
+
+                return;
+
+            }
+
+
+            // ---------------------------------------------
+            // ENTER
+            // ---------------------------------------------
+
+            if (
+                tecla === "Enter"
+            ) {
+
+                evento.preventDefault();
+
+
+                if (
+                    this.pressionado
+                )
+                    return;
+
+
+                this.bloquearEnter();
+
+
+                Engine.escolherPergunta();
+
+
+                return;
+
+            }
+
+
+            return;
+
+        }
+
+
+        // =================================================
+        // GAME OVER
+        // =================================================
+
+        if (
+            typeof UI !== "undefined" &&
+            UI.gameOverAtivo &&
+            typeof GameOver !== "undefined" &&
+            !GameOver.escrevendo
+        ) {
+
+            if (
+                tecla === "ArrowDown"
+            ) {
+
+                evento.preventDefault();
+
+
+                Game.gameOverSelecionado++;
+
+
+                if (
+                    Game.gameOverSelecionado > 1
+                ) {
+
+                    Game.gameOverSelecionado = 0;
+
+                }
+
+
+                GameOver.atualizarMenu();
+
+
+                return;
+
+            }
+
+
+            if (
+                tecla === "ArrowUp"
+            ) {
+
+                evento.preventDefault();
+
+
+                Game.gameOverSelecionado--;
+
+
+                if (
+                    Game.gameOverSelecionado < 0
+                ) {
+
+                    Game.gameOverSelecionado = 1;
+
+                }
+
+
+                GameOver.atualizarMenu();
+
+
+                return;
+
+            }
+
+
+            if (
+                tecla === "Enter"
+            ) {
+
+                evento.preventDefault();
+
+
+                if (
+                    this.pressionado
+                )
+                    return;
+
+
+                this.bloquearEnter();
+
+
+                GameOver.escolher();
+
+
+                return;
+
+            }
+
+        }
+
+
+        // =================================================
+        // PESSOA FALANDO
+        // =================================================
+
+        if (
+            typeof Engine !== "undefined" &&
+            Engine.pessoaAtual
+        ) {
+
+            if (
+                tecla === "Enter"
+            ) {
+
+                evento.preventDefault();
+
+
+                if (
+                    this.pressionado
+                )
+                    return;
+
+
+                this.bloquearEnter();
+
+
+                Engine.mostrarFalaPessoa();
+
+            }
+
+
+            return;
+
+        }
+
+
+        // =================================================
+        // CENA ATUAL
         // =================================================
 
         const cena =
@@ -70,53 +487,37 @@ const Input = {
             ];
 
 
+        if (!cena)
+            return;
+
+
         // =================================================
         // ENTRADA DE TEXTO
-        //
-        // IMPORTANTE:
-        // Fica ANTES dos outros Enter.
-        // Assim Enter e Backspace não são capturados
-        // por outro sistema.
         // =================================================
 
-        if(
-            cena &&
+        if (
             cena.tipo === "entrada"
-        ){
+        ) {
 
-            // =============================================
+            // ---------------------------------------------
             // BACKSPACE
-            // =============================================
+            // ---------------------------------------------
 
-            if(
+            if (
                 tecla === "Backspace"
-            ){
+            ) {
 
                 evento.preventDefault();
 
-                evento.stopPropagation();
 
-
-                if(
-                    this.texto.length > 0
-                ){
-
-                    this.texto =
-                        this.texto.slice(
-                            0,
-                            -1
-                        );
-
-                }
+                this.texto =
+                    this.texto.slice(
+                        0,
+                        -1
+                    );
 
 
                 UI.atualizarEntrada(
-                    this.texto
-                );
-
-
-                console.log(
-                    "APAGOU:",
                     this.texto
                 );
 
@@ -126,49 +527,25 @@ const Input = {
             }
 
 
-            // =============================================
+            // ---------------------------------------------
             // ENTER
-            // =============================================
+            // ---------------------------------------------
 
-            if(
+            if (
                 tecla === "Enter"
-            ){
+            ) {
 
                 evento.preventDefault();
 
-                evento.stopPropagation();
 
-
-                // Evita duplo Enter
-                if(
-                    this.pressionado
-                )
-                    return;
-
-
-                this.bloquearEnter();
-
-
-                // -----------------------------------------
-                // NÃO DEIXA CONFIRMAR VAZIO
-                // -----------------------------------------
-
-                if(
+                if (
                     this.texto.trim() === ""
-                ){
-
-                    console.log(
-                        "NOME VAZIO"
-                    );
+                ) {
 
                     return;
 
                 }
 
-
-                // -----------------------------------------
-                // SALVAR NOME
-                // -----------------------------------------
 
                 Game.nome =
                     this.texto.trim();
@@ -181,43 +558,32 @@ const Input = {
                 );
 
 
-                // -----------------------------------------
-                // FECHAR TECLADO MOBILE
-                // -----------------------------------------
-
-                if(
+                if (
                     typeof TecladoMobile !==
                     "undefined"
-                ){
+                ) {
 
-                    if(
-                        typeof TecladoMobile.fechar ===
-                        "function"
-                    ){
-
-                        TecladoMobile.fechar();
-
-                    }
+                    TecladoMobile.fechar();
 
                 }
 
 
                 // =========================================
-                // ENTRADA DE PESSOA
+                // PESSOA
                 // =========================================
 
-                if(
+                if (
                     Game.tipoEntrada === "pessoa"
-                ){
+                ) {
 
-                    // =====================================
+                    // -------------------------------------
                     // MEME DAS MONTANHAS
-                    // =====================================
+                    // -------------------------------------
 
-                    if(
+                    if (
                         Game.nome.toLowerCase() ===
                         "montanhas"
-                    ){
+                    ) {
 
                         const mensagemOriginal =
                             document.getElementById(
@@ -225,9 +591,9 @@ const Input = {
                             );
 
 
-                        if(
+                        if (
                             mensagemOriginal
-                        ){
+                        ) {
 
                             mensagemOriginal.innerHTML =
                                 "";
@@ -264,18 +630,9 @@ const Input = {
                             setTimeout(
                                 () => {
 
-                                    if(
-                                        typeof Engine !==
-                                        "undefined" &&
-                                        typeof Engine.receberNome ===
-                                        "function"
-                                    ){
-
-                                        Engine.receberNome(
-                                            Game.nome
-                                        );
-
-                                    }
+                                    Engine.receberNome(
+                                        Game.nome
+                                    );
 
                                 },
                                 3000
@@ -286,134 +643,66 @@ const Input = {
 
                         this.texto = "";
 
-
                         return;
 
                     }
 
 
-                    // =====================================
+                    // -------------------------------------
                     // NOME NORMAL
-                    // =====================================
+                    // -------------------------------------
 
-                    if(
-                        typeof Engine !==
-                        "undefined" &&
-                        typeof Engine.receberNome ===
-                        "function"
-                    ){
-
-                        Engine.receberNome(
-                            Game.nome
-                        );
-
-                    }
+                    Engine.receberNome(
+                        Game.nome
+                    );
 
                 }
 
 
                 // =========================================
-                // ENTRADA DE CRIAÇÃO
+                // CRIAÇÃO
                 // =========================================
 
-                else if(
+                else if (
                     Game.tipoEntrada === "criacao"
-                ){
+                ) {
 
-                    if(
-                        typeof Engine !==
-                        "undefined" &&
-                        typeof Engine.receberCriacao ===
-                        "function"
-                    ){
-
-                        Engine.receberCriacao(
-                            Game.nome
-                        );
-
-                    }
+                    Engine.receberCriacao(
+                        Game.nome
+                    );
 
                 }
 
-
-                // =========================================
-                // LIMPAR TEXTO
-                // =========================================
 
                 this.texto = "";
 
-
                 return;
 
             }
 
 
-            // =============================================
+            // ---------------------------------------------
             // DIGITAÇÃO
-            // =============================================
+            // ---------------------------------------------
 
-            if(
+            if (
                 tecla.length === 1
-            ){
+            ) {
 
-                // Evita caracteres estranhos de controle
-                if(
-                    !evento.ctrlKey &&
-                    !evento.altKey &&
-                    !evento.metaKey
-                ){
+                if (
+                    this.texto.length <
+                    Game.limiteNome
+                ) {
 
-                    if(
-                        this.texto.length <
-                        Game.limiteNome
-                    ){
-
-                        this.texto +=
-                            tecla;
+                    this.texto +=
+                        tecla;
 
 
-                        UI.atualizarEntrada(
-                            this.texto
-                        );
-
-
-                        console.log(
-                            "DIGITOU:",
-                            this.texto
-                        );
-
-                    }
+                    UI.atualizarEntrada(
+                        this.texto
+                    );
 
                 }
-
-
-                return;
-
-            }
-
-
-            // Se estiver na entrada de nome,
-            // nenhuma outra lógica deve receber a tecla.
-            return;
-
-        }
-
-
-        // =================================================
-        // PERGUNTAS - INTRODUÇÃO
-        // =================================================
-
-        if(
-            Game.perguntasInicio
-        ){
-
-            if(
-                tecla === "Enter"
-            ){
-
-                evento.preventDefault();
-
-                Engine.avancarInicioPerguntas();
 
             }
 
@@ -421,403 +710,20 @@ const Input = {
             return;
 
         }
-
-
-        // =================================================
-        // VOCÊ ACEITA?
-        // =================================================
-
-        if(
-            Game.perguntasAceite
-        ){
-
-            if(
-                tecla === "ArrowDown"
-            ){
-
-                evento.preventDefault();
-
-
-                Game.perguntaSelecionada++;
-
-
-                if(
-                    Game.perguntaSelecionada >= 2
-                ){
-
-                    Game.perguntaSelecionada = 0;
-
-                }
-
-
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
-
-
-                return;
-
-            }
-
-
-            if(
-                tecla === "ArrowUp"
-            ){
-
-                evento.preventDefault();
-
-
-                Game.perguntaSelecionada--;
-
-
-                if(
-                    Game.perguntaSelecionada < 0
-                ){
-
-                    Game.perguntaSelecionada = 1;
-
-                }
-
-
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
-
-
-                return;
-
-            }
-
-
-            if(
-                tecla === "Enter"
-            ){
-
-                evento.preventDefault();
-
-
-                if(
-                    this.pressionado
-                )
-                    return;
-
-
-                this.bloquearEnter();
-
-
-                Engine.escolherAceitePerguntas();
-
-
-                return;
-
-            }
-
-
-            return;
-
-        }
-
-
-        // =================================================
-        // RESPOSTA DA PERGUNTA
-        // =================================================
-
-        if(
-            Game.perguntaRespostaAtiva
-        ){
-
-            if(
-                tecla === "Enter"
-            ){
-
-                evento.preventDefault();
-
-
-                if(
-                    this.pressionado
-                )
-                    return;
-
-
-                this.bloquearEnter();
-
-
-                Engine.avancarRespostaPergunta();
-
-            }
-
-
-            return;
-
-        }
-
-
-        // =================================================
-        // PERGUNTA PRINCIPAL
-        // =================================================
-
-        if(
-            Game.perguntaAtual !== null
-        ){
-
-            const pergunta =
-                Perguntas[
-                    Game.perguntaAtual
-                ];
-
-
-            if(
-                !pergunta
-            )
-                return;
-
-
-            // ---------------------------------------------
-            // BAIXO
-            // ---------------------------------------------
-
-            if(
-                tecla === "ArrowDown"
-            ){
-
-                evento.preventDefault();
-
-
-                Game.perguntaSelecionada++;
-
-
-                if(
-                    Game.perguntaSelecionada >=
-                    pergunta.pergunta.opcoes.length
-                ){
-
-                    Game.perguntaSelecionada = 0;
-
-                }
-
-
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
-
-
-                return;
-
-            }
-
-
-            // ---------------------------------------------
-            // CIMA
-            // ---------------------------------------------
-
-            if(
-                tecla === "ArrowUp"
-            ){
-
-                evento.preventDefault();
-
-
-                Game.perguntaSelecionada--;
-
-
-                if(
-                    Game.perguntaSelecionada < 0
-                ){
-
-                    Game.perguntaSelecionada =
-                        pergunta.pergunta.opcoes.length - 1;
-
-                }
-
-
-                UI.atualizarMenu(
-                    Game.perguntaSelecionada
-                );
-
-
-                return;
-
-            }
-
-
-            // ---------------------------------------------
-            // ENTER
-            // ---------------------------------------------
-
-            if(
-                tecla === "Enter"
-            ){
-
-                evento.preventDefault();
-
-
-                if(
-                    this.pressionado
-                )
-                    return;
-
-
-                this.bloquearEnter();
-
-
-                Engine.escolherPergunta();
-
-
-                return;
-
-            }
-
-
-            return;
-
-        }
-
-
-        // =================================================
-        // GAME OVER
-        // =================================================
-
-        if(
-            UI.gameOverAtivo &&
-            !GameOver.escrevendo
-        ){
-
-            if(
-                tecla === "ArrowDown"
-            ){
-
-                evento.preventDefault();
-
-
-                Game.gameOverSelecionado++;
-
-
-                if(
-                    Game.gameOverSelecionado > 1
-                ){
-
-                    Game.gameOverSelecionado = 0;
-
-                }
-
-
-                GameOver.atualizarMenu();
-
-
-                return;
-
-            }
-
-
-            if(
-                tecla === "ArrowUp"
-            ){
-
-                evento.preventDefault();
-
-
-                Game.gameOverSelecionado--;
-
-
-                if(
-                    Game.gameOverSelecionado < 0
-                ){
-
-                    Game.gameOverSelecionado = 1;
-
-                }
-
-
-                GameOver.atualizarMenu();
-
-
-                return;
-
-            }
-
-
-            if(
-                tecla === "Enter"
-            ){
-
-                evento.preventDefault();
-
-
-                if(
-                    this.pressionado
-                )
-                    return;
-
-
-                this.bloquearEnter();
-
-
-                GameOver.escolher();
-
-
-                return;
-
-            }
-
-        }
-
-
-        // =================================================
-        // PESSOA FALANDO
-        // =================================================
-
-        if(
-            Engine.pessoaAtual
-        ){
-
-            if(
-                tecla === "Enter"
-            ){
-
-                evento.preventDefault();
-
-
-                if(
-                    this.pressionado
-                )
-                    return;
-
-
-                this.bloquearEnter();
-
-
-                Engine.mostrarFalaPessoa();
-
-            }
-
-
-            return;
-
-        }
-
-
-        // =================================================
-        // SE NÃO TEM CENA
-        // =================================================
-
-        if(
-            !cena
-        )
-            return;
 
 
         // =================================================
         // ENTER NORMAL
         // =================================================
 
-        if(
+        if (
             tecla === "Enter"
-        ){
+        ) {
 
             evento.preventDefault();
 
 
-            if(
+            if (
                 this.pressionado
             )
                 return;
@@ -826,23 +732,12 @@ const Input = {
             this.bloquearEnter();
 
 
-            if(
-                typeof Engine.cancelarEspera ===
-                "function"
-            ){
-
-                Engine.cancelarEspera();
-
-            }
+            Engine.cancelarEspera();
 
 
-            // ---------------------------------------------
-            // MENU
-            // ---------------------------------------------
-
-            if(
+            if (
                 cena.tipo === "menu"
-            ){
+            ) {
 
                 Engine.escolher(
                     Game.selecionado
@@ -851,18 +746,14 @@ const Input = {
             }
 
 
-            // ---------------------------------------------
-            // TEXTO
-            // ---------------------------------------------
-
-            else if(
+            else if (
                 cena.tipo === "texto"
-            ){
+            ) {
 
-                if(
+                if (
                     Game.cenaAtual <
                     Introducao.length - 1
-                ){
+                ) {
 
                     Engine.proximaCena();
 
@@ -880,7 +771,7 @@ const Input = {
         // MENU NORMAL
         // =================================================
 
-        if(
+        if (
             cena.tipo !== "menu"
         )
             return;
@@ -890,9 +781,9 @@ const Input = {
         // BAIXO
         // =================================================
 
-        if(
+        if (
             tecla === "ArrowDown"
-        ){
+        ) {
 
             evento.preventDefault();
 
@@ -900,10 +791,10 @@ const Input = {
             Game.selecionado++;
 
 
-            if(
+            if (
                 Game.selecionado >=
                 cena.opcoes.length
-            ){
+            ) {
 
                 Game.selecionado = 0;
 
@@ -922,9 +813,9 @@ const Input = {
         // CIMA
         // =================================================
 
-        if(
+        if (
             tecla === "ArrowUp"
-        ){
+        ) {
 
             evento.preventDefault();
 
@@ -932,9 +823,9 @@ const Input = {
             Game.selecionado--;
 
 
-            if(
+            if (
                 Game.selecionado < 0
-            ){
+            ) {
 
                 Game.selecionado =
                     cena.opcoes.length - 1;
@@ -956,15 +847,17 @@ const Input = {
     // BLOQUEAR ENTER
     // =====================================================
 
-    bloquearEnter(){
+    bloquearEnter() {
 
-        this.pressionado = true;
+        this.pressionado =
+            true;
 
 
         setTimeout(
             () => {
 
-                this.pressionado = false;
+                this.pressionado =
+                    false;
 
             },
             250
@@ -973,3 +866,17 @@ const Input = {
     }
 
 };
+
+
+// =========================================================
+// INICIALIZAR
+// =========================================================
+
+window.addEventListener(
+    "load",
+    () => {
+
+        Input.iniciar();
+
+    }
+);
