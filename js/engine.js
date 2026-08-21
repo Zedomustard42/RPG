@@ -804,56 +804,81 @@ const Engine = {
 
             case "entrada":
 
-                UI.entrada(
+    // =================================================
+    // DEFINIR O TIPO DA ENTRADA PRIMEIRO
+    // =================================================
 
-                    cena.titulo,
-
-                    cena.mensagem
-
-                );
+    Input.texto =
+        "";
 
 
-                Input.texto =
-                    "";
+    Game.tipoEntrada =
+        cena.entrada || "";
 
+
+    if(
+        cena.id ===
+        "proximo"
+    ){
+
+        Game.tipoEntrada =
+            "pessoa";
+
+    }
+
+
+    if(
+        cena.id ===
+        "criacao"
+    ){
+
+        Game.tipoEntrada =
+            "criacao";
+
+    }
+
+
+    // =================================================
+    // AGORA RENDERIZA A ENTRADA
+    // =================================================
+
+    UI.entrada(
+
+        cena.titulo,
+
+        cena.mensagem
+
+    );
+
+
+    // =================================================
+    // TECLADO MOBILE
+    // =================================================
+
+    if(
+        typeof TecladoMobile !==
+        "undefined"
+    ){
+
+        setTimeout(
+            () => {
 
                 if(
-                    cena.id ===
-                    "proximo"
+                    typeof TecladoMobile.abrir ===
+                    "function"
                 ){
 
-                    Game.tipoEntrada =
-                        "pessoa";
+                    TecladoMobile.abrir();
 
                 }
 
+            },
+            300
+        );
 
-                if(
-                    cena.id ===
-                    "criacao"
-                ){
+    }
 
-                    Game.tipoEntrada =
-                        "criacao";
-
-                }
-
-
-                if(
-                    typeof TecladoMobile !==
-                    "undefined"
-                ){
-
-                    setTimeout(() => {
-
-                        TecladoMobile.abrir();
-
-                    }, 300);
-
-                }
-
-            break;
-
+break;
         }
 
     },

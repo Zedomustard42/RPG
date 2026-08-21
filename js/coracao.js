@@ -321,75 +321,9 @@ const Coracao = {
     // =====================================================
 
     iniciarTeclado() {
-
-        if (
-            this.tecladoIniciado
-        )
-            return;
-
-        this.tecladoIniciado =
-            true;
-
-        document.addEventListener(
-            "keydown",
-            e => {
-
-                const tecla =
-                    String(
-                        e.key
-                    ).toLowerCase();
-
-                if (
-                    tecla === "arrowup" ||
-                    tecla === "arrowdown" ||
-                    tecla === "arrowleft" ||
-                    tecla === "arrowright" ||
-                    tecla === "w" ||
-                    tecla === "a" ||
-                    tecla === "s" ||
-                    tecla === "d"
-                ) {
-
-                    this.teclas[tecla] =
-                        true;
-
-                    if (
-                        this.ativo
-                    ) {
-
-                        e.preventDefault();
-
-                    }
-
-                }
-
-            }
-        );
-
-        document.addEventListener(
-            "keyup",
-            e => {
-
-                const tecla =
-                    String(
-                        e.key
-                    ).toLowerCase();
-
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        this.teclas,
-                        tecla
-                    )
-                ) {
-
-                    this.teclas[tecla] =
-                        false;
-
-                }
-
-            }
-        );
-
+        // O teclado físico é centralizado pelo Input.js.
+        // Coracao apenas mantém seu mapa de teclas.
+        this.tecladoIniciado = true;
     },
 
     // =====================================================

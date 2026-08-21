@@ -6,6 +6,11 @@ const Input = {
 
     texto: "",
 
+    // Todas as entradas físicas passam por este objeto.
+    teclas: {},
+    contextos: new Map(),
+    hooks: new Map(),
+
 
     // =====================================================
     // INICIAR
@@ -18,10 +23,13 @@ const Input = {
 
         this.iniciado = true;
 
-        document.addEventListener(
-            "keydown",
-            this.tecla.bind(this)
-        );
+        this._keydown = evento => this.tecla(evento);
+        this._keyup = evento => this.soltar(evento);
+        this._blur = () => this.limparTeclas();
+
+        document.addEventListener("keydown", this._keydown);
+        document.addEventListener("keyup", this._keyup);
+        window.addEventListener("blur", this._blur);
 
         console.log(
             "INPUT INICIADO"
@@ -54,6 +62,107 @@ const Input = {
 
 
         // =================================================
+        // ESTADO FÍSICO DA TECLA
+        // =================================================
+
+        this.teclas[tecla] = true;
+
+        if (typeof Movimento !== "undefined" && Movimento.teclas) {
+            Movimento.teclas[tecla] = true;
+        }
+
+        if (typeof Coracao !== "undefined" && Coracao.teclas) {
+            Coracao.teclas[String(tecla).toLowerCase()] = true;
+        }
+
+        if (typeof Perdido !== "undefined" && Perdido.teclasPressionadas) {
+            Perdido.teclasPressionadas[tecla] = true;
+        }
+
+        // =================================================
+        // REPETIÇÃO DE AÇÕES DISCRETAS
+        // =================================================
+
+        if (evento.repeat && ["Enter", "Escape", "Space", " "].includes(tecla)) {
+            return;
+        }
+
+        // =================================================
+        // HOOKS GLOBAIS
+        // =================================================
+
+        for (const handler of this.hooks.values()) {
+            try {
+                if (handler({
+                    key: tecla,
+                    repeat: !!evento.repeat,
+                    originalEvent: evento,
+                    preventDefault: () => {
+                        if (typeof evento.preventDefault === "function") evento.preventDefault();
+                    },
+                    stopPropagation: () => {
+                        if (typeof evento.stopPropagation === "function") evento.stopPropagation();
+                    }
+                }) === true) {
+                    if (typeof evento.preventDefault === "function") evento.preventDefault();
+                    return;
+                }
+            } catch (erro) {
+                console.error("Erro no hook de teclado:", erro);
+            }
+        }
+
+        // =================================================
+        // ATAQUE GLOBAL
+        // =================================================
+
+        if (
+            tecla === " " ||
+            tecla === "Space" ||
+            tecla.toLowerCase() === "j"
+        ) {
+
+            if (
+                typeof Batalha !== "undefined" &&
+                Batalha.ativa
+            ) {
+
+                if (typeof Movimento !== "undefined" && typeof Movimento.atacar === "function") {
+                    Movimento.atacar();
+                }
+
+                return;
+            }
+        }
+
+        // =================================================
+        // CONTEXTOS ATIVOS
+        // =================================================
+
+        const contextos = Array.from(this.contextos.values()).reverse();
+
+        for (const handler of contextos) {
+            try {
+                if (handler({
+                    key: tecla,
+                    repeat: !!evento.repeat,
+                    originalEvent: evento,
+                    preventDefault: () => {
+                        if (typeof evento.preventDefault === "function") evento.preventDefault();
+                    },
+                    stopPropagation: () => {
+                        if (typeof evento.stopPropagation === "function") evento.stopPropagation();
+                    }
+                }) === true) {
+                    if (typeof evento.preventDefault === "function") evento.preventDefault();
+                    return;
+                }
+            } catch (erro) {
+                console.error("Erro no contexto de teclado:", erro);
+            }
+        }
+
+        // =================================================
         // PREVENT DEFAULT SE EXISTIR
         // =================================================
 
@@ -65,6 +174,18 @@ const Input = {
 
         }
 
+
+        // =================================================
+        // DIÁLOGO DO BONECO
+        // =================================================
+
+        if (
+            typeof Boneco !== "undefined" &&
+            Boneco.dialogoAtivo
+        ) {
+            Boneco.tecla(tecla);
+            return;
+        }
 
         // =================================================
         // CENA SECRETA - PERDIDO
@@ -920,6 +1041,69 @@ const Input = {
 
     },
 
+
+    // =====================================================
+    // SOLTAR TECLA
+    // =====================================================
+
+    soltar(evento) {
+
+        if (!evento || typeof evento.key !== "string" || !evento.key) return;
+
+        const tecla = evento.key;
+
+        this.teclas[tecla] = false;
+
+        if (typeof Movimento !== "undefined" && Movimento.teclas) {
+            Movimento.teclas[tecla] = false;
+        }
+
+        if (typeof Coracao !== "undefined" && Coracao.teclas) {
+            Coracao.teclas[String(tecla).toLowerCase()] = false;
+        }
+
+        if (typeof Perdido !== "undefined" && Perdido.teclasPressionadas) {
+            Perdido.teclasPressionadas[tecla] = false;
+        }
+    },
+
+    // =====================================================
+    // CONTEXTOS / HOOKS
+    // =====================================================
+
+    registrarContexto(nome, handler) {
+        if (!nome || typeof handler !== "function") return;
+        this.contextos.set(nome, handler);
+    },
+
+    removerContexto(nome) {
+        this.contextos.delete(nome);
+    },
+
+    registrarHook(nome, handler) {
+        if (!nome || typeof handler !== "function") return;
+        this.hooks.set(nome, handler);
+    },
+
+    removerHook(nome) {
+        this.hooks.delete(nome);
+    },
+
+    limparTeclas() {
+        this.teclas = {};
+
+        if (typeof Movimento !== "undefined" && Movimento.teclas) {
+            Movimento.teclas = {};
+        }
+
+        if (typeof Coracao !== "undefined" && typeof Coracao.limparTeclas === "function") {
+            Coracao.limparTeclas();
+        }
+
+        if (typeof Perdido !== "undefined") {
+            Perdido.teclasPressionadas = {};
+        }
+    },
 
     // =====================================================
     // BLOQUEAR ENTER

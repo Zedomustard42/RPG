@@ -1,4 +1,5 @@
 
+
 const Perdido = {
 
     ativo: false,
@@ -526,145 +527,53 @@ const Perdido = {
 
     configurarControles(){
 
-        if(
-            this.controlesConfigurados
-        ){
+        // Input.js é o único dono do teclado físico.
+        this.controlesConfigurados = true;
 
-            return;
+    },
 
+    // =====================================================
+    // ENTRADA CENTRALIZADA
+    // =====================================================
+
+    tecla(tecla){
+
+        if(!this.ativo)
+            return false;
+
+        const movimentos = [
+            "ArrowUp",
+            "ArrowDown",
+            "ArrowLeft",
+            "ArrowRight"
+        ];
+
+        if(movimentos.includes(tecla)){
+
+            if(
+                typeof Boneco !== "undefined" &&
+                Boneco.dialogoAtivo
+            ){
+                Boneco.tecla(tecla);
+                return true;
+            }
+
+            this.teclasPressionadas[tecla] = true;
+            return true;
         }
 
+        if(tecla === "Enter"){
 
-        this.controlesConfigurados =
-            true;
-
-
-        // =================================================
-        // KEYDOWN
-        // =================================================
-
-        window.addEventListener(
-            "keydown",
-            (evento) => {
-
-                if(!this.ativo)
-                    return;
-
-
-                const movimentos = [
-
-                    "ArrowUp",
-                    "ArrowDown",
-                    "ArrowLeft",
-                    "ArrowRight"
-
-                ];
-
-
-                if(
-                    movimentos.includes(
-                        evento.key
-                    )
-                ){
-
-                    evento.preventDefault();
-
-
-                    /*
-                     * Se o Boneco estiver controlando
-                     * um diálogo, manda a tecla para ele.
-                     */
-
-                    if(
-                        typeof Boneco !== "undefined" &&
-                        Boneco.dialogoAtivo
-                    ){
-
-                        Boneco.tecla(
-                            evento.key
-                        );
-
-                        return;
-
-                    }
-
-
-                    this.teclasPressionadas[
-                        evento.key
-                    ] = true;
-
-
-                    return;
-
-                }
-
-
-                // =================================================
-                // ENTER
-                // =================================================
-
-                if(
-                    evento.key === "Enter"
-                ){
-
-                    evento.preventDefault();
-
-
-                    if(
-                        !evento.repeat
-                    ){
-
-                        /*
-                         * Boneco recebe o ENTER.
-                         */
-
-                        if(
-                            typeof Boneco !== "undefined"
-                        ){
-
-                            Boneco.tecla(
-                                "Enter"
-                            );
-
-                        }
-
-                    }
-
-                }
-
+            if(
+                typeof Boneco !== "undefined"
+            ){
+                Boneco.tecla("Enter");
             }
-        );
 
+            return true;
+        }
 
-        // =================================================
-        // KEYUP
-        // =================================================
-
-        window.addEventListener(
-            "keyup",
-            (evento) => {
-
-                this.teclasPressionadas[
-                    evento.key
-                ] = false;
-
-            }
-        );
-
-
-        // =================================================
-        // PERDEU FOCO
-        // =================================================
-
-        window.addEventListener(
-            "blur",
-            () => {
-
-                this.teclasPressionadas = {};
-
-            }
-        );
-
+        return false;
     },
 
 

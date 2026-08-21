@@ -395,10 +395,9 @@ const Batalha = {
                     falas.length
                 ) {
 
-                    document.removeEventListener(
-                        "keydown",
-                        continuar
-                    );
+                    if (typeof Input !== "undefined") {
+                        Input.removerContexto("batalha-intro");
+                    }
 
 
                     AudioManager.pararSom();
@@ -436,10 +435,15 @@ const Batalha = {
             };
 
 
-        document.addEventListener(
-            "keydown",
-            continuar
-        );
+        if (typeof Input !== "undefined") {
+            Input.registrarContexto(
+                "batalha-intro",
+                evento => {
+                    continuar(evento);
+                    return true;
+                }
+            );
+        }
 
 
         continuar({

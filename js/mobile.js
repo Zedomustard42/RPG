@@ -90,6 +90,12 @@ const Mobile = {
 
             pressionado = false;
 
+            if (
+                typeof Input !== "undefined" &&
+                typeof Input.soltar === "function"
+            ) {
+                Input.soltar({ key: tecla });
+            }
 
             if (
                 typeof Movimento !== "undefined" &&

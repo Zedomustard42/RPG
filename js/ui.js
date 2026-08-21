@@ -201,10 +201,9 @@ const UI = {
     abrirClube(game) {
 
         if (this.cassianTeclado) {
-            document.removeEventListener(
-                "keydown",
-                this.cassianTeclado
-            );
+            if (typeof Input !== "undefined") {
+                Input.removerContexto("ui-cassian");
+            }
 
             this.cassianTeclado = null;
         }
@@ -472,10 +471,9 @@ const UI = {
              */
             if (this.cassianTeclado) {
 
-                document.removeEventListener(
-                    "keydown",
-                    this.cassianTeclado
-                );
+                if (typeof Input !== "undefined") {
+                    Input.removerContexto("ui-cassian");
+                }
 
                 this.cassianTeclado = null;
             }
@@ -759,10 +757,9 @@ const UI = {
                         selecionado === 1
                     ) {
 
-                        document.removeEventListener(
-                            "keydown",
-                            this.cassianTeclado
-                        );
+                        if (typeof Input !== "undefined") {
+                            Input.removerContexto("ui-cassian");
+                        }
 
                         this.cassianTeclado =
                             null;
@@ -792,10 +789,15 @@ const UI = {
                 }
             };
 
-        document.addEventListener(
-            "keydown",
-            this.cassianTeclado
-        );
+        if (typeof Input !== "undefined") {
+            Input.registrarContexto(
+                "ui-cassian",
+                evento => {
+                    this.cassianTeclado(evento);
+                    return true;
+                }
+            );
+        }
     },
 
     /*

@@ -602,16 +602,16 @@ const BatalhaMobile = {
                 }
 
 
-                document.dispatchEvent(
-                    new KeyboardEvent(
-                        "keydown",
-                        {
-                            key: tecla,
-                            code: tecla,
-                            bubbles: true
-                        }
-                    )
-                );
+                if (
+                    typeof Input !== "undefined" &&
+                    typeof Input.tecla === "function"
+                ) {
+                    Input.tecla({
+                        key: tecla,
+                        preventDefault() {},
+                        stopPropagation() {}
+                    });
+                }
 
             }
         );
@@ -624,6 +624,12 @@ const BatalhaMobile = {
     // =====================================================
 
     pararMovimento() {
+
+        if (typeof Input !== "undefined" && typeof Input.soltar === "function") {
+            ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].forEach(tecla => {
+                Input.soltar({ key: tecla });
+            });
+        }
 
         if (
             this.timeoutAceleracao
@@ -705,21 +711,16 @@ const BatalhaMobile = {
 
     enviarEnter() {
 
-        /*
-         * Nunca usar key: "".
-         */
-
-        document.dispatchEvent(
-            new KeyboardEvent(
-                "keydown",
-                {
-                    key: "Enter",
-                    code: "Enter",
-                    bubbles: true,
-                    cancelable: true
-                }
-            )
-        );
+        if (
+            typeof Input !== "undefined" &&
+            typeof Input.tecla === "function"
+        ) {
+            Input.tecla({
+                key: "Enter",
+                preventDefault() {},
+                stopPropagation() {}
+            });
+        }
 
     },
 
@@ -772,46 +773,26 @@ const BatalhaMobile = {
 
     configurarModoMobilePC() {
 
-        document.addEventListener(
-            "keydown",
-            e => {
+        if (typeof Input !== "undefined") {
+            Input.registrarHook(
+                "modo-mobile-pc",
+                ({ key, originalEvent }) => {
 
-                if (
-                    typeof e.key !== "string" ||
-                    e.key.length === 0
-                ) {
+                    const ctrlM =
+                        !!originalEvent.ctrlKey &&
+                        key.toLowerCase() === "m";
 
-                    return;
+                    const f8 =
+                        key === "F8";
 
+                    if (!ctrlM && !f8)
+                        return false;
+
+                    this.alternarModoMobilePC();
+                    return true;
                 }
-
-
-                const ctrlM =
-                    e.ctrlKey &&
-                    e.key.toLowerCase() === "m";
-
-
-                const f8 =
-                    e.key === "F8";
-
-
-                if (
-                    !ctrlM &&
-                    !f8
-                )
-                    return;
-
-
-                e.preventDefault();
-
-                e.stopPropagation();
-
-
-                this.alternarModoMobilePC();
-
-            },
-            true
-        );
+            );
+        }
 
 
         console.log(

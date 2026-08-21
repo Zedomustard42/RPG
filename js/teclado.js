@@ -213,7 +213,6 @@ const TecladoMobile = {
             "keydown",
             evento => {
 
-                evento.preventDefault();
                 evento.stopPropagation();
 
 
@@ -247,6 +246,8 @@ const TecladoMobile = {
                     tecla === "Enter"
                 ) {
 
+                    evento.preventDefault();
+
                     this.enviarTecla(
                         "Enter"
                     );
@@ -263,6 +264,8 @@ const TecladoMobile = {
                 if (
                     tecla === "Backspace"
                 ) {
+
+                    evento.preventDefault();
 
                     this.enviarTecla(
                         "Backspace"
@@ -283,6 +286,8 @@ const TecladoMobile = {
                     tecla === "ArrowLeft" ||
                     tecla === "ArrowRight"
                 ) {
+
+                    evento.preventDefault();
 
                     this.enviarTecla(
                         tecla
@@ -306,6 +311,13 @@ const TecladoMobile = {
 
                 evento.preventDefault();
                 evento.stopPropagation();
+
+                if (
+                    typeof Input !== "undefined" &&
+                    typeof Input.soltar === "function"
+                ) {
+                    Input.soltar({ key: evento.key });
+                }
 
             }
         );

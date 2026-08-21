@@ -26,48 +26,8 @@ const Movimento = {
         this.iniciado = true;
 
 
-        // =========================
-        // TECLA PRESSIONADA
-        // =========================
-
-        document.addEventListener(
-            "keydown",
-            (e) => {
-
-                this.teclas[e.key] = true;
-
-
-                // ATAQUE
-
-                if (
-                    e.code === "Space" &&
-                    !this.atacando &&
-                    Batalha.ativa
-                ) {
-
-                    e.preventDefault();
-
-                    this.atacar();
-
-                }
-
-            }
-        );
-
-
-        // =========================
-        // TECLA SOLTA
-        // =========================
-
-        document.addEventListener(
-            "keyup",
-            (e) => {
-
-                this.teclas[e.key] = false;
-
-            }
-        );
-
+        // O teclado físico é centralizado pelo Input.js.
+        // Movimento apenas consome this.teclas.
 
         console.log(
             "MOVIMENTO INICIADO"

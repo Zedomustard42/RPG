@@ -3442,10 +3442,9 @@ const BatalhaRender = {
                     caixa.remove();
 
 
-                document.removeEventListener(
-                    "keydown",
-                    tecla
-                );
+                if (typeof Input !== "undefined") {
+                    Input.removerContexto("batalha-mensagem");
+                }
 
 
                 this.mensagemAtiva =
@@ -3486,10 +3485,12 @@ const BatalhaRender = {
             };
 
 
-        document.addEventListener(
-            "keydown",
-            tecla
-        );
+        if (typeof Input !== "undefined") {
+            Input.registrarContexto(
+                "batalha-mensagem",
+                tecla
+            );
+        }
 
     },
 
@@ -3680,9 +3681,7 @@ const BatalhaRender = {
             true;
 
 
-        document.addEventListener(
-            "keydown",
-            e => {
+        this._inputTecla = e => {
 
                 // -----------------------------------------
                 // NÃO REPETIR
@@ -3972,8 +3971,25 @@ const BatalhaRender = {
 
                 }
 
-            }
-        );
+            return true;
+        };
+
+        if (typeof Input !== "undefined") {
+            Input.registrarContexto(
+                "batalha-render",
+                evento => {
+                    if (
+                        typeof Batalha === "undefined" ||
+                        (!Batalha.ativa && !this.mensagemAtiva && !this.ataqueAtivo)
+                    ) {
+                        return false;
+                    }
+
+                    this._inputTecla(evento);
+                    return true;
+                }
+            );
+        }
 
     },
 
