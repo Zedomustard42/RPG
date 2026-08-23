@@ -758,6 +758,13 @@ const Engine = {
         }
 
 
+        console.log("[CENA] INICIANDO:", Game.cenaAtual, cena.id, cena.tipo);
+
+        if (typeof Input !== "undefined") {
+            Input.entradaAtiva = cena.tipo === "entrada";
+            Input.tipoEntrada = cena.tipo === "entrada" ? (cena.entrada || (cena.id === "proximo" ? "pessoa" : cena.id === "criacao" ? "criacao" : "")) : "";
+        }
+
         UI.limpar();
 
 
@@ -805,15 +812,23 @@ const Engine = {
             case "entrada":
 
     // =================================================
-    // DEFINIR O TIPO DA ENTRADA PRIMEIRO
+    // ENTRADA DE TEXTO
     // =================================================
+    // O Input usa Game.tipoEntrada como fonte de verdade. Isso evita
+    // perder a segunda entrada quando a cena anterior ainda está
+    // terminando um diálogo.
 
-    Input.texto =
-        "";
-
+    if (typeof Input !== "undefined") {
+        Input.texto = "";
+    }
 
     Game.tipoEntrada =
         cena.entrada || "";
+
+    if (typeof Input !== "undefined") {
+        Input.entradaAtiva = true;
+        Input.tipoEntrada = Game.tipoEntrada;
+    }
 
 
     if(
@@ -997,6 +1012,7 @@ break;
 
         Game.cenaAtual++;
 
+        console.log("[CENA] PRÓXIMA:", Game.cenaAtual, Introducao[Game.cenaAtual]?.id);
 
         this.iniciarCena();
 
@@ -1013,6 +1029,8 @@ break;
             "RECEBEU NOME:",
             nome
         );
+
+        console.log("[CENA] pessoa recebida; aguardando ENTER para avançar.");
 
 
         const pessoa =
@@ -1125,6 +1143,7 @@ break;
 
             if(pessoa.continuar){
 
+                console.log("[CENA] fala da pessoa terminou -> próxima cena");
                 this.proximaCena();
 
             }

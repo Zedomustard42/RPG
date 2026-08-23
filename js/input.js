@@ -6,6 +6,9 @@ const Input = {
 
     texto: "",
 
+    entradaAtiva: false,
+    tipoEntrada: "",
+
     // Todas as entradas físicas passam por este objeto.
     teclas: {},
     contextos: new Map(),
@@ -80,6 +83,78 @@ const Input = {
         }
 
         // =================================================
+        // ENTRADA DE TEXTO — PRIORIDADE ABSOLUTA
+        // =================================================
+        // Não dependemos de Introducao[Game.cenaAtual] aqui.
+        // Durante transições/diálogos o índice pode continuar apontando
+        // para a cena anterior por alguns instantes. Game.tipoEntrada é
+        // definido pelo Engine no momento em que a caixa é criada.
+        const entradaAtiva =
+            this.entradaAtiva === true &&
+            (this.tipoEntrada === "pessoa" || this.tipoEntrada === "criacao");
+
+        if (entradaAtiva) {
+
+            if (tecla === "Backspace") {
+                this.texto = this.texto.slice(0, -1);
+                if (typeof UI !== "undefined" && typeof UI.atualizarEntrada === "function") {
+                    UI.atualizarEntrada(this.texto);
+                }
+                evento.preventDefault?.();
+                return;
+            }
+
+            if (tecla === "Enter") {
+                if (!this.texto.trim()) {
+                    evento.preventDefault?.();
+                    return;
+                }
+
+                const valor = this.texto.trim();
+                const tipo = this.tipoEntrada || Game.tipoEntrada;
+
+                Game.nome = valor;
+                console.log("ENTRADA:", tipo, valor);
+
+                if (typeof TecladoMobile !== "undefined" && typeof TecladoMobile.fechar === "function") {
+                    TecladoMobile.fechar();
+                }
+                this.texto = "";
+                this.entradaAtiva = false;
+                this.tipoEntrada = "";
+
+                // Limpa o tipo ANTES de chamar o Engine, para impedir
+                // que a próxima cena herde a entrada antiga.
+                Game.tipoEntrada = "";
+
+                if (tipo === "pessoa" && typeof Engine !== "undefined" && typeof Engine.receberNome === "function") {
+                    Engine.receberNome(valor);
+                } else if (tipo === "criacao" && typeof Engine !== "undefined" && typeof Engine.receberCriacao === "function") {
+                    Engine.receberCriacao(valor);
+                }
+
+                evento.preventDefault?.();
+                return;
+            }
+
+            // Caracteres imprimíveis. Ignora atalhos Ctrl/Alt/Meta para
+            // não transformar Ctrl+alguma-coisa em texto.
+            if (tecla.length === 1 && !evento.ctrlKey && !evento.altKey && !evento.metaKey) {
+                if (this.texto.length < (Game.limiteNome || 14)) {
+                    this.texto += tecla;
+                    if (typeof UI !== "undefined" && typeof UI.atualizarEntrada === "function") {
+                        UI.atualizarEntrada(this.texto);
+                    }
+                }
+                evento.preventDefault?.();
+                return;
+            }
+
+            evento.preventDefault?.();
+            return;
+        }
+
+        // =================================================
         // REPETIÇÃO DE AÇÕES DISCRETAS
         // =================================================
 
@@ -88,9 +163,25 @@ const Input = {
         }
 
         // =================================================
+        // ENTRADA DE TEXTO TEM PRIORIDADE
+        // =================================================
+        // Alguns contextos globais (especialmente os da batalha/mobile)
+        // podem continuar registrados durante a troca de cena. Se eles
+        // consumirem a tecla antes daqui, a segunda caixa de nome fica
+        // "morta" até um Ctrl+F5. Quando a cena é uma entrada, deixamos
+        // as teclas chegarem ao bloco de texto abaixo.
+        const cenaAtualInput =
+            (typeof Introducao !== "undefined" && typeof Game !== "undefined")
+                ? Introducao[Game.cenaAtual]
+                : null;
+
+        const entradaDeTextoAtiva = this.entradaAtiva === true;
+
+        // =================================================
         // HOOKS GLOBAIS
         // =================================================
 
+        if (!entradaDeTextoAtiva) {
         for (const handler of this.hooks.values()) {
             try {
                 if (handler({
@@ -112,14 +203,19 @@ const Input = {
             }
         }
 
+        }
+
         // =================================================
         // ATAQUE GLOBAL
         // =================================================
 
         if (
-            tecla === " " ||
-            tecla === "Space" ||
-            tecla.toLowerCase() === "j"
+            !entradaDeTextoAtiva &&
+            (
+                tecla === " " ||
+                tecla === "Space" ||
+                tecla.toLowerCase() === "j"
+            )
         ) {
 
             if (
@@ -139,6 +235,7 @@ const Input = {
         // CONTEXTOS ATIVOS
         // =================================================
 
+        if (!entradaDeTextoAtiva) {
         const contextos = Array.from(this.contextos.values()).reverse();
 
         for (const handler of contextos) {
@@ -614,6 +711,8 @@ const Input = {
 
         }
 
+
+        }
 
         // =================================================
         // CENA ATUAL
@@ -1129,6 +1228,45 @@ const Input = {
 
 };
 
+
+// =========================================================
+// COMPATIBILIDADE / GARANTIA DOS HOOKS
+// =========================================================
+// Mantém compatibilidade caso outro script tenha carregado uma versão
+// antiga do Input. Não substitui os métodos existentes.
+if (typeof Input !== "undefined") {
+
+    if (typeof Input.registrarHook !== "function") {
+        Input.hooks = Input.hooks || new Map();
+        Input.registrarHook = function(nome, handler) {
+            if (!nome || typeof handler !== "function") return;
+            this.hooks.set(nome, handler);
+        };
+    }
+
+    if (typeof Input.removerHook !== "function") {
+        Input.hooks = Input.hooks || new Map();
+        Input.removerHook = function(nome) {
+            this.hooks.delete(nome);
+        };
+    }
+
+    if (typeof Input.registrarContexto !== "function") {
+        Input.contextos = Input.contextos || new Map();
+        Input.registrarContexto = function(nome, handler) {
+            if (!nome || typeof handler !== "function") return;
+            this.contextos.set(nome, handler);
+        };
+    }
+
+    if (typeof Input.removerContexto !== "function") {
+        Input.contextos = Input.contextos || new Map();
+        Input.removerContexto = function(nome) {
+            this.contextos.delete(nome);
+        };
+    }
+
+}
 
 // =========================================================
 // INICIALIZAR

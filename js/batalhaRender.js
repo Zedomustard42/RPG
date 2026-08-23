@@ -68,6 +68,15 @@ const BatalhaRender = {
     animacaoMascaraFrame: null,
     tempoMascara: 0,
 
+    // Durante o trovão, a Máscara é movida para cima da caixa.
+    teleporteTrovaoAtivo: false,
+    teleporteTrovaoOriginal: null,
+
+    // Durante os cortes, a posição da Máscara é controlada pelo ataque.
+    teleporteCortesAtivo: false,
+    teleporteCortesOriginal: null,
+    posicaoMascaraCorte: null,
+
     tamanhoMascara: 280,
 
     // =====================================================
@@ -1568,27 +1577,36 @@ const BatalhaRender = {
                     18;
 
 
-                // A máscara principal SEMPRE fica
-                // na frente.
-
-                mascara.style.transform =
-                    `translateY(${movimento}px)`;
-
-                mascara.style.zIndex =
-                    "50";
-
-
-                // Pequena chance de criar
-                // um novo rastro.
-
+                // Durante o trovão, o teleporte controla
+                // posição e transformação da Máscara.
                 if (
-                    Math.random() <
-                    0.16
+                    !this.teleporteTrovaoAtivo &&
+                    !this.teleporteCortesAtivo
                 ) {
 
-                    this.criarRastroMascara(
-                        movimento
-                    );
+                    // A máscara principal SEMPRE fica
+                    // na frente.
+
+                    mascara.style.transform =
+                        `translateY(${movimento}px)`;
+
+                    mascara.style.zIndex =
+                        "50";
+
+
+                    // Pequena chance de criar
+                    // um novo rastro.
+
+                    if (
+                        Math.random() <
+                        0.16
+                    ) {
+
+                        this.criarRastroMascara(
+                            movimento
+                        );
+
+                    }
 
                 }
 
@@ -1602,6 +1620,541 @@ const BatalhaRender = {
 
 
         mover();
+
+    },
+
+
+    // =====================================================
+    // TELEPORTE DO TROVÃO
+    // =====================================================
+
+    iniciarTeleporteTrovao() {
+
+        const mascara =
+            document.getElementById(
+                "mascaraBatalha"
+            );
+
+        const caixa =
+            document.getElementById(
+                "caixaEsquiva"
+            );
+
+        const campo =
+            this.campo ||
+            document.getElementById(
+                "campoBatalha"
+            );
+
+        if (
+            !mascara ||
+            !caixa ||
+            !campo
+        )
+            return;
+
+
+        // Evita iniciar o teleporte duas vezes.
+        if (
+            this.teleporteTrovaoAtivo
+        )
+            return;
+
+
+        this.teleporteTrovaoAtivo =
+            true;
+
+
+        // Guarda exatamente a aparência/posição
+        // original para restaurar ao terminar o ataque.
+        this.teleporteTrovaoOriginal = {
+
+            src:
+                mascara.src,
+
+            right:
+                mascara.style.right,
+
+            left:
+                mascara.style.left,
+
+            top:
+                mascara.style.top,
+
+            width:
+                mascara.style.width,
+
+            height:
+                mascara.style.height,
+
+            maxWidth:
+                mascara.style.maxWidth,
+
+            maxHeight:
+                mascara.style.maxHeight,
+
+            transform:
+                mascara.style.transform,
+
+            transition:
+                mascara.style.transition,
+
+            opacity:
+                mascara.style.opacity,
+
+            zIndex:
+                mascara.style.zIndex
+
+        };
+
+
+        // A pose usada durante o ataque de trovão.
+        mascara.src =
+            "assets/imagens/batalha_imagens/bruno/bruno-trovao.png";
+
+
+        // Mede a caixa e posiciona Bruno no centro,
+        // imediatamente acima da borda superior.
+        const caixaRect =
+            caixa.getBoundingClientRect();
+
+        const campoRect =
+            campo.getBoundingClientRect();
+
+        const largura =
+            Math.min(
+                250,
+                campoRect.width * 0.22
+            );
+
+        const proporcao =
+            1351 / 1164;
+
+        const altura =
+            largura * proporcao;
+
+
+        const esquerda =
+            (
+                caixaRect.left -
+                campoRect.left +
+                caixaRect.width / 2 -
+                largura / 2
+            );
+
+
+        const topo =
+            (
+                caixaRect.top -
+                campoRect.top -
+                altura -
+                12
+            );
+
+
+        // Começa invisível: o som marca o teleporte.
+        mascara.style.transition =
+            "opacity .10s ease-out, transform .10s ease-out";
+
+        mascara.style.opacity =
+            "0";
+
+        mascara.style.right =
+            "auto";
+
+        mascara.style.left =
+            esquerda + "px";
+
+        mascara.style.top =
+            topo + "px";
+
+        mascara.style.width =
+            largura + "px";
+
+        mascara.style.height =
+            altura + "px";
+
+        mascara.style.maxWidth =
+            "none";
+
+        mascara.style.maxHeight =
+            "none";
+
+        mascara.style.transform =
+            "scale(0.35)";
+
+        mascara.style.zIndex =
+            "10020";
+
+
+        // Som do teleporte.
+        try {
+
+            const som =
+                new Audio(
+                    "assets/audio/audio_batalha/bruno/teleporte.mp3"
+                );
+
+            som.volume = 1;
+            som.currentTime = 0;
+
+            som.play().catch(
+                erro =>
+                    console.warn(
+                        "Não foi possível tocar o som do teleporte:",
+                        erro
+                    )
+            );
+
+        }
+        catch (erro) {
+
+            console.error(
+                "Erro ao tocar o som do teleporte:",
+                erro
+            );
+
+        }
+
+
+        // Teleporta e reaparece rapidamente.
+        requestAnimationFrame(
+            () => {
+
+                requestAnimationFrame(
+                    () => {
+
+                        mascara.style.opacity =
+                            "1";
+
+                        mascara.style.transform =
+                            "scale(1)";
+
+                    }
+                );
+
+            }
+        );
+
+    },
+
+
+    finalizarTeleporteTrovao() {
+
+        const mascara =
+            document.getElementById(
+                "mascaraBatalha"
+            );
+
+        const original =
+            this.teleporteTrovaoOriginal;
+
+
+        if (
+            !mascara ||
+            !original
+        ) {
+
+            this.teleporteTrovaoAtivo =
+                false;
+
+            this.teleporteTrovaoOriginal =
+                null;
+
+            return;
+
+        }
+
+
+        // Pequeno desaparecimento antes de voltar
+        // à posição normal.
+        mascara.style.transition =
+            "opacity .10s ease-out, transform .10s ease-out";
+
+        mascara.style.opacity =
+            "0";
+
+        mascara.style.transform =
+            "scale(0.35)";
+
+
+        setTimeout(
+            () => {
+
+                if (
+                    !mascara
+                )
+                    return;
+
+
+                mascara.src =
+                    original.src;
+
+                mascara.style.right =
+                    original.right;
+
+                mascara.style.left =
+                    original.left;
+
+                mascara.style.top =
+                    original.top;
+
+                mascara.style.width =
+                    original.width;
+
+                mascara.style.height =
+                    original.height;
+
+                mascara.style.maxWidth =
+                    original.maxWidth;
+
+                mascara.style.maxHeight =
+                    original.maxHeight;
+
+                mascara.style.transform =
+                    original.transform;
+
+                mascara.style.transition =
+                    original.transition;
+
+                mascara.style.opacity =
+                    original.opacity;
+
+                mascara.style.zIndex =
+                    original.zIndex;
+
+
+                this.teleporteTrovaoAtivo =
+                    false;
+
+                this.teleporteTrovaoOriginal =
+                    null;
+
+            },
+            120
+        );
+
+    },
+
+
+    // =====================================================
+    // SPRITES / GIRO DOS CORTES
+    // =====================================================
+
+    trocarSpriteMascara(caminho) {
+
+        const mascara =
+            document.getElementById(
+                "mascaraBatalha"
+            );
+
+        if (!mascara)
+            return;
+
+        mascara.src = caminho;
+
+    },
+
+
+    iniciarGiroCorte() {
+
+        if (!document.getElementById("keyframesGiroAtaqueCorte")) {
+
+            const estilo = document.createElement("style");
+            estilo.id = "keyframesGiroAtaqueCorte";
+            estilo.textContent = `
+                @keyframes giroAtaqueCorte {
+                    from { transform: rotate(var(--angulo-corte)); }
+                    to { transform: rotate(calc(var(--angulo-corte) + 360deg)); }
+                }
+            `;
+            document.head.appendChild(estilo);
+
+        }
+
+        const indicadores =
+            document.querySelectorAll(".indicadorCorte");
+
+        indicadores.forEach((linha) => {
+
+            const transform = linha.style.transform || "rotate(0deg)";
+            const match = transform.match(/rotate\((-?[0-9.]+)deg\)/);
+            const angulo = match ? match[1] : "0";
+
+            linha.style.setProperty(
+                "--angulo-corte",
+                `${angulo}deg`
+            );
+
+            linha.style.animation =
+                "giroAtaqueCorte 2.2s linear infinite";
+
+        });
+
+    },
+
+
+    pararGiroCorte() {
+
+        const indicadores =
+            document.querySelectorAll(".indicadorCorte");
+
+        indicadores.forEach((linha) => {
+
+            linha.style.animation = "";
+
+        });
+
+    },
+
+
+    // =====================================================
+    // TELEPORTE / MOVIMENTO DA MÁSCARA DURANTE CORTES
+    // =====================================================
+
+    iniciarTeleporteCortes() {
+
+        const mascara = document.getElementById("mascaraBatalha");
+        const caixa = document.getElementById("caixaEsquiva");
+        const campo = this.campo || document.getElementById("campoBatalha");
+
+        if (!mascara || !caixa || !campo || this.teleporteCortesAtivo)
+            return;
+
+        const mascaraRect = mascara.getBoundingClientRect();
+        const caixaRect = caixa.getBoundingClientRect();
+        const campoRect = campo.getBoundingClientRect();
+
+        this.teleporteCortesAtivo = true;
+
+        this.teleporteCortesOriginal = {
+            src: mascara.src,
+            left: mascara.style.left,
+            right: mascara.style.right,
+            top: mascara.style.top,
+            width: mascara.style.width,
+            height: mascara.style.height,
+            maxWidth: mascara.style.maxWidth,
+            maxHeight: mascara.style.maxHeight,
+            transform: mascara.style.transform,
+            transition: mascara.style.transition,
+            opacity: mascara.style.opacity,
+            zIndex: mascara.style.zIndex
+        };
+
+        const mascaraCentro = mascaraRect.left + mascaraRect.width / 2;
+        const caixaCentro = caixaRect.left + caixaRect.width / 2;
+        const estaNaDireita = mascaraCentro > caixaCentro;
+
+        const largura = mascaraRect.width || 280;
+        const altura = mascaraRect.height || 280;
+
+        let x;
+        if (estaNaDireita) {
+            x = caixaRect.left - campoRect.left - largura - 25;
+        } else {
+            x = caixaRect.right - campoRect.left + 25;
+        }
+
+        const y =
+            caixaRect.top - campoRect.top +
+            caixaRect.height / 2 -
+            altura / 2;
+
+        this.posicaoMascaraCorte = { x, y, lado: 1 };
+
+        mascara.style.left = `${x}px`;
+        mascara.style.right = "auto";
+        mascara.style.top = `${y}px`;
+        mascara.style.zIndex = "10000";
+        mascara.style.transition = "opacity .12s ease, transform .12s ease";
+        mascara.style.opacity = "0";
+        mascara.style.transform = "scale(.25)";
+
+        const som = new Audio(
+            "assets/audio/audio_batalha/bruno/teleporte.mp3"
+        );
+        som.volume = 1;
+        som.currentTime = 0;
+        som.play().catch(() => {});
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                mascara.style.opacity = "1";
+                mascara.style.transform = "scale(1)";
+            });
+        });
+
+    },
+
+
+    moverMascaraCorte() {
+
+        const mascara = document.getElementById("mascaraBatalha");
+
+        if (!mascara || !this.posicaoMascaraCorte)
+            return;
+
+        const deslocamento = 42;
+        this.posicaoMascaraCorte.lado *= -1;
+        this.posicaoMascaraCorte.x +=
+            deslocamento * this.posicaoMascaraCorte.lado;
+
+        mascara.style.transition = "left .16s ease, transform .12s ease";
+        mascara.style.left = `${this.posicaoMascaraCorte.x}px`;
+        mascara.style.transform = "scale(1.04)";
+
+        setTimeout(() => {
+            if (mascara && this.teleporteCortesAtivo)
+                mascara.style.transform = "scale(1)";
+        }, 120);
+
+    },
+
+
+    finalizarTeleporteCortes() {
+
+        const mascara = document.getElementById("mascaraBatalha");
+        const original = this.teleporteCortesOriginal;
+
+        if (!mascara || !original) {
+            this.teleporteCortesAtivo = false;
+            this.teleporteCortesOriginal = null;
+            this.posicaoMascaraCorte = null;
+            return;
+        }
+
+        mascara.style.transition = "opacity .12s ease, transform .12s ease";
+        mascara.style.opacity = "0";
+        mascara.style.transform = "scale(.25)";
+
+        const som = new Audio(
+            "assets/audio/audio_batalha/bruno/teleporte.mp3"
+        );
+        som.volume = 1;
+        som.currentTime = 0;
+        som.play().catch(() => {});
+
+        setTimeout(() => {
+
+            mascara.src = original.src;
+            mascara.style.right = original.right;
+            mascara.style.left = original.left;
+            mascara.style.top = original.top;
+            mascara.style.width = original.width;
+            mascara.style.height = original.height;
+            mascara.style.maxWidth = original.maxWidth;
+            mascara.style.maxHeight = original.maxHeight;
+            mascara.style.transform = original.transform;
+            mascara.style.transition = original.transition;
+            mascara.style.opacity = original.opacity;
+            mascara.style.zIndex = original.zIndex;
+
+            this.teleporteCortesAtivo = false;
+            this.teleporteCortesOriginal = null;
+            this.posicaoMascaraCorte = null;
+
+        }, 130);
 
     },
 

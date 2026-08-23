@@ -128,11 +128,14 @@ const TecladoMobile = {
          * o foco do input.
          */
 
+        // O input fica visualmente invisível, mas continua recebendo foco
+        // de navegadores móveis. Pointer-events:none fazia alguns celulares
+        // perderem o teclado virtual depois da primeira entrada.
         this.input.style.pointerEvents =
-            "none";
+            "auto";
 
         this.input.style.zIndex =
-            "-1";
+            "2147483000";
 
 
         document.body.appendChild(
@@ -346,6 +349,10 @@ const TecladoMobile = {
         if (!this.input)
             return;
 
+        // Garante que uma segunda entrada de texto nunca herde o estado
+        // anterior do campo.
+        this.input.blur();
+        this.input.value = "";
 
         /*
          * Começa vazio.

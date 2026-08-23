@@ -1,4 +1,4 @@
-const CACHE = "echo-engine-v2";
+const CACHE = "echo-engine-v9";
 
 const ARQUIVOS = [
 
@@ -35,10 +35,18 @@ const ARQUIVOS = [
 
 self.addEventListener("install", event => {
 
+    self.skipWaiting();
+
     event.waitUntil(
         caches.open(CACHE)
             .then(cache => cache.addAll(ARQUIVOS))
     );
+
+});
+
+self.addEventListener("activate", event => {
+
+    event.waitUntil(self.clients.claim());
 
 });
 

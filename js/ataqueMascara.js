@@ -31,7 +31,10 @@ const AtaqueMascara = {
 
     raioDuracao: 800,
 
-    danoRaio: 100,
+    danoRaio: 45,
+
+    danoMinimo: 30,
+    danoMaximo: 60,
 
     intervaloRaios: 250,
 
@@ -60,7 +63,7 @@ const AtaqueMascara = {
 
     velocidadeProjetil: 4,
 
-    danoRitual: 80,
+    danoRitual: 45,
 
     perseguindo: false,
 
@@ -83,7 +86,7 @@ const AtaqueMascara = {
 
     velocidadeBala: 7,
 
-    danoBala: 75,
+    danoBala: 45,
 
     atirando: false,
 
@@ -100,7 +103,7 @@ const AtaqueMascara = {
 
     velocidadeCortes: 13,
 
-    danoCortes: 60,
+    danoCortes: 45,
 
     cortesCriados: 0,
 
@@ -123,6 +126,8 @@ const AtaqueMascara = {
 
         "/",
         "X",
+        "*",
+        "X",
         "*"
 
     ],
@@ -131,7 +136,7 @@ const AtaqueMascara = {
 
     velocidadeAtaqueCortes: 18,
 
-    danoAtaqueCortes: 60,
+    danoAtaqueCortes: 45,
 
     indicadoresCortes: [],
 
@@ -157,13 +162,30 @@ const AtaqueMascara = {
     // RESETAR
     // =====================================================
 
+    rolarDanoMascara() {
+
+        const minimo = Number(this.danoMinimo) || 30;
+        const maximo = Number(this.danoMaximo) || 60;
+
+        return Math.floor(
+            Math.random() * (maximo - minimo + 1)
+        ) + minimo;
+
+    },
+
+
     resetar() {
 
         this.ativo = false;
 
+        this.turnosMascaraConcluidos = 0;
+        this.filaVariantes = [];
+        this.ultimoFoiNormal = true;
+
         this.tipoAtual = null;
 
         this.finalizando = false;
+        this.golpeFinalAtivo = false;
 
 
         // =================================================
@@ -284,6 +306,14 @@ const AtaqueMascara = {
         this.cortesAtacando = false;
 
         this.finalizandoCortes = false;
+        this.trocaAtaqueAtivo = false;
+        this.trocaAtaqueNumero = 0;
+        if (this.trocaAtaqueTimeout) clearTimeout(this.trocaAtaqueTimeout);
+        this.trocaAtaqueTimeout = null;
+        if (this.trocaOverlay) this.trocaOverlay.remove();
+        this.trocaOverlay = null;
+        this.correntesAtivas = false;
+        this.golpeFinalAtivo = false;
 
         this.cortesCriados = 0;
 
@@ -405,118 +435,57 @@ const AtaqueMascara = {
     // =====================================================
 
     escolherAtaque() {
+        if (!Batalha.ativa || Batalha.turno !== "mascara" || Batalha.estado !== "ESQUIVA" || this.ativo || this.golpeFinalAtivo) return;
 
-        if (!Batalha.ativa)
-            return;
-
-
-        if (
-            Batalha.turno !==
-            "mascara"
-        )
-            return;
-
-
-        if (
-            Batalha.estado !==
-            "ESQUIVA"
-        )
-            return;
-
-
-        if (this.ativo)
-            return;
-
-
-        console.log(
-            "MÁSCARA ESCOLHENDO ATAQUE"
-        );
-
-
-        // =================================================
-        // LISTA DE ATAQUES
-        // =================================================
-
-        const ataques = [
-
-            "RAIO",
-
-            "RITUAL",
-
-            "ARMA",
-
-            "CORTES",
-
-            "CORTES_DIAGONAIS"
-
+        const normais = ["RAIO","RITUAL","ARMA","CORTES","CORTES_DIAGONAIS"];
+        const variantes = [
+            "PILARES_FOGO","RAIOS_E_CORTE","CORTE_CAIXA","CORTES_VARIAVEIS",
+            "CORRENTES_DESTINO","ARCO_FOGO","ESPADAS_SANGUE","CONJUNTO_ESPADAS",
+            "TRIDENTE_SANGUE","RETROCESSO"
         ];
 
-
-        // =================================================
-        // ESCOLHA ALEATÓRIA
-        // =================================================
-
-        const ataqueEscolhido =
-            ataques[
-                Math.floor(
-                    Math.random() *
-                    ataques.length
-                )
-            ];
-
-
-        console.log(
-            "⚔️ ATAQUE ESCOLHIDO:",
-            ataqueEscolhido
-        );
-
-
-        // =================================================
-        // EXECUTAR ATAQUE
-        // =================================================
-
-        switch (
-            ataqueEscolhido
-        ) {
-
-            case "RAIO":
-
-                this.executarRaio();
-
-                break;
-
-
-            case "RITUAL":
-
-                this.executarRitual();
-
-                break;
-
-
-            case "ARMA":
-
-                this.executarArma();
-
-                break;
-
-
-            case "CORTES":
-
-                this.executarCortes();
-
-                break;
-
-
-            case "CORTES_DIAGONAIS":
-
-                this.executarCortesDiagonais();
-
-                break;
-
+        // Depois de dois turnos, as variantes passam a aparecer de forma garantida
+        // e embaralhada, para que todas sejam vistas durante uma batalha longa.
+        if (this.turnosMascaraConcluidos >= 2 && !this.filaVariantes.length) {
+            this.filaVariantes = [...variantes].sort(() => Math.random() - 0.5);
         }
 
-    },
+        // Abaixo de 1500 HP, a TROCA substitui a seleção normal/variante.
+        if (Batalha.mascara.hp > 0 && Batalha.mascara.hp <= 1500 && !this.trocaAtaqueAtivo) {
+            this.executarEstalosCaixa();
+            return;
+        }
 
+        let escolhido;
+        if (this.turnosMascaraConcluidos >= 2 && this.filaVariantes.length) {
+            // Depois do 2º turno, as variantes NÃO ficam dependentes de sorte:
+            // uma variante aparece e, entre variantes, há um ataque normal.
+            // Assim o jogador consegue realmente conhecer as novas mecânicas.
+            if (this.ultimoFoiNormal === false) {
+                escolhido = normais[Math.floor(Math.random() * normais.length)];
+                this.ultimoFoiNormal = true;
+            } else {
+                escolhido = this.filaVariantes.shift();
+                this.ultimoFoiNormal = false;
+            }
+        } else {
+            escolhido = normais[Math.floor(Math.random() * normais.length)];
+            this.ultimoFoiNormal = true;
+        }
+
+        console.log("⚔️ ATAQUE ESCOLHIDO:", escolhido, "| turnos:", this.turnosMascaraConcluidos);
+
+        const mapa = {
+            RAIO: () => this.executarRaio(), RITUAL: () => this.executarRitual(), ARMA: () => this.executarArma(),
+            CORTES: () => this.executarCortes(), CORTES_DIAGONAIS: () => this.executarCortesDiagonais(),
+            PILARES_FOGO: () => this.executarPilaresFogo(), RAIOS_E_CORTE: () => this.executarRaiosECorte(),
+            CORTE_CAIXA: () => this.executarCorteCaixa(), CORTES_VARIAVEIS: () => this.executarCortesVariaveis(),
+            CORRENTES_DESTINO: () => this.executarCorrentesDestino(), ARCO_FOGO: () => this.executarArcoFogo(),
+            ESPADAS_SANGUE: () => this.executarEspadasSangue(), CONJUNTO_ESPADAS: () => this.executarConjuntoEspadas(),
+            TRIDENTE_SANGUE: () => this.executarTridenteSangue(), RETROCESSO: () => this.executarRetrocesso()
+        };
+        mapa[escolhido]?.();
+    },
 
     // =====================================================
     // ATAQUE DE RAIO
@@ -569,6 +538,20 @@ const AtaqueMascara = {
         this.raioAtivo = true;
 
         this.etapaRaio = 0;
+
+
+        // Bruno (Máscara) teleporta para cima da caixa
+        // e permanece nessa posição durante os trovões.
+        if (
+            typeof BatalhaRender !==
+            "undefined" &&
+            typeof BatalhaRender.iniciarTeleporteTrovao ===
+            "function"
+        ) {
+
+            BatalhaRender.iniciarTeleporteTrovao();
+
+        }
 
 
         this.ordemRaios = [
@@ -1085,7 +1068,7 @@ const AtaqueMascara = {
 
 
             Coracao.receberDano(
-                this.danoRaio
+                this.rolarDanoMascara()
             );
 
         }
@@ -1166,6 +1149,19 @@ const AtaqueMascara = {
         this.tipoAtual = null;
 
         this.finalizando = false;
+
+
+        // Bruno volta à posição normal depois do último trovão.
+        if (
+            typeof BatalhaRender !==
+            "undefined" &&
+            typeof BatalhaRender.finalizarTeleporteTrovao ===
+            "function"
+        ) {
+
+            BatalhaRender.finalizarTeleporteTrovao();
+
+        }
 
 
         console.log(
@@ -1534,7 +1530,7 @@ const AtaqueMascara = {
         if (distancia < 22) {
 
             Coracao.receberDano(
-                this.danoRitual
+                this.rolarDanoMascara()
             );
 
 
@@ -2004,7 +2000,7 @@ const AtaqueMascara = {
             if (distancia < 20) {
 
                 Coracao.receberDano(
-                    this.danoBala
+                    this.rolarDanoMascara()
                 );
 
 
@@ -2216,11 +2212,27 @@ const AtaqueMascara = {
 
 
         console.log(
-            "⚔️ CORTES: / → X → *"
+            "⚔️ CORTES: / → X → * → X → *"
         );
 
 
-        this.iniciarEtapaCortes();
+        // Teleporta a Máscara para o lado oposto antes do primeiro aviso.
+        if (
+            typeof BatalhaRender !== "undefined" &&
+            typeof BatalhaRender.iniciarTeleporteCortes === "function"
+        ) {
+
+            BatalhaRender.iniciarTeleporteCortes();
+
+        }
+
+
+        setTimeout(() => {
+
+            if (this.cortesAtivo)
+                this.iniciarEtapaCortes();
+
+        }, 140);
 
     },
 
@@ -2259,9 +2271,33 @@ const AtaqueMascara = {
         );
 
 
+        // Durante o aviso, Bruno fica na pose de preparação
+        // e gira continuamente para dificultar a leitura do ataque.
+        if (
+            typeof BatalhaRender !== "undefined" &&
+            typeof BatalhaRender.trocarSpriteMascara === "function"
+        ) {
+
+            BatalhaRender.trocarSpriteMascara(
+                "assets/imagens/batalha_imagens/bruno/PREPARANDO-CORTE.png"
+            );
+
+        }
+
         this.criarIndicadoresCortes(
             tipo
         );
+
+
+        // Gira o AVISO/ATAQUE, não a Máscara.
+        if (
+            typeof BatalhaRender !== "undefined" &&
+            typeof BatalhaRender.iniciarGiroCorte === "function"
+        ) {
+
+            BatalhaRender.iniciarGiroCorte();
+
+        }
 
 
         this.cortesEtapaTimeout =
@@ -2554,6 +2590,30 @@ const AtaqueMascara = {
         this.removerIndicadoresCortes();
 
 
+        if (
+            typeof BatalhaRender !== "undefined" &&
+            typeof BatalhaRender.pararGiroCorte === "function"
+        ) {
+
+            BatalhaRender.pararGiroCorte();
+
+        }
+
+        // Sprite usado exatamente no momento do golpe.
+        if (
+            typeof BatalhaRender !== "undefined" &&
+            typeof BatalhaRender.trocarSpriteMascara === "function"
+        ) {
+
+            BatalhaRender.trocarSpriteMascara(
+                "assets/imagens/batalha_imagens/corte.png"
+            );
+
+        }
+
+        this.tocarSomCorte();
+
+
         if (!posicao) {
 
             this.finalizarCortesAtaque();
@@ -2640,6 +2700,18 @@ const AtaqueMascara = {
 
 
                     this.etapaCortes++;
+
+
+                    // A cada novo golpe, a Máscara muda um pouco de posição.
+                    if (
+                        this.cortesAtivo &&
+                        typeof BatalhaRender !== "undefined" &&
+                        typeof BatalhaRender.moverMascaraCorte === "function"
+                    ) {
+
+                        BatalhaRender.moverMascaraCorte();
+
+                    }
 
 
                     this.iniciarEtapaCortes();
@@ -2918,33 +2990,40 @@ const AtaqueMascara = {
             !ataque.atingiu
         ) {
 
-            const dx =
-                ataque.centroX -
-                Coracao.x;
+            const rad = ataque.angulo * Math.PI / 180;
 
+            // Colisão com o SEGMENTO inteiro do corte, em vez de
+            // verificar somente o centro. Isso deixa a hitbox muito
+            // mais justa: se a linha passar pelo coração, acerta.
+            const metade = ataque.tamanho / 2;
+            const ax = ataque.centroX - Math.cos(rad) * metade;
+            const ay = ataque.centroY - Math.sin(rad) * metade;
+            const bx = ataque.centroX + Math.cos(rad) * metade;
+            const by = ataque.centroY + Math.sin(rad) * metade;
 
-            const dy =
-                ataque.centroY -
-                Coracao.y;
+            const abx = bx - ax;
+            const aby = by - ay;
+            const ab2 = abx * abx + aby * aby;
 
+            let t = 0;
+            if (ab2 > 0) {
+                t = ((Coracao.x - ax) * abx + (Coracao.y - ay) * aby) / ab2;
+                t = Math.max(0, Math.min(1, t));
+            }
 
-            const distancia =
-                Math.sqrt(
-                    dx * dx +
-                    dy * dy
-                );
+            const px = ax + t * abx;
+            const py = ay + t * aby;
+            const dx = Coracao.x - px;
+            const dy = Coracao.y - py;
+            const distancia = Math.hypot(dx, dy);
 
+            // 18px para a espessura visual + 16px de margem do coração.
+            if (distancia <= 34) {
 
-            if (
-                distancia < 35
-            ) {
-
-                ataque.atingiu =
-                    true;
-
+                ataque.atingiu = true;
 
                 Coracao.receberDano(
-                    this.danoAtaqueCortes
+                    this.rolarDanoMascara()
                 );
 
             }
@@ -3013,6 +3092,39 @@ const AtaqueMascara = {
     },
 
 
+    tocarSomCorte() {
+
+        try {
+
+            const som =
+                new Audio(
+                    "assets/audio/audio_batalha/bruno/bruno-corte.mp3"
+                );
+
+            som.volume = 1;
+            som.currentTime = 0;
+
+            som.play().catch(
+                erro =>
+                    console.warn(
+                        "Não foi possível tocar o som do corte:",
+                        erro
+                    )
+            );
+
+        }
+        catch (erro) {
+
+            console.error(
+                "Erro ao tocar o som do corte:",
+                erro
+            );
+
+        }
+
+    },
+
+
     // =====================================================
     // FINALIZAR CORTES
     // =====================================================
@@ -3058,6 +3170,41 @@ const AtaqueMascara = {
 
 
         this.etapaCortes = 0;
+
+
+        if (
+            typeof BatalhaRender !== "undefined" &&
+            typeof BatalhaRender.pararGiroCorte === "function"
+        ) {
+
+            BatalhaRender.pararGiroCorte();
+
+        }
+
+        if (
+            typeof BatalhaRender !== "undefined" &&
+            typeof BatalhaRender.finalizarTeleporteCortes === "function"
+        ) {
+
+            BatalhaRender.finalizarTeleporteCortes();
+
+        }
+
+
+        setTimeout(() => {
+
+            if (
+                typeof BatalhaRender !== "undefined" &&
+                typeof BatalhaRender.trocarSpriteMascara === "function"
+            ) {
+
+                BatalhaRender.trocarSpriteMascara(
+                    "assets/imagens/batalha_imagens/bruno/mascara.png"
+                );
+
+            }
+
+        }, 130);
 
 
         this.ativo = false;
@@ -3453,7 +3600,7 @@ const AtaqueMascara = {
 
 
                 Coracao.receberDano(
-                    this.danoCortes
+                    this.rolarDanoMascara()
                 );
 
             }
@@ -3643,6 +3790,18 @@ const AtaqueMascara = {
         this.removerRaio();
 
 
+        if (
+            typeof BatalhaRender !==
+            "undefined" &&
+            typeof BatalhaRender.finalizarTeleporteTrovao ===
+            "function"
+        ) {
+
+            BatalhaRender.finalizarTeleporteTrovao();
+
+        }
+
+
         this.etapaRaio = 0;
 
         this.ordemRaios = [];
@@ -3812,9 +3971,1233 @@ const AtaqueMascara = {
             "ATAQUE DA MÁSCARA TERMINOU"
         );
 
-
         this.finalizarTurno();
 
+    },
+
+
+
+    // =====================================================
+    // UTILITÁRIOS E NOVOS ATAQUES
+    // =====================================================
+
+    danoMascaraSeguro() {
+        if (typeof Coracao !== "undefined" && typeof Coracao.receberDano === "function") {
+            Coracao.receberDano(this.rolarDanoMascara());
+        }
+    },
+
+    tocarAudio(src, volume = 1) {
+        const a = new Audio(src); a.volume = volume; a.currentTime = 0; a.play().catch(() => {}); return a;
+    },
+
+    posicaoCoracao() {
+        const caixa = document.getElementById("caixaEsquiva");
+        return { x: Number(Coracao?.x ?? caixa?.clientWidth / 2 ?? 150), y: Number(Coracao?.y ?? caixa?.clientHeight / 2 ?? 100) };
+    },
+
+    criarHitboxRetangulo(el, dano = true) {
+        if (!el) return;
+        const loop = () => {
+            if (!el.parentElement) return;
+            const c = Coracao?.elemento?.getBoundingClientRect();
+            const r = el.getBoundingClientRect();
+            if (c && r.left < c.right && r.right > c.left && r.top < c.bottom && r.bottom > c.top && !el.dataset.hit) {
+                el.dataset.hit = "1"; if (dano) this.danoMascaraSeguro();
+            }
+            requestAnimationFrame(loop);
+        }; requestAnimationFrame(loop);
+    },
+
+    limparElementoDepois(el, ms) { setTimeout(() => el?.parentElement?.removeChild(el), ms); },
+
+    iniciarTeleporteParaAtaque() {
+        if (typeof BatalhaRender !== "undefined" && typeof BatalhaRender.iniciarTeleporteCortes === "function") BatalhaRender.iniciarTeleporteCortes();
+    },
+
+    finalizarAtaqueNovo(delay = 400) {
+        setTimeout(() => {
+            if (!Batalha.ativa) return;
+            if (BatalhaRender?.teleporteCortesAtivo && typeof BatalhaRender.finalizarTeleporteCortes === "function") BatalhaRender.finalizarTeleporteCortes();
+            this.finalizarTurno();
+        }, delay);
+    },
+
+    criarIndicador(caixa, x, y) {
+        const e = document.createElement("div"); e.textContent = "!";
+        Object.assign(e.style,{position:"absolute",left:`${x}px`,top:`${y}px`,fontSize:"72px",fontFamily:"Determination, monospace",color:"red",fontWeight:"bold",zIndex:"900",pointerEvents:"none",textShadow:"0 0 8px #f00"});
+        caixa.appendChild(e); return e;
+    },
+
+    pontoSegmentoDist(px,py,ax,ay,bx,by) {
+        const dx=bx-ax,dy=by-ay, len2=dx*dx+dy*dy; let t=len2 ? ((px-ax)*dx+(py-ay)*dy)/len2 : 0; t=Math.max(0,Math.min(1,t));
+        const x=ax+t*dx,y=ay+t*dy; return Math.hypot(px-x,py-y);
+    },
+
+    criarCorteHitbox(caixa, angulo, largura = 14, duracao = 260, dano = true) {
+        const cx = caixa.clientWidth/2, cy = caixa.clientHeight/2;
+        const len = Math.hypot(caixa.clientWidth, caixa.clientHeight)*1.35;
+        const rad = angulo*Math.PI/180, ax=cx-Math.cos(rad)*len/2, ay=cy-Math.sin(rad)*len/2, bx=cx+Math.cos(rad)*len/2, by=cy+Math.sin(rad)*len/2;
+        const hit = () => {
+            if (!Coracao?.elemento || !caixa.isConnected) return;
+            const c=Coracao.elemento.getBoundingClientRect(), px=c.left+c.width/2, py=c.top+c.height/2;
+            const cr=caixa.getBoundingClientRect(), lx=px-cr.left, ly=py-cr.top;
+            if (this.pontoSegmentoDist(lx,ly,ax,ay,bx,by) <= Math.max(largura, c.width/2)) this.danoMascaraSeguro();
+        };
+        if (dano) hit();
+        const id=setInterval(hit,45); setTimeout(()=>clearInterval(id),duracao);
+    },
+
+    criarCorteVisual(caixa, angulo, duracao=420, espessura=12) {
+        const e=document.createElement("div"); const len=Math.hypot(caixa.clientWidth,caixa.clientHeight)*1.5;
+        Object.assign(e.style,{position:"absolute",left:"50%",top:"50%",width:`${len}px`,height:`${espessura}px`,marginLeft:`${-len/2}px`,marginTop:`${-espessura/2}px`,background:"linear-gradient(90deg,transparent,#fff,#ff2020,#fff,transparent)",boxShadow:"0 0 12px #f00,0 0 28px #f00",transform:`rotate(${angulo}deg)`,zIndex:"850",pointerEvents:"none",transformOrigin:"50% 50%"}); caixa.appendChild(e); this.criarCorteHitbox(caixa,angulo,espessura,duracao,true); this.limparElementoDepois(e,duracao); return e;
+    },
+
+    executarPilaresFogo() {
+        if (this.ativo) return;
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "PILARES_FOGO";
+
+        const W = caixa.clientWidth;
+        const H = caixa.clientHeight;
+        const blocos = [];
+
+        // Um corredor seguro pequeno. Os pilares ocupam os outros espaços.
+        const vertical = Math.max(36, Math.min(54, W * 0.18));
+        const horizontal = Math.max(36, Math.min(54, H * 0.18));
+        const gapX = Math.floor(W * 0.58);
+        const gapY = Math.floor(H * 0.48);
+
+        const criarPilar = (x, y, w, h, extra = false) => {
+            const el = document.createElement("div");
+            el.className = "mascara-pilar-fogo";
+            Object.assign(el.style, {
+                position: "absolute",
+                left: `${x}px`,
+                top: `${y}px`,
+                width: `${w}px`,
+                height: `${h}px`,
+                backgroundImage: "url('assets/imagens/fogo.png')",
+                backgroundSize: "cover",
+                backgroundRepeat: "repeat",
+                zIndex: "850",
+                pointerEvents: "none",
+                filter: "drop-shadow(0 0 8px #ff5a00)"
+            });
+            caixa.appendChild(el);
+            blocos.push({el, x, y, w, h, extra});
+        };
+
+        // Pilar lateral com um único corredor vertical.
+        criarPilar(0, 0, vertical, Math.max(0, gapY - horizontal / 2));
+        criarPilar(0, gapY + horizontal / 2, vertical, Math.max(0, H - (gapY + horizontal / 2)));
+
+        // Pilar superior/inferior deixa corredor horizontal.
+        criarPilar(vertical, 0, Math.max(0, W - vertical), Math.max(0, horizontal / 2));
+        criarPilar(vertical, H - horizontal / 2, Math.max(0, W - vertical), Math.max(0, horizontal / 2));
+
+        const hit = () => {
+            const heart = this.posicaoCoracao();
+            if (!heart) return;
+            for (const p of blocos) {
+                if (
+                    heart.x + heart.w * 0.72 > p.x &&
+                    heart.x + heart.w * 0.28 < p.x + p.w &&
+                    heart.y + heart.h * 0.72 > p.y &&
+                    heart.y + heart.h * 0.28 < p.y + p.h
+                ) {
+                    this.danoMascaraSeguro(this.rolarDanoMascara());
+                    break;
+                }
+            }
+        };
+
+        // Primeiro padrão simples; depois, a variante adiciona pilares cruzados.
+        setTimeout(hit, 500);
+        setTimeout(() => {
+            if (!this.ativo || !Batalha.ativa) return;
+
+            const cruz = Math.random() < 0.65;
+            if (cruz) {
+                const e1 = document.createElement("div");
+                const e2 = document.createElement("div");
+                Object.assign(e1.style, {
+                    position:"absolute", left:`${W*0.45}px`, top:"0", width:`${W*0.16}px`, height:"100%",
+                    backgroundImage:"url('assets/imagens/fogo.png')", backgroundSize:"cover",
+                    zIndex:"850", pointerEvents:"none"
+                });
+                Object.assign(e2.style, {
+                    position:"absolute", left:"0", top:`${H*0.42}px`, width:"100%", height:`${H*0.16}`,
+                    backgroundImage:"url('assets/imagens/fogo.png')", backgroundSize:"cover",
+                    zIndex:"850", pointerEvents:"none"
+                });
+                caixa.append(e1,e2);
+                blocos.push(
+                    {el:e1,x:W*0.45,y:0,w:W*0.16,h:H},
+                    {el:e2,x:0,y:H*0.42,w:W,h:H*0.16}
+                );
+            }
+            hit();
+        }, 1050);
+
+        setTimeout(() => {
+            blocos.forEach(p => p.el?.remove());
+            this.finalizarTurno();
+        }, 1800);
+    },
+
+    executarRaiosECorte() {
+        if (this.ativo) return;
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "RAIOS_E_CORTE";
+
+        const raios = [];
+        const W = caixa.clientWidth;
+        const H = caixa.clientHeight;
+
+        // Três posições realmente diferentes.
+        const posicoes = [
+            [0.12, 0.50], [0.50, 0.50], [0.84, 0.50]
+        ].sort(() => Math.random() - 0.5);
+
+        posicoes.forEach(([px, py], index) => {
+            setTimeout(() => {
+                if (!this.ativo || !Batalha.ativa) return;
+                const e = document.createElement("img");
+                e.src = this.raioGif;
+                Object.assign(e.style, {
+                    position: "absolute",
+                    left: `${px * W - 30}px`,
+                    top: `${py * H - 10}px`,
+                    width: "60px",
+                    height: `${H + 20}px`,
+                    objectFit: "cover",
+                    zIndex: "900",
+                    pointerEvents: "none",
+                    opacity: "0.95"
+                });
+                caixa.appendChild(e);
+                raios.push(e);
+                this.criarHitboxRetangulo(e, true);
+                setTimeout(() => e.remove(), 650);
+            }, index * 180);
+        });
+
+        let cortes = 0;
+        const fazerCorte = () => {
+            if (!this.ativo || !Batalha.ativa) return;
+            if (cortes++ >= 6) {
+                raios.forEach(e => e.remove());
+                this.finalizarTurno();
+                return;
+            }
+
+            const angulo = -45;
+            this.criarCorteVisual(caixa, angulo, 300, 13);
+            this.tocarAudio(
+                "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
+                0.85
+            );
+            setTimeout(fazerCorte, 380);
+        };
+
+        setTimeout(fazerCorte, 260);
+    },
+
+
+    executarCorteCaixa() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "CORTE_CAIXA";
+        this.iniciarTeleporteParaAtaque();
+
+        const golpes = 4;
+        let numero = 0;
+
+        const preparar = () => {
+            if (!this.ativo || !Batalha.ativa) return;
+
+            if (numero >= golpes) {
+                this.finalizarAtaqueNovo(350);
+                return;
+            }
+
+            // A caixa sempre retorna antes do próximo golpe.
+            caixa.style.transition = "transform 180ms ease";
+            caixa.style.transform =
+                `translate(${(Math.random() - 0.5) * 55}px, ${(Math.random() - 0.5) * 38}px) ` +
+                `rotate(${Math.random() < 0.5 ? -2 : 2}deg)`;
+
+            const angulo = [0, 0, 45, -45, 90][Math.floor(Math.random() * 5)];
+            const cx = caixa.clientWidth / 2;
+            const cy = caixa.clientHeight / 2;
+            const len = Math.hypot(caixa.clientWidth, caixa.clientHeight) * 1.25;
+
+            const marcador = this.criarIndicador(
+                caixa,
+                cx - 28,
+                cy - 52
+            );
+
+            BatalhaRender?.trocarSpriteMascara?.(
+                "assets/imagens/batalha_imagens/bruno/PREPARANDO-CORTE.png"
+            );
+
+            const aviso = 600;
+
+            setTimeout(() => {
+                if (!this.ativo || !Batalha.ativa) return;
+
+                marcador?.remove();
+
+                BatalhaRender?.trocarSpriteMascara?.(
+                    "assets/imagens/batalha_imagens/bruno/corte.png"
+                );
+
+                this.tocarAudio(
+                    "assets/audio/audio_batalha/bruno/quebrar-caixa.mp3",
+                    0.55
+                );
+                this.tocarAudio(
+                    "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
+                    0.9
+                );
+
+                // GIF real fornecido pelo usuário.
+                const gif = document.createElement("img");
+                gif.src = "assets/imagens/batalha_imagens/bruno/cortar.gif";
+                Object.assign(gif.style, {
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    width: `${len}px`,
+                    height: `${Math.max(caixa.clientHeight, caixa.clientWidth) * 1.2}px`,
+                    objectFit: "contain",
+                    transform: `translate(-50%, -50%) rotate(${angulo}deg)`,
+                    transformOrigin: "50% 50%",
+                    zIndex: "960",
+                    pointerEvents: "none"
+                });
+                caixa.appendChild(gif);
+
+                // Hitbox matemática do segmento, muito mais confiável que o GIF.
+                this.criarCorteHitbox(
+                    caixa,
+                    angulo,
+                    24,
+                    520,
+                    true
+                );
+
+                // 4–6 partículas de fogo, com direção imprevisível.
+                const particulas = [];
+                const quantidade = 4 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < quantidade; i++) {
+                    const p = document.createElement("img");
+                    p.src = "assets/imagens/fogo.png";
+                    const x = cx + (Math.random() - 0.5) * 80;
+                    const y = cy + (Math.random() - 0.5) * 60;
+                    const a = Math.random() * Math.PI * 2;
+                    const velocidade = 2.5 + Math.random() * 3.5;
+
+                    Object.assign(p.style, {
+                        position: "absolute",
+                        left: `${x}px`,
+                        top: `${y}px`,
+                        width: `${18 + Math.random() * 16}px`,
+                        height: `${18 + Math.random() * 16}px`,
+                        objectFit: "contain",
+                        zIndex: "970",
+                        pointerEvents: "none"
+                    });
+                    caixa.appendChild(p);
+                    particulas.push({ el: p, x, y, a, velocidade, vida: 0 });
+                }
+
+                const moverParticulas = () => {
+                    if (!particulas.length) return;
+                    for (const p of particulas) {
+                        p.vida++;
+                        p.x += Math.cos(p.a) * p.velocidade;
+                        p.y += Math.sin(p.a) * p.velocidade;
+                        p.el.style.left = `${p.x}px`;
+                        p.el.style.top = `${p.y}px`;
+                        p.el.style.opacity = String(Math.max(0, 1 - p.vida / 32));
+                        p.el.style.transform =
+                            `scale(${Math.max(0.15, 1 - p.vida / 38)})`;
+                    }
+                    if (particulas.some(p => p.vida < 32)) {
+                        requestAnimationFrame(moverParticulas);
+                    } else {
+                        particulas.forEach(p => p.el.remove());
+                    }
+                };
+                requestAnimationFrame(moverParticulas);
+
+                setTimeout(() => {
+                    gif.remove();
+                    caixa.style.transform = "";
+                    caixa.style.transition = "transform 180ms ease";
+                    numero++;
+
+                    BatalhaRender?.trocarSpriteMascara?.(
+                        "assets/imagens/batalha_imagens/bruno/PREPARANDO-CORTE.png"
+                    );
+
+                    setTimeout(preparar, 260);
+                }, 700);
+            }, aviso);
+        };
+
+        preparar();
+    },
+
+
+    executarCortesVariaveis() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "CORTES_VARIAVEIS";
+
+        // A cadência é deliberadamente irregular:
+        // desacelera → acelera → acelera → desacelera.
+        const duracoes = [720, 330, 180, 650, 260, 760, 190];
+        let i = 0;
+
+        const proximo = () => {
+            if (!this.ativo || !Batalha.ativa) return;
+
+            if (i >= duracoes.length) {
+                this.finalizarTurno();
+                return;
+            }
+
+            const duracao = duracoes[i++];
+            const indicador = this.criarIndicador(
+                caixa,
+                Math.random() * Math.max(1, caixa.clientWidth - 45),
+                Math.random() * Math.max(1, caixa.clientHeight - 65)
+            );
+
+            setTimeout(() => {
+                indicador.remove();
+                if (!this.ativo || !Batalha.ativa) return;
+
+                this.criarCorteVisual(
+                    caixa,
+                    -45,
+                    240,
+                    13
+                );
+                this.tocarAudio(
+                    "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
+                    0.9
+                );
+
+                setTimeout(proximo, Math.max(120, duracao * 0.42));
+            }, duracao);
+        };
+
+        proximo();
+    },
+
+
+    executarEstalosCaixa() {
+        if (this.ativo || this.trocaAtaqueAtivo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.trocaAtaqueAtivo = true;
+        this.trocaAtaqueNumero = 0;
+        this.tipoAtual = "ESTALOS";
+
+        const original = {
+            left: caixa.style.left,
+            top: caixa.style.top,
+            transform: caixa.style.transform
+        };
+
+        const normais = [
+            "RAIO",
+            "RITUAL",
+            "ARMA",
+            "CORTES",
+            "CORTES_DIAGONAIS"
+        ];
+
+        const ataques = {
+            RAIO: () => this.executarRaio(),
+            RITUAL: () => this.executarRitual(),
+            ARMA: () => this.executarArma(),
+            CORTES: () => this.executarCortes(),
+            CORTES_DIAGONAIS: () => this.executarCortesDiagonais()
+        };
+
+        const telaPreta = () => {
+            let overlay = document.getElementById("mascaraTrocaOverlay");
+            if (!overlay) {
+                overlay = document.createElement("div");
+                overlay.id = "mascaraTrocaOverlay";
+                Object.assign(overlay.style, {
+                    position: "fixed",
+                    inset: "0",
+                    background: "#000",
+                    zIndex: "999999",
+                    pointerEvents: "none",
+                    opacity: "0"
+                });
+                document.body.appendChild(overlay);
+            }
+            overlay.style.opacity = "1";
+            this.trocaOverlay = overlay;
+        };
+
+        const voltarTela = () => {
+            const overlay = this.trocaOverlay;
+            if (!overlay) return;
+            overlay.style.opacity = "0";
+            setTimeout(() => overlay.remove(), 180);
+            this.trocaOverlay = null;
+        };
+
+        const proximaTroca = () => {
+            if (!Batalha.ativa) {
+                this.trocaAtaqueAtivo = false;
+                return;
+            }
+
+            if (this.trocaAtaqueNumero >= 5) {
+                caixa.style.left = original.left;
+                caixa.style.top = original.top;
+                caixa.style.transform = original.transform;
+                this.trocaAtaqueAtivo = false;
+                this.ativo = false;
+                voltarTela();
+                this.finalizarTurno();
+                return;
+            }
+
+            this.trocaAtaqueNumero++;
+            telaPreta();
+
+            this.tocarAudio(
+                "assets/audio/audio_batalha/bruno/mudanca.mp3",
+                0.85
+            );
+
+            caixa.style.transform =
+                `translate(${(Math.random() - 0.5) * Math.min(220, innerWidth * 0.28)}px, ` +
+                `${(Math.random() - 0.5) * Math.min(150, innerHeight * 0.20)}px)`;
+
+            const escolhido =
+                normais[Math.floor(Math.random() * normais.length)];
+
+            setTimeout(() => {
+                if (!this.trocaAtaqueAtivo) return;
+
+                voltarTela();
+                this.ativo = false;
+                ataques[escolhido]?.();
+
+                // O ataque fica efetivamente naquela posição por 6 segundos.
+                this.trocaAtaqueTimeout = setTimeout(() => {
+                    this.trocaAtaqueTimeout = null;
+                    this.removerAtaquesCortes();
+                    proximaTroca();
+                }, 6000);
+            }, 450);
+        };
+
+        proximaTroca();
+    },
+
+
+    executarCorrentesDestino() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "CORRENTES_DESTINO";
+        this.correntesAtivas = true;
+
+        const base = caixa.style.transform;
+        const corrente = document.createElement("img");
+        corrente.src = "assets/imagens/corrente.png";
+
+        Object.assign(corrente.style, {
+            position: "absolute",
+            inset: "-18px",
+            width: "calc(100% + 36px)",
+            height: "calc(100% + 36px)",
+            objectFit: "fill",
+            zIndex: "950",
+            opacity: "0.82",
+            pointerEvents: "none"
+        });
+        caixa.appendChild(corrente);
+
+        // Um ataque normal acontece enquanto as correntes movem a caixa.
+        this.trocaAtaqueAtivo = true;
+        this.ativo = false;
+
+        const normais = [
+            () => this.executarRaio(),
+            () => this.executarCortes(),
+            () => this.executarArma()
+        ];
+
+        const escolhido =
+            normais[Math.floor(Math.random() * normais.length)];
+
+        escolhido();
+
+        let frame = 0;
+        const mover = () => {
+            if (!this.correntesAtivas || !caixa.isConnected) return;
+
+            frame++;
+            caixa.style.transform =
+                `${base} translate(${Math.sin(frame / 7) * 30}px, ` +
+                `${Math.cos(frame / 10) * 20}px) rotate(${Math.sin(frame / 16) * 3}deg)`;
+
+            requestAnimationFrame(mover);
+        };
+        requestAnimationFrame(mover);
+
+        setTimeout(() => {
+            this.correntesAtivas = false;
+            this.trocaAtaqueAtivo = false;
+            caixa.style.transform = base;
+            corrente.remove();
+            this.ativo = false;
+            this.finalizarTurno();
+        }, 3600);
+    },
+
+
+    executarArcoFogo() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "ARCO_FOGO";
+
+        const W = caixa.clientWidth;
+        const H = caixa.clientHeight;
+        const e = document.createElement("img");
+
+        e.src = "assets/imagens/fogo.png";
+        Object.assign(e.style, {
+            position: "absolute",
+            left: `${-W * 1.35}px`,
+            top: `${-H * 0.35}px`,
+            width: `${W * 1.25}px`,
+            height: `${H * 1.7}px`,
+            objectFit: "fill",
+            zIndex: "800",
+            pointerEvents: "none",
+            filter: "drop-shadow(0 0 18px #ff4500)"
+        });
+        caixa.appendChild(e);
+
+        let x = -W * 1.35;
+        const mover = () => {
+            if (!this.ativo || !Batalha.ativa) {
+                e.remove();
+                return;
+            }
+
+            x += Math.max(12, W / 18);
+            e.style.left = `${x}px`;
+            this.criarHitboxRetangulo(e, true);
+
+            if (x < W * 1.15) {
+                requestAnimationFrame(mover);
+            } else {
+                e.remove();
+                this.finalizarTurno();
+            }
+        };
+
+        requestAnimationFrame(mover);
+    },
+
+
+    executarEspadasSangue() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "ESPADAS_SANGUE";
+
+        const total = 7;
+        for (let i = 0; i < total; i++) {
+            setTimeout(() => {
+                if (!this.ativo || !Batalha.ativa) return;
+
+                const espada = document.createElement("img");
+                espada.src = "assets/imagens/batalha_imagens/bruno/espada.png";
+
+                const angulo = Math.random() * Math.PI * 2;
+                const raio = Math.max(caixa.clientWidth, caixa.clientHeight) * 0.72;
+                let x = caixa.clientWidth / 2 + Math.cos(angulo) * raio;
+                let y = caixa.clientHeight / 2 + Math.sin(angulo) * raio;
+
+                Object.assign(espada.style, {
+                    position: "absolute",
+                    width: "52px",
+                    height: "130px",
+                    left: `${x - 26}px`,
+                    top: `${y - 65}px`,
+                    transform: `rotate(${angulo * 180 / Math.PI + 90}deg)`,
+                    zIndex: "850",
+                    pointerEvents: "none"
+                });
+                caixa.appendChild(espada);
+
+                let t = 0;
+                const mover = () => {
+                    if (!espada.isConnected || !this.ativo) return;
+
+                    t += 0.055;
+                    x += (caixa.clientWidth / 2 - x) * 0.075;
+                    y += (caixa.clientHeight / 2 - y) * 0.075;
+
+                    espada.style.left = `${x - 26}px`;
+                    espada.style.top = `${y - 65}px`;
+
+                    const c = Coracao?.elemento?.getBoundingClientRect();
+                    const r = espada.getBoundingClientRect();
+
+                    if (
+                        c &&
+                        r.left < c.right && r.right > c.left &&
+                        r.top < c.bottom && r.bottom > c.top &&
+                        !espada.dataset.hit
+                    ) {
+                        espada.dataset.hit = "1";
+                        this.danoMascaraSeguro();
+                        this.tocarAudio(
+                            "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
+                            0.9
+                        );
+                    }
+
+                    if (t < 1) requestAnimationFrame(mover);
+                    else espada.remove();
+                };
+
+                requestAnimationFrame(mover);
+            }, i * 280);
+        }
+
+        setTimeout(() => this.finalizarTurno(), 2700);
+    },
+
+
+    executarConjuntoEspadas() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "CONJUNTO_ESPADAS";
+
+        const total = 12;
+        const cx = caixa.clientWidth / 2;
+        const cy = caixa.clientHeight / 2;
+        const raio = Math.min(cx, cy) * 0.88;
+
+        for (let i = 0; i < total; i++) {
+            const a = 2 * Math.PI * i / total;
+            const espada = document.createElement("img");
+            espada.src = "assets/imagens/batalha_imagens/bruno/espada.png";
+
+            Object.assign(espada.style, {
+                position: "absolute",
+                width: "48px",
+                height: "120px",
+                left: `${cx + Math.cos(a) * raio - 24}px`,
+                top: `${cy + Math.sin(a) * raio - 60}px`,
+                transform: `rotate(${a * 180 / Math.PI + 90}deg)`,
+                zIndex: "800",
+                pointerEvents: "none"
+            });
+            caixa.appendChild(espada);
+
+            // O espaço entre espadas é preservado.
+            setTimeout(() => {
+                let t = 0;
+                const mover = () => {
+                    if (!espada.isConnected || !this.ativo) return;
+
+                    t += 0.035;
+                    const r = raio * (1 - Math.min(1, t * 0.92));
+                    espada.style.left =
+                        `${cx + Math.cos(a) * r - 24}px`;
+                    espada.style.top =
+                        `${cy + Math.sin(a) * r - 60}px`;
+
+                    const c = Coracao?.elemento?.getBoundingClientRect();
+                    const sr = espada.getBoundingClientRect();
+                    if (
+                        c &&
+                        sr.left < c.right && sr.right > c.left &&
+                        sr.top < c.bottom && sr.bottom > c.top &&
+                        !espada.dataset.hit
+                    ) {
+                        espada.dataset.hit = "1";
+                        this.danoMascaraSeguro();
+                    }
+
+                    if (t < 1) requestAnimationFrame(mover);
+                    else espada.remove();
+                };
+                requestAnimationFrame(mover);
+            }, i * 80);
+        }
+
+        setTimeout(() => this.finalizarTurno(), 2100);
+    },
+
+
+    executarTridenteSangue() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "TRIDENTE_SANGUE";
+
+        // Tridente é desenhado em CSS para não depender de um asset inexistente.
+        const tridente = document.createElement("div");
+        tridente.textContent = "🔱";
+        Object.assign(tridente.style, {
+            position: "absolute",
+            left: `${caixa.clientWidth / 2 - 55}px`,
+            top: "-145px",
+            fontSize: "110px",
+            lineHeight: "1",
+            zIndex: "900",
+            pointerEvents: "none",
+            filter: "hue-rotate(285deg) saturate(6) drop-shadow(0 0 12px red)"
+        });
+        caixa.appendChild(tridente);
+
+        let y = -145;
+        let movimento = 0;
+
+        const mover = () => {
+            if (!this.ativo || !Batalha.ativa) {
+                tridente.remove();
+                return;
+            }
+
+            y += 9;
+            movimento += 0.08;
+
+            // Espaço entre as pontas: o corpo do tridente fica acima,
+            // enquanto a área perigosa é definida pelas três linhas.
+            tridente.style.top = `${y}px`;
+            tridente.style.transform =
+                `translateX(${Math.sin(movimento) * 55}px) rotate(${Math.sin(movimento / 2) * 4}deg)`;
+
+            const c = Coracao?.elemento?.getBoundingClientRect();
+            const r = tridente.getBoundingClientRect();
+
+            if (
+                c &&
+                r.left < c.right && r.right > c.left &&
+                r.top < c.bottom && r.bottom > c.top &&
+                !tridente.dataset.hit
+            ) {
+                tridente.dataset.hit = "1";
+                this.danoMascaraSeguro();
+            }
+
+            if (y < caixa.clientHeight + 80) {
+                requestAnimationFrame(mover);
+            } else {
+                tridente.remove();
+                this.finalizarTurno();
+            }
+        };
+
+        requestAnimationFrame(mover);
+    },
+
+
+    executarRetrocesso() {
+        if (this.ativo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "RETROCESSO";
+        this.trocaAtaqueAtivo = true;
+
+        const normais = [
+            () => this.executarRaio(),
+            () => this.executarRitual(),
+            () => this.executarArma(),
+            () => this.executarCortes()
+        ];
+
+        const antes = new Set(caixa.children);
+        const ataque = normais[Math.floor(Math.random() * normais.length)];
+
+        this.ativo = false;
+        ataque();
+
+        // O ataque já acontece normalmente. Depois o estalo faz todos os
+        // elementos criados desde "antes" voltarem visualmente.
+        setTimeout(() => {
+            if (!Batalha.ativa) return;
+
+            this.tocarAudio(
+                "assets/audio/audio_batalha/bruno/mudanca.mp3",
+                0.8
+            );
+
+            caixa.animate(
+                [
+                    { filter: "brightness(1)" },
+                    { filter: "brightness(2.5)" },
+                    { filter: "brightness(1)" }
+                ],
+                { duration: 450 }
+            );
+
+            [...caixa.children].forEach(el => {
+                if (antes.has(el) || el === Coracao?.elemento) return;
+
+                const transform = el.style.transform || "";
+                el.animate(
+                    [
+                        { opacity: 1, transform },
+                        {
+                            opacity: 0.35,
+                            transform: `${transform} scale(.55) translate(-35px,-35px)`
+                        },
+                        { opacity: 0, transform }
+                    ],
+                    { duration: 650, fill: "forwards" }
+                );
+            });
+
+            setTimeout(() => {
+                this.removerAtaquesCortes();
+                this.trocaAtaqueAtivo = false;
+                this.ativo = false;
+                this.finalizarTurno();
+            }, 720);
+        }, 1500);
+    },
+
+
+    iniciarGolpeFinal() {
+        if (this.golpeFinalAtivo || !Batalha.ativa) return;
+
+        this.golpeFinalAtivo = true;
+        this.ativo = true;
+        this.tipoAtual = "GOLPE_FINAL";
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) {
+            this.terminarGolpeFinal();
+            return;
+        }
+
+        // =================================================
+        // ETAPA 1: MUITOS RAIOS + CORTE DA CAIXA ACELERADO
+        // =================================================
+        const etapa1 = () => {
+            let raios = 0;
+
+            const raio = () => {
+                if (!this.golpeFinalAtivo || !Batalha.ativa) return;
+
+                if (raios++ >= 34) {
+                    setTimeout(() => {
+                        if (this.golpeFinalAtivo) this.executarCorteFinalRapido(etapa2);
+                    }, 100);
+                    return;
+                }
+
+                const e = document.createElement("img");
+                e.src = this.raioGif;
+                Object.assign(e.style, {
+                    position: "absolute",
+                    left: `${Math.random() * Math.max(1, caixa.clientWidth - 50)}px`,
+                    top: "-25px",
+                    width: "50px",
+                    height: `${caixa.clientHeight + 50}px`,
+                    objectFit: "cover",
+                    zIndex: "980",
+                    pointerEvents: "none"
+                });
+                caixa.appendChild(e);
+                this.criarHitboxRetangulo(e, true);
+                setTimeout(() => e.remove(), 360);
+                setTimeout(raio, 55);
+            };
+
+            raio();
+        };
+
+        // =================================================
+        // ETAPA 2: 3 ESPADAS CONTÍNUAS + CORTES /
+        // =================================================
+        const etapa2 = () => {
+            let n = 0;
+            const swords = [];
+
+            for (let i = 0; i < 3; i++) {
+                const espada = document.createElement("img");
+                espada.src = "assets/imagens/batalha_imagens/bruno/espada.png";
+                Object.assign(espada.style, {
+                    position: "absolute",
+                    width: "58px",
+                    height: "140px",
+                    left: `${20 + i * (caixa.clientWidth / 2 - 30)}px`,
+                    top: `${caixa.clientHeight / 2 - 70}px`,
+                    zIndex: "950",
+                    pointerEvents: "none"
+                });
+                caixa.appendChild(espada);
+                swords.push(espada);
+            }
+
+            const loop = () => {
+                if (!this.golpeFinalAtivo || !Batalha.ativa) return;
+
+                if (n++ >= 30) {
+                    swords.forEach(e => e.remove());
+                    this.removerAtaquesCortes();
+                    setTimeout(etapa3, 180);
+                    return;
+                }
+
+                this.criarCorteVisual(
+                    caixa,
+                    -45,
+                    190,
+                    12
+                );
+                this.tocarAudio(
+                    "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
+                    0.6
+                );
+
+                swords.forEach((e, i) => {
+                    e.style.left =
+                        `${(n * 20 + i * caixa.clientWidth / 3) % caixa.clientWidth - 29}px`;
+                });
+
+                setTimeout(loop, 155);
+            };
+
+            loop();
+        };
+
+        // =================================================
+        // ETAPA 3: X GIGANTE DE FOGO GIRANDO + CORTES
+        // =================================================
+        const etapa3 = () => {
+            const cx = caixa.clientWidth / 2;
+            const cy = caixa.clientHeight / 2;
+            const W = Math.hypot(caixa.clientWidth, caixa.clientHeight) * 1.35;
+            const fogo = [];
+
+            for (const angulo of [45, -45]) {
+                const e = document.createElement("img");
+                e.src = "assets/imagens/fogo.png";
+                Object.assign(e.style, {
+                    position: "absolute",
+                    left: `${cx - W / 2}px`,
+                    top: `${cy - 20}px`,
+                    width: `${W}px`,
+                    height: "40px",
+                    objectFit: "cover",
+                    zIndex: "970",
+                    pointerEvents: "none",
+                    transform: `rotate(${angulo}deg)`,
+                    transformOrigin: "50% 50%",
+                    filter: "drop-shadow(0 0 15px #ff4500)"
+                });
+                caixa.appendChild(e);
+                fogo.push(e);
+            }
+
+            let angulo = 0;
+            const loop = () => {
+                if (!this.golpeFinalAtivo || !Batalha.ativa) return;
+
+                angulo += 0.34;
+
+                fogo[0].style.transform = `rotate(${45 + angulo}deg)`;
+                fogo[1].style.transform = `rotate(${-45 + angulo}deg)`;
+
+                this.criarCorteVisual(
+                    caixa,
+                    angulo,
+                    145,
+                    11
+                );
+
+                if (Math.random() < 0.8) {
+                    const p = this.posicaoCoracao();
+                    const part = document.createElement("img");
+                    part.src = "assets/imagens/fogo.png";
+                    Object.assign(part.style, {
+                        position: "absolute",
+                        left: `${p.x}px`,
+                        top: `${p.y}px`,
+                        width: "20px",
+                        height: "20px",
+                        zIndex: "990",
+                        pointerEvents: "none"
+                    });
+                    caixa.appendChild(part);
+
+                    const a = Math.random() * Math.PI * 2;
+                    let vida = 0;
+                    const mover = () => {
+                        vida++;
+                        part.style.transform =
+                            `translate(${Math.cos(a) * vida * 4}px, ${Math.sin(a) * vida * 4}px) ` +
+                            `scale(${Math.max(.05, 1 - vida / 26)})`;
+                        part.style.opacity =
+                            String(Math.max(0, 1 - vida / 26));
+
+                        if (vida < 26) requestAnimationFrame(mover);
+                        else part.remove();
+                    };
+                    requestAnimationFrame(mover);
+                }
+
+                if (angulo < Math.PI * 10) {
+                    requestAnimationFrame(loop);
+                } else {
+                    fogo.forEach(e => e.remove());
+                    this.removerAtaquesCortes();
+                    this.terminarGolpeFinal();
+                }
+            };
+
+            requestAnimationFrame(loop);
+        };
+
+        etapa1();
+    },
+
+
+    executarCorteFinalRapido(callback) {
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) {
+            callback();
+            return;
+        }
+
+        let i = 0;
+
+        const loop = () => {
+            if (!this.golpeFinalAtivo || !Batalha.ativa) return;
+
+            if (i++ >= 8) {
+                callback();
+                return;
+            }
+
+            const angulo = [0, 45, -45, 90][Math.floor(Math.random() * 4)];
+            const gif = document.createElement("img");
+            gif.src = "assets/imagens/batalha_imagens/bruno/cortar.gif";
+
+            Object.assign(gif.style, {
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                width: `${Math.hypot(caixa.clientWidth, caixa.clientHeight) * 1.15}px`,
+                height: `${Math.max(caixa.clientWidth, caixa.clientHeight)}px`,
+                objectFit: "contain",
+                transform: `translate(-50%,-50%) rotate(${angulo}deg)`,
+                zIndex: "960",
+                pointerEvents: "none"
+            });
+            caixa.appendChild(gif);
+
+            this.criarCorteHitbox(caixa, angulo, 25, 220, true);
+            this.tocarAudio(
+                "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
+                0.8
+            );
+
+            setTimeout(() => gif.remove(), 230);
+            setTimeout(loop, 180);
+        };
+
+        loop();
+    },
+
+
+    terminarGolpeFinal() {
+        if (!this.golpeFinalAtivo) return;
+
+        this.golpeFinalAtivo = false;
+        this.ativo = false;
+
+        // A Máscara só morre depois de todas as etapas.
+        if (typeof Batalha !== "undefined") {
+            Batalha.mascara.hp = 0;
+            if (typeof Mascara !== "undefined") Mascara.hp = 0;
+
+            // Morte da Máscara: tela preta + CHAMADO, só depois do golpe final.
+            const overlay = document.createElement("div");
+            overlay.id = "telaMorteMascara";
+            Object.assign(overlay.style, {
+                position: "fixed",
+                inset: "0",
+                background: "#000",
+                zIndex: "999999",
+                opacity: "0",
+                transition: "opacity 180ms ease"
+            });
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.style.opacity = "1");
+
+            const audio = new Audio("assets/audio/CHAMADO.mp3");
+            audio.volume = 0.85;
+            audio.play().catch(() => {});
+
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.remove();
+                Batalha.vitoria();
+            }, 1000);
+        }
     },
 
 
@@ -3823,6 +5206,11 @@ const AtaqueMascara = {
     // =====================================================
 
     finalizarTurno() {
+
+        // Durante a sequência TROCA, o ataque normal pode terminar visualmente,
+        // mas o turno continua até os 6 segundos daquela troca.
+        if (this.trocaAtaqueAtivo)
+            return;
 
         if (!Batalha.ativa)
             return;
@@ -3869,6 +5257,7 @@ const AtaqueMascara = {
                     "MÁSCARA TERMINOU O ROUND"
                 );
 
+                this.turnosMascaraConcluidos = (this.turnosMascaraConcluidos || 0) + 1;
 
                 Batalha.terminarTurnoMascara();
 

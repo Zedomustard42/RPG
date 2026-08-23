@@ -741,6 +741,9 @@ const BatalhaMobile = {
             return;
 
 
+        area.style.touchAction = "none";
+        area.style.userSelect = "none";
+
         area.addEventListener(
             "pointerdown",
             e => {
@@ -774,24 +777,62 @@ const BatalhaMobile = {
     configurarModoMobilePC() {
 
         if (typeof Input !== "undefined") {
-            Input.registrarHook(
-                "modo-mobile-pc",
-                ({ key, originalEvent }) => {
 
-                    const ctrlM =
-                        !!originalEvent.ctrlKey &&
-                        key.toLowerCase() === "m";
+            const handler = ({ key, originalEvent }) => {
 
-                    const f8 =
-                        key === "F8";
+                const ctrlM =
+                    !!originalEvent.ctrlKey &&
+                    key.toLowerCase() === "m";
 
-                    if (!ctrlM && !f8)
-                        return false;
+                const f8 =
+                    key === "F8";
 
-                    this.alternarModoMobilePC();
-                    return true;
+                if (!ctrlM && !f8)
+                    return false;
+
+                this.alternarModoMobilePC();
+                return true;
+            };
+
+            // Compatibilidade com versões antigas/cacheadas do Input.
+            // Se registrarHook existir, usamos o sistema novo.
+            if (typeof Input.registrarHook === "function") {
+
+                Input.registrarHook(
+                    "modo-mobile-pc",
+                    handler
+                );
+
+            }
+            else {
+
+                // Fallback para evitar que o Mobile quebre a inicialização
+                // caso o navegador ainda esteja servindo um Input antigo.
+                this._modoMobilePCFallback = handler;
+
+                if (!this._modoMobilePCFallbackRegistrado) {
+
+                    document.addEventListener(
+                        "keydown",
+                        evento => {
+
+                            if (!this._modoMobilePCFallback)
+                                return;
+
+                            this._modoMobilePCFallback({
+                                key: evento.key,
+                                originalEvent: evento
+                            });
+
+                        },
+                        true
+                    );
+
+                    this._modoMobilePCFallbackRegistrado = true;
+
                 }
-            );
+
+            }
         }
 
 
