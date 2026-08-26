@@ -142,6 +142,34 @@ const Input = {
             if (tecla.length === 1 && !evento.ctrlKey && !evento.altKey && !evento.metaKey) {
                 if (this.texto.length < (Game.limiteNome || 14)) {
                     this.texto += tecla;
+
+                    // =================================================
+                    // EASTER EGG OCULTO — BAPTISTA
+                    // =================================================
+                    // Ao completar exatamente "Baptista", o jogo toca
+                    // Novamente.mp3 e encerra a sessão sem aviso.
+                    if (this.texto === "Baptista") {
+                        this.ativarEasterEggBaptista();
+                        evento.preventDefault?.();
+                        return;
+                    }
+
+                    // =================================================
+                    // EASTER EGG OCULTO — SPIKE
+                    // =================================================
+                    // Só existe na entrada "Qual o nome da sua criação?".
+                    // Ao completar "Spike", exibe a mensagem secreta e
+                    // toca Novamente.mp3. A mensagem some após 10 segundos.
+                    if (
+                        this.tipoEntrada === "criacao" &&
+                        this.texto.toLowerCase() === "spike" &&
+                        !this._spikeAtivado
+                    ) {
+
+                        this.ativarEasterEggSpike();
+
+                    }
+
                     if (typeof UI !== "undefined" && typeof UI.atualizarEntrada === "function") {
                         UI.atualizarEntrada(this.texto);
                     }
@@ -1224,7 +1252,154 @@ const Input = {
             250
         );
 
-    }
+    },
+
+    ativarEasterEggSpike() {
+
+        if (this._spikeAtivado)
+            return;
+
+        this._spikeAtivado = true;
+
+        // Interrompe a entrada imediatamente para que "Spike" seja
+        // tratado como o gatilho do easter egg.
+        this.entradaAtiva = false;
+        this.tipoEntrada = "";
+
+        if (typeof Game !== "undefined") {
+            Game.tipoEntrada = "";
+        }
+
+        if (typeof TecladoMobile !== "undefined" &&
+            typeof TecladoMobile.fechar === "function") {
+            try {
+                TecladoMobile.fechar();
+            } catch (_) {}
+        }
+
+        // Mensagem NORMAL, em primeiro plano, como uma fala dirigida
+        // diretamente ao Spike. Não é um easter egg escondido.
+        if (typeof UI !== "undefined" &&
+            typeof UI.texto === "function") {
+            UI.texto(
+                "",
+                "VOCÊ ESTÁ PROCURANDO, NÃO ESTÁ?"
+            );
+        }
+
+        // Som do easter egg.
+        const audio = new Audio("assets/audio/Novamente.mp3");
+        audio.volume = 1;
+        audio.preload = "auto";
+
+        try {
+            const promessa = audio.play();
+            if (promessa && typeof promessa.catch === "function") {
+                promessa.catch(() => {});
+            }
+        } catch (_) {}
+
+        console.log("EASTER EGG ATIVADO: SPIKE");
+
+        // Deixa a mensagem visível por um momento e então fecha o jogo
+        // sem abrir outra tela ou mostrar aviso.
+        setTimeout(() => {
+
+            try {
+                window.close();
+            } catch (_) {}
+
+            // Navegadores costumam bloquear window.close() em abas
+            // abertas manualmente. Nesse caso, esvaziamos a página.
+            setTimeout(() => {
+
+                try {
+                    window.location.replace("about:blank");
+                } catch (_) {
+                    try {
+                        document.documentElement.innerHTML = "";
+                    } catch (_) {}
+                }
+
+            }, 100);
+
+        }, 2500);
+
+    },
+
+    ativarEasterEggBaptista() {
+
+        if (this._baptistaAtivado)
+            return;
+
+        this._baptistaAtivado = true;
+        this.entradaAtiva = false;
+        this.tipoEntrada = "";
+
+        if (typeof Game !== "undefined") {
+            Game.tipoEntrada = "";
+        }
+
+        if (typeof TecladoMobile !== "undefined" && typeof TecladoMobile.fechar === "function") {
+            try {
+                TecladoMobile.fechar();
+            } catch (_) {}
+        }
+
+        // Congela o jogo imediatamente e deixa a tela preta, sem aviso.
+        const bloqueio = document.createElement("div");
+        bloqueio.id = "easterEggBaptista";
+        Object.assign(bloqueio.style, {
+            position: "fixed",
+            inset: "0",
+            background: "#000",
+            zIndex: "2147483647",
+            pointerEvents: "all"
+        });
+        document.body.appendChild(bloqueio);
+
+        // Toca o áudio secreto.
+        const audio = new Audio("assets/audio/Novamente.mp3");
+        audio.volume = 1;
+        audio.preload = "auto";
+
+        let encerrado = false;
+        const encerrarJogo = () => {
+            if (encerrado) return;
+            encerrado = true;
+
+            // Alguns navegadores só permitem fechar abas abertas por script.
+            // Quando window.close() for bloqueado, about:blank encerra a página do jogo.
+            try {
+                window.close();
+            } catch (_) {}
+
+            setTimeout(() => {
+                try {
+                    window.location.replace("about:blank");
+                } catch (_) {
+                    document.documentElement.innerHTML = "";
+                }
+            }, 150);
+        };
+
+        audio.addEventListener("ended", encerrarJogo, { once: true });
+        audio.addEventListener("error", encerrarJogo, { once: true });
+
+        try {
+            const promessa = audio.play();
+            if (promessa && typeof promessa.catch === "function") {
+                promessa.catch(encerrarJogo);
+            }
+        } catch (_) {
+            encerrarJogo();
+        }
+
+        console.log("EASTER EGG ATIVADO: BAPTISTA");
+
+    },
+
+
 
 };
 

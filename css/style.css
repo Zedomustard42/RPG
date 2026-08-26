@@ -1398,3 +1398,34 @@ body.final #texto-final {
     letter-spacing: normal !important;
     word-spacing: normal !important;
 }
+/* =====================================================
+   MENSAGENS ESCONDIDAS / EASTER EGGS
+   ===================================================== */
+
+.mensagem-escondida {
+    position: fixed;
+    z-index: 999999;
+    max-width: min(42vw, 520px);
+    padding: 4px 7px;
+    margin: 0;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.25;
+    letter-spacing: normal;
+    word-spacing: normal;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity 1.2s ease;
+}
+
+.mensagem-escondida.visivel {
+    opacity: 0.10;
+}
+
+.mensagem-escondida.sumindo {
+    opacity: 0;
+}
