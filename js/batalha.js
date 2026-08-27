@@ -189,7 +189,10 @@ const Batalha = {
             false;
 
         this.morteMascaraFinalizada = false;
-        document.getElementById("telaMorteMascara")?.remove();
+
+        document
+            .getElementById("telaMorteMascara")
+            ?.remove();
 
         this.pe =
             this.peMax;
@@ -200,16 +203,36 @@ const Batalha = {
 
 
         this.personagensAgiram = {
-            ash: this.ash.hp <= 0,
-            spike: this.spike.hp <= 0,
-            manel: this.manel.hp <= 0
+
+            ash:
+                this.ash.hp <= 0,
+
+            spike:
+                this.spike.hp <= 0,
+
+            manel:
+                this.manel.hp <= 0
+
         };
+
 
         this.acoes = {};
 
-        this.ordemPersonagens.forEach(id => {
-            if (this[id].hp <= 0) this.acoes[id] = "morto";
-        });
+
+        this.ordemPersonagens.forEach(
+            id => {
+
+                if (
+                    this[id].hp <= 0
+                ) {
+
+                    this.acoes[id] =
+                        "morto";
+
+                }
+
+            }
+        );
 
 
         this.ash.hp =
@@ -397,8 +420,15 @@ const Batalha = {
                     falas.length
                 ) {
 
-                    if (typeof Input !== "undefined") {
-                        Input.removerContexto("batalha-intro");
+                    if (
+                        typeof Input !==
+                        "undefined"
+                    ) {
+
+                        Input.removerContexto(
+                            "batalha-intro"
+                        );
+
                     }
 
 
@@ -437,14 +467,24 @@ const Batalha = {
             };
 
 
-        if (typeof Input !== "undefined") {
+        if (
+            typeof Input !==
+            "undefined"
+        ) {
+
             Input.registrarContexto(
                 "batalha-intro",
                 evento => {
-                    continuar(evento);
+
+                    continuar(
+                        evento
+                    );
+
                     return true;
+
                 }
             );
+
         }
 
 
@@ -663,10 +703,6 @@ const Batalha = {
         }
 
 
-        // =================================================
-        // NOVA INSTÂNCIA DE ÁUDIO
-        // =================================================
-
         const audio =
             new Audio(
                 caminho
@@ -718,11 +754,8 @@ const Batalha = {
             executarCallback;
 
 
-        // =================================================
-        // TOCAR
-        // =================================================
-
         let promessa;
+
 
         try {
 
@@ -877,16 +910,36 @@ const Batalha = {
 
 
         this.personagensAgiram = {
-            ash: this.ash.hp <= 0,
-            spike: this.spike.hp <= 0,
-            manel: this.manel.hp <= 0
+
+            ash:
+                this.ash.hp <= 0,
+
+            spike:
+                this.spike.hp <= 0,
+
+            manel:
+                this.manel.hp <= 0
+
         };
+
 
         this.acoes = {};
 
-        this.ordemPersonagens.forEach(id => {
-            if (this[id].hp <= 0) this.acoes[id] = "morto";
-        });
+
+        this.ordemPersonagens.forEach(
+            id => {
+
+                if (
+                    this[id].hp <= 0
+                ) {
+
+                    this.acoes[id] =
+                        "morto";
+
+                }
+
+            }
+        );
 
 
         this.ash.hp =
@@ -1123,16 +1176,28 @@ const Batalha = {
         )
             return;
 
-        // Um personagem morto não precisa escolher uma ação.
-        // Marcamos sua rodada automaticamente como concluída para que
-        // os personagens vivos não fiquem presos esperando por ele.
-        const personagemAtual = this[personagem];
-        if (!personagemAtual || personagemAtual.hp <= 0) {
-            this.personagensAgiram[personagem] = true;
-            this.acoes[personagem] = "morto";
+
+        const personagemAtual =
+            this[personagem];
+
+
+        if (
+            !personagemAtual ||
+            personagemAtual.hp <= 0
+        ) {
+
+            this.personagensAgiram[personagem] =
+                true;
+
+            this.acoes[personagem] =
+                "morto";
+
             this.verificarTodosAgiram();
+
             return;
+
         }
+
 
         if (
             this.personagensAgiram[
@@ -1172,27 +1237,56 @@ const Batalha = {
 
     verificarTodosAgiram() {
 
-        // Só personagens vivos precisam agir nesta rodada.
-        const vivos = this.ordemPersonagens.filter(id => {
-            const p = this[id];
-            return p && p.hp > 0;
-        });
+        const vivos =
+            this.ordemPersonagens.filter(
+                id => {
 
-        // Se não existe nenhum personagem vivo, aí sim é derrota.
-        if (!vivos.length) {
+                    const p =
+                        this[id];
+
+                    return p &&
+                        p.hp > 0;
+
+                }
+            );
+
+
+        if (
+            !vivos.length
+        ) {
+
             this.derrota();
+
             return;
+
         }
 
-        // Personagens mortos são automaticamente considerados prontos.
-        this.ordemPersonagens.forEach(id => {
-            if (this[id] && this[id].hp <= 0) {
-                this.personagensAgiram[id] = true;
-                this.acoes[id] = "morto";
-            }
-        });
 
-        const todos = vivos.every(id => this.personagensAgiram[id]);
+        this.ordemPersonagens.forEach(
+            id => {
+
+                if (
+                    this[id] &&
+                    this[id].hp <= 0
+                ) {
+
+                    this.personagensAgiram[id] =
+                        true;
+
+                    this.acoes[id] =
+                        "morto";
+
+                }
+
+            }
+        );
+
+
+        const todos =
+            vivos.every(
+                id =>
+                    this.personagensAgiram[id]
+            );
 
 
         if (
@@ -2443,20 +2537,43 @@ const Batalha = {
     prepararRodadaJogador() {
 
         this.personagensAgiram = {
-            ash: this.ash.hp <= 0,
-            spike: this.spike.hp <= 0,
-            manel: this.manel.hp <= 0
+
+            ash:
+                this.ash.hp <= 0,
+
+            spike:
+                this.spike.hp <= 0,
+
+            manel:
+                this.manel.hp <= 0
+
         };
+
 
         this.acoes = {};
 
-        this.ordemPersonagens.forEach(id => {
-            if (this[id].hp <= 0) {
-                this.acoes[id] = "morto";
-            }
-        });
 
-        return this.ordemPersonagens.some(id => this[id].hp > 0);
+        this.ordemPersonagens.forEach(
+            id => {
+
+                if (
+                    this[id].hp <= 0
+                ) {
+
+                    this.acoes[id] =
+                        "morto";
+
+                }
+
+            }
+        );
+
+
+        return this.ordemPersonagens.some(
+            id =>
+                this[id].hp > 0
+        );
+
     },
 
 
@@ -2506,6 +2623,36 @@ const Batalha = {
             ) {
 
                 BatalhaRender.mostrarCaixaEsquiva();
+
+            }
+
+        }
+
+
+        // =================================================
+        // INICIAR MOVIMENTO DO CORAÇÃO
+        // =================================================
+
+        if (
+            typeof Coracao !==
+            "undefined"
+        ) {
+
+            if (
+                typeof Coracao.iniciar ===
+                "function"
+            ) {
+
+                Coracao.iniciar();
+
+            }
+
+            else if (
+                typeof Coracao.iniciarMovimento ===
+                "function"
+            ) {
+
+                Coracao.iniciarMovimento();
 
             }
 
@@ -2642,16 +2789,36 @@ const Batalha = {
 
 
         this.personagensAgiram = {
-            ash: this.ash.hp <= 0,
-            spike: this.spike.hp <= 0,
-            manel: this.manel.hp <= 0
+
+            ash:
+                this.ash.hp <= 0,
+
+            spike:
+                this.spike.hp <= 0,
+
+            manel:
+                this.manel.hp <= 0
+
         };
+
 
         this.acoes = {};
 
-        this.ordemPersonagens.forEach(id => {
-            if (this[id].hp <= 0) this.acoes[id] = "morto";
-        });
+
+        this.ordemPersonagens.forEach(
+            id => {
+
+                if (
+                    this[id].hp <= 0
+                ) {
+
+                    this.acoes[id] =
+                        "morto";
+
+                }
+
+            }
+        );
 
 
         this.personagemSelecionado =
@@ -2778,14 +2945,15 @@ const Batalha = {
             0
         ) {
 
-            // A Máscara não morre imediatamente.
-            // Ao chegar a 0 HP, inicia o golpe final e só morre
-            // depois que todas as etapas terminarem.
             if (
-                typeof AtaqueMascara !== "undefined" &&
-                typeof AtaqueMascara.iniciarGolpeFinal === "function"
+                typeof AtaqueMascara !==
+                "undefined" &&
+                typeof AtaqueMascara.iniciarGolpeFinal ===
+                "function"
             ) {
+
                 AtaqueMascara.iniciarGolpeFinal();
+
             }
 
         }
@@ -2884,10 +3052,6 @@ const Batalha = {
             0;
 
 
-        // =================================================
-        // DEFESA
-        // =================================================
-
         if (
             p.defesa
         ) {
@@ -2897,10 +3061,6 @@ const Batalha = {
 
         }
 
-
-        // =================================================
-        // CORAÇÃO DE SANGUE
-        // =================================================
 
         if (
             this.coracaoDeSangueRodadas >
@@ -2961,9 +3121,19 @@ const Batalha = {
         );
 
 
-        const aindaVivos = this.ordemPersonagens.some(id => this[id].hp > 0);
-        if (!aindaVivos) {
+        const aindaVivos =
+            this.ordemPersonagens.some(
+                id =>
+                    this[id].hp > 0
+            );
+
+
+        if (
+            !aindaVivos
+        ) {
+
             this.derrota();
+
         }
 
     },
@@ -3174,35 +3344,98 @@ const Batalha = {
             return;
 
 
-        // Vitória só acontece depois do golpe final da Máscara.
-        // A tela fica preta e o chamado toca no instante da morte.
-        if (this.morteMascaraFinalizada) {
+        if (
+            this.morteMascaraFinalizada
+        ) {
+
             return;
+
         }
 
-        this.morteMascaraFinalizada = true;
+
+        this.morteMascaraFinalizada =
+            true;
+
 
         try {
-            const chamado = new Audio("assets/audio/CHAMADO.mp3");
-            chamado.volume = 1;
-            chamado.currentTime = 0;
-            chamado.play().catch(() => {});
-        } catch (erro) {}
 
-        let telaPreta = document.getElementById("telaMorteMascara");
-        if (!telaPreta) {
-            telaPreta = document.createElement("div");
-            telaPreta.id = "telaMorteMascara";
-            Object.assign(telaPreta.style, {
-                position: "fixed",
-                inset: "0",
-                background: "#000",
-                zIndex: "2147483647",
-                opacity: "1",
-                pointerEvents: "all"
-            });
-            document.body.appendChild(telaPreta);
+            const chamado =
+                new Audio(
+                    "assets/audio/CHAMADO.mp3"
+                );
+
+
+            chamado.volume =
+                1;
+
+
+            chamado.currentTime =
+                0;
+
+
+            chamado.play().catch(
+                () => {}
+            );
+
         }
+
+        catch (
+            erro
+        ) {}
+
+
+        let telaPreta =
+            document.getElementById(
+                "telaMorteMascara"
+            );
+
+
+        if (
+            !telaPreta
+        ) {
+
+            telaPreta =
+                document.createElement(
+                    "div"
+                );
+
+
+            telaPreta.id =
+                "telaMorteMascara";
+
+
+            Object.assign(
+                telaPreta.style,
+                {
+
+                    position:
+                        "fixed",
+
+                    inset:
+                        "0",
+
+                    background:
+                        "#000",
+
+                    zIndex:
+                        "2147483647",
+
+                    opacity:
+                        "1",
+
+                    pointerEvents:
+                        "all"
+
+                }
+            );
+
+
+            document.body.appendChild(
+                telaPreta
+            );
+
+        }
+
 
         console.log(
             "VOCÊ VENCEU"

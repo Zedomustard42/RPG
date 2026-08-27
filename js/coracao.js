@@ -10,6 +10,13 @@ const Coracao = {
 
     tecladoIniciado: false,
 
+    _keydownCoracao: null,
+
+    _keyupCoracao: null,
+
+    _blurCoracao: null,
+
+
     // =====================================================
     // TAMANHO
     // =====================================================
@@ -18,18 +25,22 @@ const Coracao = {
 
     velocidade: 4,
 
+
     // =====================================================
     // POSIÇÃO
     // =====================================================
 
     x: 0,
+
     y: 0,
+
 
     // =====================================================
     // TECLAS
     // =====================================================
 
     teclas: {},
+
 
     // =====================================================
     // INICIAR
@@ -41,15 +52,19 @@ const Coracao = {
             "CORAÇÃO INICIADO"
         );
 
+
         this.ativo = true;
 
-        // limpa qualquer direção anterior
+
+        // Limpa qualquer direção anterior
         this.limparTeclas();
+
 
         const caixa =
             document.getElementById(
                 "caixaEsquiva"
             );
+
 
         if (caixa) {
 
@@ -59,20 +74,27 @@ const Coracao = {
             this.y =
                 caixa.clientHeight / 2;
 
-        } else {
+        }
+
+        else {
 
             this.x = 200;
+
             this.y = 120;
 
         }
 
+
         this.criar();
 
+
         this.iniciarTeclado();
+
 
         this.atualizarVisual();
 
     },
+
 
     // =====================================================
     // CRIAR
@@ -85,66 +107,85 @@ const Coracao = {
                 "coracaoBatalha"
             );
 
+
         if (antigo) {
 
             antigo.remove();
 
         }
 
+
         this.elemento =
             document.createElement(
                 "div"
             );
 
+
         this.elemento.id =
             "coracaoBatalha";
+
 
         this.elemento.innerText =
             "♥";
 
+
         this.elemento.style.position =
             "absolute";
+
 
         this.elemento.style.width =
             this.tamanho + "px";
 
+
         this.elemento.style.height =
             this.tamanho + "px";
+
 
         this.elemento.style.fontSize =
             this.tamanho + "px";
 
+
         this.elemento.style.lineHeight =
             this.tamanho + "px";
+
 
         this.elemento.style.textAlign =
             "center";
 
+
         this.elemento.style.color =
             "#b000ff";
+
 
         this.elemento.style.fontFamily =
             "Arial";
 
+
         this.elemento.style.fontWeight =
             "bold";
+
 
         this.elemento.style.pointerEvents =
             "none";
 
+
         this.elemento.style.userSelect =
             "none";
+
 
         this.elemento.style.zIndex =
             "100";
 
+
         this.elemento.style.transform =
             "translate(-50%, -50%)";
+
 
         const caixa =
             document.getElementById(
                 "caixaEsquiva"
             );
+
 
         if (!caixa) {
 
@@ -156,11 +197,13 @@ const Coracao = {
 
         }
 
+
         caixa.appendChild(
             this.elemento
         );
 
     },
+
 
     // =====================================================
     // LIMPAR TECLAS
@@ -171,18 +214,25 @@ const Coracao = {
         this.teclas = {
 
             w: false,
+
             a: false,
+
             s: false,
+
             d: false,
 
             arrowup: false,
+
             arrowdown: false,
+
             arrowleft: false,
+
             arrowright: false
 
         };
 
     },
+
 
     // =====================================================
     // DEFINIR DIREÇÃO PELO MOBILE
@@ -190,121 +240,134 @@ const Coracao = {
 
     definirDirecaoMobile(direcao) {
 
-    if (!this.ativo)
-        return;
+        if (!this.ativo)
+            return;
 
 
-    this.limparTeclas();
+        this.limparTeclas();
 
 
-    // =====================================================
-    // DIREÇÃO ANALÓGICA
-    // =====================================================
-
-    if (
-        typeof direcao === "object"
-    ) {
+        // =================================================
+        // DIREÇÃO ANALÓGICA
+        // =================================================
 
         if (
-            direcao.x <
-            -0.25
+            typeof direcao === "object"
         ) {
 
-            this.teclas.arrowleft =
-                true;
+            if (
+                direcao.x <
+                -0.25
+            ) {
+
+                this.teclas.arrowleft =
+                    true;
+
+            }
+
+
+            if (
+                direcao.x >
+                0.25
+            ) {
+
+                this.teclas.arrowright =
+                    true;
+
+            }
+
+
+            if (
+                direcao.y <
+                -0.25
+            ) {
+
+                this.teclas.arrowup =
+                    true;
+
+            }
+
+
+            if (
+                direcao.y >
+                0.25
+            ) {
+
+                this.teclas.arrowdown =
+                    true;
+
+            }
+
+
+            return;
 
         }
 
 
+        // =================================================
+        // COMPATIBILIDADE COM SETAS / WASD
+        // =================================================
+
+        const tecla =
+            String(
+                direcao
+            ).toLowerCase();
+
+
         if (
-            direcao.x >
-            0.25
-        ) {
-
-            this.teclas.arrowright =
-                true;
-
-        }
-
-
-        if (
-            direcao.y <
-            -0.25
+            tecla === "arrowup" ||
+            tecla === "w"
         ) {
 
             this.teclas.arrowup =
                 true;
 
+            this.teclas.w =
+                true;
+
         }
 
-
-        if (
-            direcao.y >
-            0.25
+        else if (
+            tecla === "arrowdown" ||
+            tecla === "s"
         ) {
 
             this.teclas.arrowdown =
                 true;
 
+            this.teclas.s =
+                true;
+
         }
 
+        else if (
+            tecla === "arrowleft" ||
+            tecla === "a"
+        ) {
 
-        return;
+            this.teclas.arrowleft =
+                true;
 
-    }
+            this.teclas.a =
+                true;
 
+        }
 
-    // =====================================================
-    // COMPATIBILIDADE COM SETAS
-    // =====================================================
+        else if (
+            tecla === "arrowright" ||
+            tecla === "d"
+        ) {
 
-    const tecla =
-        String(
-            direcao
-        ).toLowerCase();
+            this.teclas.arrowright =
+                true;
 
+            this.teclas.d =
+                true;
 
-    if (
-        tecla === "arrowup" ||
-        tecla === "w"
-    ) {
+        }
 
-        this.teclas.arrowup =
-            true;
+    },
 
-    }
-
-    else if (
-        tecla === "arrowdown" ||
-        tecla === "s"
-    ) {
-
-        this.teclas.arrowdown =
-            true;
-
-    }
-
-    else if (
-        tecla === "arrowleft" ||
-        tecla === "a"
-    ) {
-
-        this.teclas.arrowleft =
-            true;
-
-    }
-
-    else if (
-        tecla === "arrowright" ||
-        tecla === "d"
-    ) {
-
-        this.teclas.arrowright =
-            true;
-
-    }
-
-},
 
     // =====================================================
     // PARAR DIREÇÃO MOBILE
@@ -316,15 +379,242 @@ const Coracao = {
 
     },
 
+
     // =====================================================
     // TECLADO
     // =====================================================
 
     iniciarTeclado() {
-        // O teclado físico é centralizado pelo Input.js.
-        // Coracao apenas mantém seu mapa de teclas.
-        this.tecladoIniciado = true;
+
+        // Evita criar vários listeners
+        if (
+            this.tecladoIniciado
+        ) {
+
+            return;
+
+        }
+
+
+        this.tecladoIniciado =
+            true;
+
+
+        // =================================================
+        // TECLA PRESSIONADA
+        // =================================================
+
+        this._keydownCoracao =
+            (evento) => {
+
+                if (
+                    !this.ativo
+                )
+                    return;
+
+
+                const tecla =
+                    String(
+                        evento.key
+                    ).toLowerCase();
+
+
+                // =============================
+                // CIMA
+                // =============================
+
+                if (
+                    tecla === "w" ||
+                    tecla === "arrowup"
+                ) {
+
+                    this.teclas.w =
+                        true;
+
+                    this.teclas.arrowup =
+                        true;
+
+                }
+
+
+                // =============================
+                // BAIXO
+                // =============================
+
+                else if (
+                    tecla === "s" ||
+                    tecla === "arrowdown"
+                ) {
+
+                    this.teclas.s =
+                        true;
+
+                    this.teclas.arrowdown =
+                        true;
+
+                }
+
+
+                // =============================
+                // ESQUERDA
+                // =============================
+
+                else if (
+                    tecla === "a" ||
+                    tecla === "arrowleft"
+                ) {
+
+                    this.teclas.a =
+                        true;
+
+                    this.teclas.arrowleft =
+                        true;
+
+                }
+
+
+                // =============================
+                // DIREITA
+                // =============================
+
+                else if (
+                    tecla === "d" ||
+                    tecla === "arrowright"
+                ) {
+
+                    this.teclas.d =
+                        true;
+
+                    this.teclas.arrowright =
+                        true;
+
+                }
+
+            };
+
+
+        // =================================================
+        // TECLA SOLTA
+        // =================================================
+
+        this._keyupCoracao =
+            (evento) => {
+
+                const tecla =
+                    String(
+                        evento.key
+                    ).toLowerCase();
+
+
+                // =============================
+                // CIMA
+                // =============================
+
+                if (
+                    tecla === "w" ||
+                    tecla === "arrowup"
+                ) {
+
+                    this.teclas.w =
+                        false;
+
+                    this.teclas.arrowup =
+                        false;
+
+                }
+
+
+                // =============================
+                // BAIXO
+                // =============================
+
+                else if (
+                    tecla === "s" ||
+                    tecla === "arrowdown"
+                ) {
+
+                    this.teclas.s =
+                        false;
+
+                    this.teclas.arrowdown =
+                        false;
+
+                }
+
+
+                // =============================
+                // ESQUERDA
+                // =============================
+
+                else if (
+                    tecla === "a" ||
+                    tecla === "arrowleft"
+                ) {
+
+                    this.teclas.a =
+                        false;
+
+                    this.teclas.arrowleft =
+                        false;
+
+                }
+
+
+                // =============================
+                // DIREITA
+                // =============================
+
+                else if (
+                    tecla === "d" ||
+                    tecla === "arrowright"
+                ) {
+
+                    this.teclas.d =
+                        false;
+
+                    this.teclas.arrowright =
+                        false;
+
+                }
+
+            };
+
+
+        // =================================================
+        // PERDEU FOCO
+        // =================================================
+
+        this._blurCoracao =
+            () => {
+
+                this.limparTeclas();
+
+            };
+
+
+        // =================================================
+        // REGISTRAR EVENTOS
+        // =================================================
+
+        window.addEventListener(
+            "keydown",
+            this._keydownCoracao
+        );
+
+
+        window.addEventListener(
+            "keyup",
+            this._keyupCoracao
+        );
+
+
+        window.addEventListener(
+            "blur",
+            this._blurCoracao
+        );
+
     },
+
 
     // =====================================================
     // ATUALIZAR
@@ -332,14 +622,22 @@ const Coracao = {
 
     atualizar() {
 
-        if (!this.ativo)
+        if (
+            !this.ativo
+        )
             return;
 
-        if (!this.elemento)
+
+        if (
+            !this.elemento
+        )
             return;
+
 
         let dx = 0;
+
         let dy = 0;
+
 
         // =================================================
         // CIMA
@@ -355,6 +653,7 @@ const Coracao = {
 
         }
 
+
         // =================================================
         // BAIXO
         // =================================================
@@ -368,6 +667,7 @@ const Coracao = {
                 this.velocidade;
 
         }
+
 
         // =================================================
         // ESQUERDA
@@ -383,6 +683,7 @@ const Coracao = {
 
         }
 
+
         // =================================================
         // DIREITA
         // =================================================
@@ -397,6 +698,7 @@ const Coracao = {
 
         }
 
+
         // =================================================
         // DIAGONAL
         // =================================================
@@ -409,26 +711,44 @@ const Coracao = {
             const normalizacao =
                 1 / Math.sqrt(2);
 
+
             dx *=
                 normalizacao;
+
 
             dy *=
                 normalizacao;
 
         }
 
+
         // =================================================
-        // APLICAR
+        // APLICAR MOVIMENTO
         // =================================================
 
-        this.x += dx;
-        this.y += dy;
+        this.x +=
+            dx;
+
+
+        this.y +=
+            dy;
+
+
+        // =================================================
+        // LIMITAR DENTRO DA CAIXA
+        // =================================================
 
         this.limitar();
+
+
+        // =================================================
+        // ATUALIZAR VISUAL
+        // =================================================
 
         this.atualizarVisual();
 
     },
+
 
     // =====================================================
     // LIMITAR
@@ -441,29 +761,44 @@ const Coracao = {
                 "caixaEsquiva"
             );
 
+
         if (!caixa)
             return;
+
 
         const largura =
             caixa.clientWidth;
 
+
         const altura =
             caixa.clientHeight;
+
 
         const metade =
             this.tamanho / 2;
 
+
         const limiteEsquerdo =
             metade;
 
+
         const limiteDireito =
-            largura - metade;
+            largura -
+            metade;
+
 
         const limiteSuperior =
             metade;
 
+
         const limiteInferior =
-            altura - metade;
+            altura -
+            metade;
+
+
+        // =================================================
+        // ESQUERDA
+        // =================================================
 
         if (
             this.x <
@@ -475,6 +810,11 @@ const Coracao = {
 
         }
 
+
+        // =================================================
+        // DIREITA
+        // =================================================
+
         if (
             this.x >
             limiteDireito
@@ -485,6 +825,11 @@ const Coracao = {
 
         }
 
+
+        // =================================================
+        // CIMA
+        // =================================================
+
         if (
             this.y <
             limiteSuperior
@@ -494,6 +839,11 @@ const Coracao = {
                 limiteSuperior;
 
         }
+
+
+        // =================================================
+        // BAIXO
+        // =================================================
 
         if (
             this.y >
@@ -507,20 +857,26 @@ const Coracao = {
 
     },
 
+
     // =====================================================
     // VISUAL
     // =====================================================
 
     atualizarVisual() {
 
-        if (!this.elemento)
+        if (
+            !this.elemento
+        )
             return;
+
 
         this.elemento.style.left =
             this.x + "px";
 
+
         this.elemento.style.top =
             this.y + "px";
+
 
         this.elemento.style.display =
             this.ativo
@@ -528,6 +884,7 @@ const Coracao = {
                 : "none";
 
     },
+
 
     // =====================================================
     // PARAR
@@ -539,10 +896,13 @@ const Coracao = {
             "CORAÇÃO PARADO"
         );
 
+
         this.ativo =
             false;
 
+
         this.limparTeclas();
+
 
         if (
             this.elemento
@@ -555,6 +915,7 @@ const Coracao = {
 
     },
 
+
     // =====================================================
     // REMOVER
     // =====================================================
@@ -564,7 +925,69 @@ const Coracao = {
         this.ativo =
             false;
 
+
         this.limparTeclas();
+
+
+        // =================================================
+        // REMOVER EVENTOS DO TECLADO
+        // =================================================
+
+        if (
+            this._keydownCoracao
+        ) {
+
+            window.removeEventListener(
+                "keydown",
+                this._keydownCoracao
+            );
+
+        }
+
+
+        if (
+            this._keyupCoracao
+        ) {
+
+            window.removeEventListener(
+                "keyup",
+                this._keyupCoracao
+            );
+
+        }
+
+
+        if (
+            this._blurCoracao
+        ) {
+
+            window.removeEventListener(
+                "blur",
+                this._blurCoracao
+            );
+
+        }
+
+
+        this._keydownCoracao =
+            null;
+
+
+        this._keyupCoracao =
+            null;
+
+
+        this._blurCoracao =
+            null;
+
+
+        this.tecladoIniciado =
+            false;
+
+
+        // =================================================
+        // REMOVER ELEMENTO
+        // =================================================
 
         if (
             this.elemento
@@ -572,12 +995,14 @@ const Coracao = {
 
             this.elemento.remove();
 
+
             this.elemento =
                 null;
 
         }
 
     },
+
 
     // =====================================================
     // DANO
@@ -592,10 +1017,12 @@ const Coracao = {
         )
             return;
 
+
         console.log(
             "CORAÇÃO RECEBEU DANO:",
             valor
         );
+
 
         if (
             typeof Batalha !==
@@ -609,6 +1036,7 @@ const Coracao = {
         }
 
     },
+
 
     // =====================================================
     // COLISÃO
@@ -626,29 +1054,41 @@ const Coracao = {
         )
             return false;
 
+
         const metade =
             this.tamanho / 2;
 
+
         const esquerda =
-            this.x - metade;
+            this.x -
+            metade;
+
 
         const direita =
-            this.x + metade;
+            this.x +
+            metade;
+
 
         const cima =
-            this.y - metade;
+            this.y -
+            metade;
+
 
         const baixo =
-            this.y + metade;
+            this.y +
+            metade;
+
 
         return (
 
-            direita > x &&
+            direita >
+            x &&
 
             esquerda <
                 x + largura &&
 
-            baixo > y &&
+            baixo >
+            y &&
 
             cima <
                 y + altura

@@ -48,6 +48,28 @@ const AtaqueMascara = {
 
     raioProximoTimeout: null,
 
+        // =====================================================
+        // VARIANTE DO RAIO
+        // =====================================================
+
+        varianteRaioAtiva: false,
+
+        chanceVarianteRaio: 0.5,
+
+        quantidadeRaiosVarianteMin: 2,
+
+        quantidadeRaiosVarianteMax: 3,
+
+        quantidadePartesVarianteRaio: 4,
+
+        intervaloRaiosVariante: 120,
+
+        duracaoRaiosVariante: 800,
+
+        varianteRaiosAtual: [],
+
+        varianteRaiosTimeout: null,
+
 
     // =====================================================
     // RITUAL
@@ -71,6 +93,44 @@ const AtaqueMascara = {
 
     elementoBola: null,
 
+    tempoPerseguicaoTimeout: null,
+
+
+    // =====================================================
+    // EXECUTAR RITUAL
+    // =====================================================
+
+    executarRitual() {
+
+        if (
+            !Batalha.ativa ||
+            Batalha.turno !== "mascara" ||
+            Batalha.estado !== "ESQUIVA"
+        ) {
+            this.finalizar();
+            return;
+        }
+
+        this.tipoAtual = "RITUAL";
+
+        console.log("RITUAL DA MÁSCARA");
+
+        setTimeout(() => {
+
+            if (
+                !Batalha.ativa ||
+                Batalha.turno !== "mascara" ||
+                Batalha.estado !== "ESQUIVA"
+            ) {
+                this.finalizar();
+                return;
+            }
+
+            this.criarBola();
+
+        }, 1000);
+
+    },
 
     // =====================================================
     // ARMA
@@ -429,811 +489,1003 @@ const AtaqueMascara = {
 
     },
 
+// =====================================================
+// ESCOLHER ATAQUE
+// =====================================================
+
+escolherAtaque() {
+
+    if (
+        !Batalha.ativa ||
+        Batalha.turno !== "mascara" ||
+        Batalha.estado !== "ESQUIVA" ||
+        this.ativo ||
+        this.golpeFinalAtivo
+    )
+        return;
+
+
+    const normais = [
+        "RAIO",
+        "RITUAL",
+        "ARMA",
+        "CORTES",
+        "CORTES_DIAGONAIS",
+        "CORTES_FOGO"
+    ];
+
+
+    const variantes = [
+        "PILARES_FOGO",
+        "RAIOS_E_CORTE",
+        "CORTE_CAIXA",
+        "CORTES_VARIAVEIS",
+        "CORRENTES_DESTINO",
+        "ARCO_FOGO",
+        "ESPADAS_SANGUE",
+        "CONJUNTO_ESPADAS",
+        "TRIDENTE_SANGUE",
+        "RETROCESSO"
+    ];
+
+
+    // =====================================================
+    // FILA DE VARIANTES
+    // =====================================================
+
+    // Depois de dois turnos, as variantes passam a aparecer
+    // de forma garantida e embaralhada.
+
+    if (
+        this.turnosMascaraConcluidos >= 2 &&
+        !this.filaVariantes.length
+    ) {
+
+        this.filaVariantes =
+            [...variantes]
+                .sort(
+                    () =>
+                        Math.random() - 0.5
+                );
+
+    }
+
+
+    // =====================================================
+    // TROCA
+    // =====================================================
+
+    // Abaixo de 1500 HP, a TROCA substitui
+    // a seleção normal/variante.
+
+    if (
+        Batalha.mascara.hp > 0 &&
+        Batalha.mascara.hp <= 1500 &&
+        !this.trocaAtaqueAtivo
+    ) {
+
+        this.executarEstalosCaixa();
+
+        return;
+
+    }
+
 
     // =====================================================
     // ESCOLHER ATAQUE
     // =====================================================
 
-    escolherAtaque() {
-        if (!Batalha.ativa || Batalha.turno !== "mascara" || Batalha.estado !== "ESQUIVA" || this.ativo || this.golpeFinalAtivo) return;
+    let escolhido;
 
-        const normais = ["RAIO","RITUAL","ARMA","CORTES","CORTES_DIAGONAIS","CORTES_FOGO"];
-        const variantes = [
-            "PILARES_FOGO","RAIOS_E_CORTE","CORTE_CAIXA","CORTES_VARIAVEIS",
-            "CORRENTES_DESTINO","ARCO_FOGO","ESPADAS_SANGUE","CONJUNTO_ESPADAS",
-            "TRIDENTE_SANGUE","RETROCESSO"
-        ];
 
-        // Depois de dois turnos, as variantes passam a aparecer de forma garantida
-        // e embaralhada, para que todas sejam vistas durante uma batalha longa.
-        if (this.turnosMascaraConcluidos >= 2 && !this.filaVariantes.length) {
-            this.filaVariantes = [...variantes].sort(() => Math.random() - 0.5);
-        }
+    if (
+        this.turnosMascaraConcluidos >= 2 &&
+        this.filaVariantes.length
+    ) {
 
-        // Abaixo de 1500 HP, a TROCA substitui a seleção normal/variante.
-        if (Batalha.mascara.hp > 0 && Batalha.mascara.hp <= 1500 && !this.trocaAtaqueAtivo) {
-            this.executarEstalosCaixa();
-            return;
-        }
+        // Depois do 2º turno:
+        // variante → ataque normal → variante → ataque normal...
 
-        let escolhido;
-        if (this.turnosMascaraConcluidos >= 2 && this.filaVariantes.length) {
-            // Depois do 2º turno, as variantes NÃO ficam dependentes de sorte:
-            // uma variante aparece e, entre variantes, há um ataque normal.
-            // Assim o jogador consegue realmente conhecer as novas mecânicas.
-            if (this.ultimoFoiNormal === false) {
-                escolhido = normais[Math.floor(Math.random() * normais.length)];
-                this.ultimoFoiNormal = true;
-            } else {
-                escolhido = this.filaVariantes.shift();
-                this.ultimoFoiNormal = false;
-            }
-        } else {
-            escolhido = normais[Math.floor(Math.random() * normais.length)];
+        if (
+            this.ultimoFoiNormal === false
+        ) {
+
+            escolhido =
+                normais[
+                    Math.floor(
+                        Math.random() *
+                        normais.length
+                    )
+                ];
+
             this.ultimoFoiNormal = true;
+
         }
+        else {
 
-        console.log("⚔️ ATAQUE ESCOLHIDO:", escolhido, "| turnos:", this.turnosMascaraConcluidos);
+            escolhido =
+                this.filaVariantes.shift();
 
-        const mapa = {
-            RAIO: () => this.executarRaio(), RITUAL: () => this.executarRitual(), ARMA: () => this.executarArma(),
-            CORTES: () => this.executarCortes(), CORTES_DIAGONAIS: () => this.executarCortesDiagonais(), CORTES_FOGO: () => this.executarCortesFogo(),
-            PILARES_FOGO: () => this.executarPilaresFogo(), RAIOS_E_CORTE: () => this.executarRaiosECorte(),
-            CORTE_CAIXA: () => this.executarCorteCaixa(), CORTES_VARIAVEIS: () => this.executarCortesVariaveis(),
-            CORRENTES_DESTINO: () => this.executarCorrentesDestino(), ARCO_FOGO: () => this.executarArcoFogo(),
-            ESPADAS_SANGUE: () => this.executarEspadasSangue(), CONJUNTO_ESPADAS: () => this.executarConjuntoEspadas(),
-            TRIDENTE_SANGUE: () => this.executarTridenteSangue(), RETROCESSO: () => this.executarRetrocesso()
-        };
-        mapa[escolhido]?.();
-    },
-
-    // =====================================================
-    // ATAQUE DE RAIO
-    // =====================================================
-
-    executarRaio() {
-
-        if (this.ativo)
-            return;
-
-        if (!Batalha.ativa)
-            return;
-
-        if (
-            Batalha.turno !==
-            "mascara"
-        )
-            return;
-
-        if (
-            Batalha.estado !==
-            "ESQUIVA"
-        )
-            return;
-
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa) {
-
-            console.error(
-                "caixaEsquiva não encontrada"
-            );
-
-            return;
+            this.ultimoFoiNormal = false;
 
         }
 
+    }
+    else {
 
-        this.ativo = true;
-
-        this.tipoAtual = "RAIO";
-
-        this.finalizando = false;
-
-        this.raioAtivo = true;
-
-        this.etapaRaio = 0;
-
-
-        // Bruno (Máscara) teleporta para cima da caixa
-        // e permanece nessa posição durante os trovões.
-        if (
-            typeof BatalhaRender !==
-            "undefined" &&
-            typeof BatalhaRender.iniciarTeleporteTrovao ===
-            "function"
-        ) {
-
-            BatalhaRender.iniciarTeleporteTrovao();
-
-        }
-
-
-        this.ordemRaios = [
-
-            0,
-            1,
-            2,
-            3
-
-        ];
-
-
-        this.ordemRaios.sort(
-            () =>
-                Math.random() - 0.5
-        );
-
-
-        console.log(
-            "⚡ ORDEM DOS RAIOS:",
-            this.ordemRaios
-        );
-
-
-        this.executarProximoRaio();
-
-    },
-
-
-    // =====================================================
-    // PRÓXIMO RAIO
-    // =====================================================
-
-    executarProximoRaio() {
-
-        if (!this.raioAtivo)
-            return;
-
-
-        if (
-            !Batalha.ativa ||
-            Batalha.turno !== "mascara" ||
-            Batalha.estado !== "ESQUIVA"
-        ) {
-
-            this.finalizarRaio();
-
-            return;
-
-        }
-
-
-        if (
-            this.etapaRaio >=
-            this.ordemRaios.length
-        ) {
-
-            this.finalizarRaio();
-
-            return;
-
-        }
-
-
-        const parte =
-            this.ordemRaios[
-                this.etapaRaio
+        escolhido =
+            normais[
+                Math.floor(
+                    Math.random() *
+                    normais.length
+                )
             ];
 
+        this.ultimoFoiNormal = true;
 
-        this.parteRaioAtual =
-            parte;
+    }
 
+
+    console.log(
+        "⚔️ ATAQUE ESCOLHIDO:",
+        escolhido,
+        "| turnos:",
+        this.turnosMascaraConcluidos
+    );
+
+
+    // =====================================================
+    // MAPA DOS ATAQUES
+    // =====================================================
+
+    const mapa = {
+
+        // =================================================
+        // RAIO
+        // =================================================
+
+        RAIO: () => {
+
+            // 50% = raio normal
+            // 50% = variante de 2 ou 3 raios
+
+            if (
+                Math.random() < 0.5
+            ) {
+
+                this.executarRaio();
+
+            }
+            else {
+
+                this.executarRaiosVariante();
+
+            }
+
+        },
+
+
+        // =================================================
+        // ATAQUES NORMAIS
+        // =================================================
+
+        RITUAL: () =>
+            this.executarRitual(),
+
+
+        ARMA: () =>
+            this.executarArma(),
+
+
+        CORTES: () =>
+            this.executarCortes(),
+
+
+        CORTES_DIAGONAIS: () =>
+            this.executarCortesDiagonais(),
+
+
+        CORTES_FOGO: () =>
+            this.executarCortesFogo(),
+
+
+        // =================================================
+        // VARIANTES
+        // =================================================
+
+        PILARES_FOGO: () =>
+            this.executarPilaresFogo(),
+
+
+        RAIOS_E_CORTE: () =>
+            this.executarRaiosECorte(),
+
+
+        CORTE_CAIXA: () =>
+            this.executarCorteCaixa(),
+
+
+        CORTES_VARIAVEIS: () =>
+            this.executarCortesVariaveis(),
+
+
+        CORRENTES_DESTINO: () =>
+            this.executarCorrentesDestino(),
+
+
+        ARCO_FOGO: () =>
+            this.executarArcoFogo(),
+
+
+        ESPADAS_SANGUE: () =>
+            this.executarEspadasSangue(),
+
+
+        CONJUNTO_ESPADAS: () =>
+            this.executarConjuntoEspadas(),
+
+
+        TRIDENTE_SANGUE: () =>
+            this.executarTridenteSangue(),
+
+
+        RETROCESSO: () =>
+            this.executarRetrocesso()
+
+    };
+
+
+    // =====================================================
+    // EXECUTAR ATAQUE ESCOLHIDO
+    // =====================================================
+
+    mapa[
+        escolhido
+    ]?.();
+
+},
+
+// =====================================================
+// ATAQUE DE RAIO
+// =====================================================
+
+executarRaio() {
+
+    if (this.ativo)
+        return;
+
+    if (!Batalha.ativa)
+        return;
+
+    if (
+        Batalha.turno !==
+        "mascara"
+    )
+        return;
+
+    if (
+        Batalha.estado !==
+        "ESQUIVA"
+    )
+        return;
+
+    const caixa =
+        document.getElementById(
+            "caixaEsquiva"
+        );
+
+    if (!caixa) {
+
+        console.error(
+            "caixaEsquiva não encontrada"
+        );
+
+        return;
+
+    }
+
+    // =================================================
+    // 50% RAIO NORMAL / 50% VARIANTE
+    // =================================================
+
+    if (Math.random() < 0.5) {
 
         console.log(
-            "⚡ RAIO NA PARTE:",
-            parte + 1
+            "⚡ RAIO NORMAL ESCOLHIDO"
+        );
+
+        this.executarRaioNormal();
+
+    } else {
+
+        console.log(
+            "⚡ VARIANTE DO RAIO ESCOLHIDA"
+        );
+
+        this.executarVarianteRaios();
+
+    }
+
+},
+
+
+// =====================================================
+// RAIO NORMAL
+// =====================================================
+
+executarRaioNormal() {
+
+    if (!Batalha.ativa)
+        return;
+
+    const caixa =
+        document.getElementById(
+            "caixaEsquiva"
+        );
+
+    if (!caixa)
+        return;
+
+    this.ativo = true;
+
+    this.tipoAtual = "RAIO";
+
+    this.finalizando = false;
+
+    this.raioAtivo = true;
+
+    this.etapaRaio = 0;
+
+
+    // Bruno teleporta para cima da caixa
+    if (
+        typeof BatalhaRender !==
+        "undefined" &&
+        typeof BatalhaRender.iniciarTeleporteTrovao ===
+        "function"
+    ) {
+
+        BatalhaRender.iniciarTeleporteTrovao();
+
+    }
+
+
+    // =================================================
+    // ORDEM NORMAL DOS 4 RAIOS
+    // =================================================
+
+    this.ordemRaios = [
+
+        0,
+        1,
+        2,
+        3
+
+    ];
+
+
+    this.ordemRaios.sort(
+        () =>
+            Math.random() - 0.5
+    );
+
+
+    console.log(
+        "⚡ ORDEM DOS RAIOS:",
+        this.ordemRaios
+    );
+
+
+    this.executarProximoRaio();
+
+},
+
+
+// =====================================================
+// VARIANTE DOS RAIOS
+// 2 OU 3 RAIOS AO MESMO TEMPO
+// SEMPRE DEIXANDO PELO MENOS 1 ESPAÇO LIVRE
+// =====================================================
+
+executarVarianteRaios() {
+
+    if (!Batalha.ativa)
+        return;
+
+    const caixa =
+        document.getElementById(
+            "caixaEsquiva"
+        );
+
+    if (!caixa)
+        return;
+
+
+    this.ativo = true;
+
+    this.tipoAtual =
+        "VARIANTE_RAIOS";
+
+    this.finalizando = false;
+
+
+    // Bruno teleporta para cima da caixa
+    if (
+        typeof BatalhaRender !==
+        "undefined" &&
+        typeof BatalhaRender.iniciarTeleporteTrovao ===
+        "function"
+    ) {
+
+        BatalhaRender.iniciarTeleporteTrovao();
+
+    }
+
+
+    // =================================================
+    // ESCOLHE ALEATORIAMENTE 2 OU 3 RAIOS
+    // =================================================
+
+    const quantidade =
+        Math.random() < 0.5
+            ? 2
+            : 3;
+
+
+    // =================================================
+    // CRIA AS 4 POSIÇÕES
+    // =================================================
+
+    const partes = [
+        0,
+        1,
+        2,
+        3
+    ];
+
+
+    // Embaralha
+    partes.sort(
+        () =>
+            Math.random() - 0.5
+    );
+
+
+    // Pega somente 2 ou 3 posições
+    const partesEscolhidas =
+        partes.slice(
+            0,
+            quantidade
         );
 
 
-        this.criarAvisoRaio(
-            parte
-        );
+    partesEscolhidas.sort(
+        (a, b) => a - b
+    );
 
 
-        this.raioTimeout =
-            setTimeout(
-                () => {
+    console.log(
+        "⚡ VARIANTE:",
+        quantidade,
+        "RAIOS",
+        "POSIÇÕES:",
+        partesEscolhidas
+    );
 
-                    this.raioTimeout =
-                        null;
 
+    // =================================================
+    // MOSTRA OS AVISOS AO MESMO TEMPO
+    // =================================================
 
-                    if (
-                        !this.raioAtivo
-                    )
-                        return;
+    this.removerAvisoRaio();
 
 
-                    this.removerAvisoRaio();
+    const larguraParte =
+        caixa.clientWidth /
+        this.quantidadePartesRaio;
 
 
-                    this.criarRaio(
-                        parte
-                    );
+    partesEscolhidas.forEach(
+        parte => {
 
-                },
-                this.raioAvisoTempo
-            );
+            const centroX =
+                (larguraParte * parte) +
+                (larguraParte / 2);
 
-    },
 
-
-    // =====================================================
-    // AVISO DO RAIO
-    // =====================================================
-
-    criarAvisoRaio(parte) {
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa)
-            return;
-
-
-        this.removerAvisoRaio();
-
-
-        const larguraParte =
-            caixa.clientWidth /
-            this.quantidadePartesRaio;
-
-
-        const centroX =
-            (
-                larguraParte *
-                parte
-            ) +
-            (
-                larguraParte /
-                2
-            );
-
-
-        const aviso =
-            document.createElement(
-                "div"
-            );
-
-
-        aviso.textContent = "!";
-
-
-        aviso.style.position =
-            "absolute";
-
-
-        aviso.style.left =
-            (
-                centroX -
-                35
-            ) + "px";
-
-
-        aviso.style.top =
-            (
-                caixa.clientHeight /
-                2 -
-                55
-            ) + "px";
-
-
-        aviso.style.width = "70px";
-
-        aviso.style.height = "90px";
-
-        aviso.style.fontSize = "90px";
-
-        aviso.style.lineHeight = "90px";
-
-        aviso.style.textAlign = "center";
-
-        aviso.style.fontWeight = "900";
-
-        aviso.style.fontFamily =
-            "Arial, sans-serif";
-
-        aviso.style.color = "red";
-
-
-        aviso.style.textShadow =
-            "0 0 5px black," +
-            "0 0 12px red," +
-            "0 0 25px red";
-
-
-        aviso.style.zIndex = "300";
-
-        aviso.style.pointerEvents =
-            "none";
-
-
-        aviso.animate(
-            [
-
-                {
-                    transform:
-                        "scale(0.6)",
-
-                    opacity:
-                        "0"
-                },
-
-                {
-                    transform:
-                        "scale(1.25)",
-
-                    opacity:
-                        "1"
-                },
-
-                {
-                    transform:
-                        "scale(1)",
-
-                    opacity:
-                        "1"
-                }
-
-            ],
-            {
-
-                duration:
-                    this.raioAvisoTempo,
-
-                easing:
-                    "ease-out"
-
-            }
-        );
-
-
-        caixa.appendChild(
-            aviso
-        );
-
-
-        this.indicadorRaio =
-            aviso;
-
-    },
-
-
-    // =====================================================
-    // REMOVER AVISO RAIO
-    // =====================================================
-
-    removerAvisoRaio() {
-
-        if (this.indicadorRaio) {
-
-            this.indicadorRaio.remove();
-
-        }
-
-
-        this.indicadorRaio = null;
-
-    },
-
-
-    // =====================================================
-    // CRIAR RAIO
-    // =====================================================
-
-    criarRaio(parte) {
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa) {
-
-            this.finalizarRaio();
-
-            return;
-
-        }
-
-
-        const larguraParte =
-            caixa.clientWidth /
-            this.quantidadePartesRaio;
-
-
-        const x =
-            larguraParte *
-            parte;
-
-
-        const raio =
-            document.createElement(
-                "img"
-            );
-
-
-        raio.src =
-            this.raioGif;
-
-
-        raio.style.position =
-            "absolute";
-
-
-        raio.style.left =
-            x + "px";
-
-
-        raio.style.top =
-            "0px";
-
-
-        raio.style.width =
-            larguraParte + "px";
-
-
-        raio.style.height =
-            caixa.clientHeight + "px";
-
-
-        raio.style.objectFit =
-            "fill";
-
-
-        raio.style.zIndex =
-            "280";
-
-
-        raio.style.pointerEvents =
-            "none";
-
-
-        raio.style.userSelect =
-            "none";
-
-
-        raio.style.opacity = "0";
-
-
-        raio.style.transform =
-            "scale(0.8)";
-
-
-        raio.style.transition =
-            "opacity .08s ease," +
-            "transform .08s ease";
-
-
-        caixa.appendChild(
-            raio
-        );
-
-
-        requestAnimationFrame(
-            () => {
-
-                raio.style.opacity =
-                    "1";
-
-                raio.style.transform =
-                    "scale(1)";
-
-            }
-        );
-
-
-        this.elementoRaio =
-            raio;
-
-
-        this.tocarSomRaio();
-
-
-        this.verificarDanoRaio(
-            parte
-        );
-
-
-        this.raioTimeout =
-            setTimeout(
-                () => {
-
-                    this.removerRaio();
-
-
-                    this.etapaRaio++;
-
-
-                    this.raioProximoTimeout =
-                        setTimeout(
-                            () => {
-
-                                this.raioProximoTimeout =
-                                    null;
-
-                                this.executarProximoRaio();
-
-                            },
-                            this.intervaloRaios
-                        );
-
-                },
-                this.raioDuracao
-            );
-
-    },
-
-
-    // =====================================================
-    // SOM RAIO
-    // =====================================================
-
-    tocarSomRaio() {
-
-        try {
-
-            const som =
-                new Audio(
-                    this.somRaio
+            const aviso =
+                document.createElement(
+                    "div"
                 );
 
 
-            som.volume = 1;
-
-            som.currentTime = 0;
+            aviso.textContent = "!";
 
 
-            som.play().catch(
-                erro => {
+            Object.assign(
+                aviso.style,
+                {
 
-                    console.warn(
-                        "Não foi possível tocar o som do raio:",
-                        erro
-                    );
+                    position:
+                        "absolute",
+
+                    left:
+                        `${centroX - 35}px`,
+
+                    top:
+                        `${caixa.clientHeight / 2 - 55}px`,
+
+                    width:
+                        "70px",
+
+                    height:
+                        "90px",
+
+                    fontSize:
+                        "90px",
+
+                    lineHeight:
+                        "90px",
+
+                    textAlign:
+                        "center",
+
+                    fontWeight:
+                        "900",
+
+                    fontFamily:
+                        "Arial, sans-serif",
+
+                    color:
+                        "red",
+
+                    textShadow:
+                        "0 0 5px black," +
+                        "0 0 12px red," +
+                        "0 0 25px red",
+
+                    zIndex:
+                        "300",
+
+                    pointerEvents:
+                        "none"
 
                 }
             );
 
-        }
-        catch (erro) {
 
-            console.error(
-                "Erro ao tocar som do raio:",
-                erro
-            );
+            aviso.animate(
+                [
 
-        }
+                    {
+                        transform:
+                            "scale(0.6)",
 
-    },
+                        opacity:
+                            "0"
+                    },
 
+                    {
+                        transform:
+                            "scale(1.25)",
 
-    // =====================================================
-    // DANO RAIO
-    // =====================================================
+                        opacity:
+                            "1"
+                    },
 
-    verificarDanoRaio(parte) {
+                    {
+                        transform:
+                            "scale(1)",
 
-        if (
-            typeof Coracao ===
-            "undefined"
-        )
-            return;
+                        opacity:
+                            "1"
+                    }
 
+                ],
+                {
 
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
+                    duration:
+                        this.raioAvisoTempo,
 
+                    easing:
+                        "ease-out"
 
-        if (!caixa)
-            return;
-
-
-        const larguraParte =
-            caixa.clientWidth /
-            this.quantidadePartesRaio;
-
-
-        const inicioX =
-            larguraParte *
-            parte;
-
-
-        const fimX =
-            inicioX +
-            larguraParte;
-
-
-        if (
-            Coracao.x >= inicioX &&
-            Coracao.x <= fimX
-        ) {
-
-            console.log(
-                "⚡ CORAÇÃO ATINGIDO PELO RAIO!"
+                }
             );
 
 
-            Coracao.receberDano(
-                this.rolarDanoMascara()
+            caixa.appendChild(
+                aviso
+            );
+
+
+            // Guarda os avisos para remover depois
+            if (
+                !this.indicadoresRaiosVariante
+            ) {
+
+                this.indicadoresRaiosVariante =
+                    [];
+
+            }
+
+
+            this.indicadoresRaiosVariante.push(
+                aviso
             );
 
         }
-
-    },
-
-
-    // =====================================================
-    // REMOVER RAIO
-    // =====================================================
-
-    removerRaio() {
-
-        if (this.elementoRaio) {
-
-            this.elementoRaio.remove();
-
-        }
+    );
 
 
-        this.elementoRaio = null;
+    // =================================================
+    // ESPERA O AVISO
+    // =================================================
 
-    },
-
-
-    // =====================================================
-    // FINALIZAR RAIO
-    // =====================================================
-
-    finalizarRaio() {
-
-        if (this.finalizando)
-            return;
-
-
-        this.finalizando = true;
-
-
-        this.raioAtivo = false;
-
-
-        this.removerAvisoRaio();
-
-        this.removerRaio();
-
-
-        if (this.raioTimeout) {
-
-            clearTimeout(
-                this.raioTimeout
-            );
-
-        }
-
-        this.raioTimeout = null;
-
-
-        if (this.raioProximoTimeout) {
-
-            clearTimeout(
-                this.raioProximoTimeout
-            );
-
-        }
-
-        this.raioProximoTimeout = null;
-
-
-        this.etapaRaio = 0;
-
-        this.ordemRaios = [];
-
-        this.parteRaioAtual = null;
-
-
-        this.ativo = false;
-
-        this.tipoAtual = null;
-
-        this.finalizando = false;
-
-
-        // Bruno volta à posição normal depois do último trovão.
-        if (
-            typeof BatalhaRender !==
-            "undefined" &&
-            typeof BatalhaRender.finalizarTeleporteTrovao ===
-            "function"
-        ) {
-
-            BatalhaRender.finalizarTeleporteTrovao();
-
-        }
-
-
-        console.log(
-            "⚡ ATAQUE DE RAIOS TERMINOU"
-        );
-
-
-        this.finalizarTurno();
-
-    },
-
-
-    // =====================================================
-    // RITUAL
-    // =====================================================
-
-    executarRitual() {
-
-        if (this.ativo)
-            return;
-
-        if (!Batalha.ativa)
-            return;
-
-        if (
-            Batalha.turno !==
-            "mascara"
-        )
-            return;
-
-        if (
-            Batalha.estado !==
-            "ESQUIVA"
-        )
-            return;
-
-
-        this.ativo = true;
-
-        this.tipoAtual = "RITUAL";
-
-        this.finalizando = false;
-
-
-        console.log(
-            "MÁSCARA USOU RITUAL"
-        );
-
-
+    this.raioVarianteTimeout =
         setTimeout(
             () => {
 
+                this.raioVarianteTimeout =
+                    null;
+
+
                 if (
-                    !Batalha.ativa ||
-                    Batalha.turno !== "mascara" ||
-                    Batalha.estado !== "ESQUIVA"
+                    !this.ativo ||
+                    !Batalha.ativa
+                )
+                    return;
+
+
+                // Remove os avisos
+                this.removerAvisosRaiosVariante();
+
+
+                // Cria TODOS os raios ao mesmo tempo
+                this.criarRaiosSimultaneos(
+                    partesEscolhidas
+                );
+
+
+            },
+            this.raioAvisoTempo
+        );
+
+},
+
+
+// =====================================================
+// CRIAR RAIOS SIMULTÂNEOS
+// =====================================================
+
+criarRaiosSimultaneos(
+    partes
+) {
+
+    if (
+        !Batalha.ativa ||
+        !this.ativo
+    )
+        return;
+
+
+    const caixa =
+        document.getElementById(
+            "caixaEsquiva"
+        );
+
+
+    if (!caixa) {
+
+        this.finalizarVarianteRaios();
+
+        return;
+
+    }
+
+
+    const larguraParte =
+        caixa.clientWidth /
+        this.quantidadePartesRaio;
+
+
+    const raiosCriados = [];
+
+
+    // =================================================
+    // CRIA TODOS OS RAIOS
+    // =================================================
+
+    partes.forEach(
+        parte => {
+
+            const raio =
+                document.createElement(
+                    "img"
+                );
+
+
+            raio.src =
+                this.raioGif;
+
+
+            Object.assign(
+                raio.style,
+                {
+
+                    position:
+                        "absolute",
+
+                    left:
+                        `${larguraParte * parte}px`,
+
+                    top:
+                        "0px",
+
+                    width:
+                        `${larguraParte}px`,
+
+                    height:
+                        `${caixa.clientHeight}px`,
+
+                    objectFit:
+                        "fill",
+
+                    zIndex:
+                        "280",
+
+                    pointerEvents:
+                        "none",
+
+                    userSelect:
+                        "none",
+
+                    opacity:
+                        "0",
+
+                    transform:
+                        "scale(0.8)",
+
+                    transition:
+                        "opacity .08s ease," +
+                        "transform .08s ease"
+
+                }
+            );
+
+
+            caixa.appendChild(
+                raio
+            );
+
+
+            raiosCriados.push(
+                {
+                    elemento: raio,
+                    parte: parte
+                }
+            );
+
+        }
+    );
+
+
+    // =================================================
+    // APARECEM JUNTOS
+    // =================================================
+
+    requestAnimationFrame(
+        () => {
+
+            raiosCriados.forEach(
+                item => {
+
+                    item.elemento.style.opacity =
+                        "1";
+
+                    item.elemento.style.transform =
+                        "scale(1)";
+
+                }
+            );
+
+        }
+    );
+
+
+    // =================================================
+    // SOM
+    // =================================================
+
+    this.tocarSomRaio();
+
+
+    // =================================================
+    // DANO DE CADA RAIO
+    // =================================================
+
+    raiosCriados.forEach(
+        item => {
+
+            this.verificarDanoRaio(
+                item.parte
+            );
+
+        }
+    );
+
+
+    // =================================================
+    // GUARDA OS RAIOS
+    // =================================================
+
+    this.raiosVariante =
+        raiosCriados;
+
+
+    // =================================================
+    // DURAÇÃO DOS RAIOS
+    // =================================================
+
+    this.raioVarianteDuracaoTimeout =
+        setTimeout(
+            () => {
+
+                this.raioVarianteDuracaoTimeout =
+                    null;
+
+
+                raiosCriados.forEach(
+                    item => {
+
+                        if (
+                            item.elemento
+                        ) {
+
+                            item.elemento.remove();
+
+                        }
+
+                    }
+                );
+
+
+                this.raiosVariante =
+                    [];
+
+
+                this.finalizarVarianteRaios();
+
+
+            },
+            this.raioDuracao
+        );
+
+},
+
+
+// =====================================================
+// REMOVER AVISOS DA VARIANTE
+// =====================================================
+
+removerAvisosRaiosVariante() {
+
+    if (
+        this.indicadoresRaiosVariante
+    ) {
+
+        this.indicadoresRaiosVariante.forEach(
+            aviso => {
+
+                if (aviso)
+                    aviso.remove();
+
+            }
+        );
+
+    }
+
+
+    this.indicadoresRaiosVariante =
+        [];
+
+},
+
+
+// =====================================================
+// FINALIZAR VARIANTE
+// =====================================================
+
+finalizarVarianteRaios() {
+
+    if (
+        this.raioVarianteTimeout
+    ) {
+
+        clearTimeout(
+            this.raioVarianteTimeout
+        );
+
+        this.raioVarianteTimeout =
+            null;
+
+    }
+
+
+    if (
+        this.raioVarianteDuracaoTimeout
+    ) {
+
+        clearTimeout(
+            this.raioVarianteDuracaoTimeout
+        );
+
+        this.raioVarianteDuracaoTimeout =
+            null;
+
+    }
+
+
+    this.removerAvisosRaiosVariante();
+
+
+    if (
+        this.raiosVariante
+    ) {
+
+        this.raiosVariante.forEach(
+            item => {
+
+                if (
+                    item &&
+                    item.elemento
                 ) {
 
-                    this.finalizar();
-
-                    return;
+                    item.elemento.remove();
 
                 }
 
-
-                this.criarBola();
-
-            },
-            500
+            }
         );
 
-    },
+    }
+
+
+    this.raiosVariante =
+        [];
+
+
+    this.ativo =
+        false;
+
+    this.tipoAtual =
+        null;
+
+    this.finalizando =
+        false;
+
+
+    // Bruno volta
+    if (
+        typeof BatalhaRender !==
+        "undefined" &&
+        typeof BatalhaRender.finalizarTeleporteTrovao ===
+        "function"
+    ) {
+
+        BatalhaRender.finalizarTeleporteTrovao();
+
+    }
+
+
+    console.log(
+        "⚡ VARIANTE DE RAIOS TERMINOU"
+    );
+
+
+    this.finalizarTurno();
+
+},
 
 
     // =====================================================
