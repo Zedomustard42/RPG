@@ -2007,6 +2007,7 @@ const Batalha = {
         const alvos = [
 
             "ash",
+            "spike",
             "manel"
 
         ].filter(

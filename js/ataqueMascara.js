@@ -437,7 +437,7 @@ const AtaqueMascara = {
     escolherAtaque() {
         if (!Batalha.ativa || Batalha.turno !== "mascara" || Batalha.estado !== "ESQUIVA" || this.ativo || this.golpeFinalAtivo) return;
 
-        const normais = ["RAIO","RITUAL","ARMA","CORTES","CORTES_DIAGONAIS"];
+        const normais = ["RAIO","RITUAL","ARMA","CORTES","CORTES_DIAGONAIS","CORTES_FOGO"];
         const variantes = [
             "PILARES_FOGO","RAIOS_E_CORTE","CORTE_CAIXA","CORTES_VARIAVEIS",
             "CORRENTES_DESTINO","ARCO_FOGO","ESPADAS_SANGUE","CONJUNTO_ESPADAS",
@@ -477,7 +477,7 @@ const AtaqueMascara = {
 
         const mapa = {
             RAIO: () => this.executarRaio(), RITUAL: () => this.executarRitual(), ARMA: () => this.executarArma(),
-            CORTES: () => this.executarCortes(), CORTES_DIAGONAIS: () => this.executarCortesDiagonais(),
+            CORTES: () => this.executarCortes(), CORTES_DIAGONAIS: () => this.executarCortesDiagonais(), CORTES_FOGO: () => this.executarCortesFogo(),
             PILARES_FOGO: () => this.executarPilaresFogo(), RAIOS_E_CORTE: () => this.executarRaiosECorte(),
             CORTE_CAIXA: () => this.executarCorteCaixa(), CORTES_VARIAVEIS: () => this.executarCortesVariaveis(),
             CORRENTES_DESTINO: () => this.executarCorrentesDestino(), ARCO_FOGO: () => this.executarArcoFogo(),
@@ -4064,89 +4064,250 @@ const AtaqueMascara = {
         const W = caixa.clientWidth;
         const H = caixa.clientHeight;
         const blocos = [];
+        const fireSrc = "assets/imagens/fogo.png";
 
-        // Um corredor seguro pequeno. Os pilares ocupam os outros espaços.
-        const vertical = Math.max(36, Math.min(54, W * 0.18));
-        const horizontal = Math.max(36, Math.min(54, H * 0.18));
-        const gapX = Math.floor(W * 0.58);
-        const gapY = Math.floor(H * 0.48);
-
-        const criarPilar = (x, y, w, h, extra = false) => {
-            const el = document.createElement("div");
-            el.className = "mascara-pilar-fogo";
+        const adicionarBloco = (x, y, w, h) => {
+            if (w <= 0 || h <= 0) return;
+            const el = document.createElement("img");
+            el.src = fireSrc;
             Object.assign(el.style, {
                 position: "absolute",
-                left: `${x}px`,
-                top: `${y}px`,
-                width: `${w}px`,
-                height: `${h}px`,
-                backgroundImage: "url('assets/imagens/fogo.png')",
-                backgroundSize: "cover",
-                backgroundRepeat: "repeat",
-                zIndex: "850",
-                pointerEvents: "none",
-                filter: "drop-shadow(0 0 8px #ff5a00)"
+                left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px`,
+                objectFit: "cover", backgroundRepeat: "repeat",
+                zIndex: "850", pointerEvents: "none",
+                filter: "drop-shadow(0 0 8px rgba(255,90,0,.85))"
             });
             caixa.appendChild(el);
-            blocos.push({el, x, y, w, h, extra});
+            blocos.push({ el, x, y, w, h });
         };
 
-        // Pilar lateral com um único corredor vertical.
-        criarPilar(0, 0, vertical, Math.max(0, gapY - horizontal / 2));
-        criarPilar(0, gapY + horizontal / 2, vertical, Math.max(0, H - (gapY + horizontal / 2)));
+        // Padrão inicial: duas paredes de fogo deixando um corredor pequeno no meio.
+        const corredor = Math.max(44, Math.min(64, W * 0.22));
+        const margem = Math.max(26, Math.min(42, H * 0.18));
+        const centroX = W / 2;
+        const centroY = H / 2;
 
-        // Pilar superior/inferior deixa corredor horizontal.
-        criarPilar(vertical, 0, Math.max(0, W - vertical), Math.max(0, horizontal / 2));
-        criarPilar(vertical, H - horizontal / 2, Math.max(0, W - vertical), Math.max(0, horizontal / 2));
+        adicionarBloco(0, 0, centroX - corredor / 2, H);
+        adicionarBloco(centroX + corredor / 2, 0, W - (centroX + corredor / 2), H);
 
-        const hit = () => {
-            const heart = this.posicaoCoracao();
-            if (!heart) return;
+        // Abertura real no corredor: o coração precisa ficar dentro desta região.
+        const dano = () => {
+            const c = Coracao?.elemento?.getBoundingClientRect();
+            const r = caixa.getBoundingClientRect();
+            if (!c) return;
+            const cx = c.left + c.width / 2 - r.left;
+            const cy = c.top + c.height / 2 - r.top;
             for (const p of blocos) {
-                if (
-                    heart.x + heart.w * 0.72 > p.x &&
-                    heart.x + heart.w * 0.28 < p.x + p.w &&
-                    heart.y + heart.h * 0.72 > p.y &&
-                    heart.y + heart.h * 0.28 < p.y + p.h
-                ) {
-                    this.danoMascaraSeguro(this.rolarDanoMascara());
+                if (cx > p.x - c.width * 0.32 && cx < p.x + p.w + c.width * 0.32 &&
+                    cy > p.y - c.height * 0.32 && cy < p.y + p.h + c.height * 0.32) {
+                    this.danoMascaraSeguro();
                     break;
                 }
             }
         };
 
-        // Primeiro padrão simples; depois, a variante adiciona pilares cruzados.
-        setTimeout(hit, 500);
+        const vigiar = setInterval(() => {
+            if (!this.ativo || !Batalha.ativa || !caixa.isConnected) {
+                clearInterval(vigiar);
+                return;
+            }
+            dano();
+        }, 45);
+
+        // Variante: um pilar horizontal aparece ao mesmo tempo, apertando o espaço.
         setTimeout(() => {
             if (!this.ativo || !Batalha.ativa) return;
 
-            const cruz = Math.random() < 0.65;
-            if (cruz) {
-                const e1 = document.createElement("div");
-                const e2 = document.createElement("div");
-                Object.assign(e1.style, {
-                    position:"absolute", left:`${W*0.45}px`, top:"0", width:`${W*0.16}px`, height:"100%",
-                    backgroundImage:"url('assets/imagens/fogo.png')", backgroundSize:"cover",
-                    zIndex:"850", pointerEvents:"none"
-                });
-                Object.assign(e2.style, {
-                    position:"absolute", left:"0", top:`${H*0.42}px`, width:"100%", height:`${H*0.16}`,
-                    backgroundImage:"url('assets/imagens/fogo.png')", backgroundSize:"cover",
-                    zIndex:"850", pointerEvents:"none"
-                });
-                caixa.append(e1,e2);
-                blocos.push(
-                    {el:e1,x:W*0.45,y:0,w:W*0.16,h:H},
-                    {el:e2,x:0,y:H*0.42,w:W,h:H*0.16}
-                );
+            const variante = Math.random() < 0.65;
+            if (variante) {
+                const aberturaY = centroY;
+                const faixa = Math.max(36, Math.min(52, H * 0.18));
+                adicionarBloco(0, 0, W, aberturaY - faixa / 2);
+                adicionarBloco(0, aberturaY + faixa / 2, W, H - (aberturaY + faixa / 2));
+            } else {
+                // Outra variação: pilar vertical cruzando a lateral oposta, sem áudio.
+                const faixa = Math.max(34, Math.min(48, W * 0.15));
+                const x = Math.random() < 0.5 ? W * 0.67 : W * 0.18;
+                adicionarBloco(x, 0, faixa, H);
+                // Abre um pequeno vão no meio da faixa para manter uma rota possível.
+                const gap = Math.max(44, Math.min(58, H * 0.22));
+                const cortes = blocos.splice(-1, 1)[0];
+                cortes.el.remove();
+                adicionarBloco(x, 0, faixa, centroY - gap / 2);
+                adicionarBloco(x, centroY + gap / 2, faixa, H - (centroY + gap / 2));
             }
-            hit();
-        }, 1050);
+            dano();
+        }, 750);
 
         setTimeout(() => {
+            clearInterval(vigiar);
             blocos.forEach(p => p.el?.remove());
+            this.ativo = false;
+            this.tipoAtual = null;
             this.finalizarTurno();
-        }, 1800);
+        }, 2400);
+    },
+
+    // =====================================================
+    // CORTES DE FOGO
+    // Dois cortes apenas: um / e um \, depois ~10 fogos
+    // surgem nos pontos onde os golpes passaram.
+    // =====================================================
+
+    executarCortesFogo() {
+        if (this.ativo) return;
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.tipoAtual = "CORTES_FOGO";
+
+        // Entre 5 e 8 cortes, todos individuais.
+        const quantidadeCortes = 5 + Math.floor(Math.random() * 4);
+        const angulos = [];
+        const cortes = [];
+        let indice = 0;
+
+        const fazerCorte = () => {
+            if (!this.ativo || !Batalha.ativa) return;
+
+            if (indice >= quantidadeCortes) {
+                // Depois do último corte, surgem os fogos nos pontos
+                // das linhas que foram utilizadas.
+                setTimeout(() => {
+                    if (!this.ativo || !Batalha.ativa) return;
+                    this.explosaoFogoNosCortes(caixa, angulos);
+                }, 220);
+                return;
+            }
+
+            // Alterna entre as duas diagonais para que cada golpe seja
+            // visualmente uma única linha, nunca multiplicada.
+            const angulo = indice % 2 === 0 ? -45 : 45;
+            angulos.push(angulo);
+
+            // Usa a MESMA animação visual dos cortes normais.
+            const gif = document.createElement("img");
+            gif.src = "assets/imagens/batalha_imagens/bruno/cortar.gif";
+            Object.assign(gif.style, {
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                width: `${Math.hypot(caixa.clientWidth, caixa.clientHeight) * 1.5}px`,
+                height: `${Math.max(caixa.clientHeight, caixa.clientWidth) * 1.2}px`,
+                objectFit: "contain",
+                transform: `translate(-50%, -50%) rotate(${angulo}deg)`,
+                transformOrigin: "50% 50%",
+                zIndex: "960",
+                pointerEvents: "none"
+            });
+            caixa.appendChild(gif);
+            cortes.push(gif);
+
+            // Mesma hitbox matemática dos cortes normais.
+            this.criarCorteHitbox(caixa, angulo, 24, 520, true);
+
+            // Mesmo som dos cortes normais.
+            this.tocarAudio(
+                "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
+                0.9
+            );
+
+            // Cada corte termina antes do próximo começar.
+            setTimeout(() => {
+                gif.remove();
+                if (this.ativo && Batalha.ativa) fazerCorte();
+            }, 520);
+
+            indice++;
+        };
+
+        fazerCorte();
+    },
+
+    explosaoFogoNosCortes(caixa, angulos) {
+        const quantidade = 10;
+        const cx = caixa.clientWidth / 2;
+        const cy = caixa.clientHeight / 2;
+        const len = Math.hypot(caixa.clientWidth, caixa.clientHeight) * 0.68;
+        const particulas = [];
+
+        // As partículas nascem espalhadas ao longo das duas linhas de corte.
+        for (let i = 0; i < quantidade; i++) {
+            const angulo = angulos[i % angulos.length] * Math.PI / 180;
+            const t = -0.48 + Math.random() * 0.96;
+            const px = cx + Math.cos(angulo) * len * t;
+            const py = cy + Math.sin(angulo) * len * t;
+            const p = document.createElement("img");
+            p.src = "assets/imagens/fogo.png";
+
+            const a = Math.random() * Math.PI * 2;
+            const velocidade = 2.2 + Math.random() * 3.4;
+            const tamanho = 18 + Math.random() * 18;
+
+            Object.assign(p.style, {
+                position: "absolute",
+                left: `${px}px`, top: `${py}px`,
+                width: `${tamanho}px`, height: `${tamanho}px`,
+                objectFit: "contain",
+                zIndex: "910",
+                pointerEvents: "none",
+                filter: "drop-shadow(0 0 7px rgba(255,100,0,.9))"
+            });
+
+            caixa.appendChild(p);
+            particulas.push({ el: p, x: px, y: py, a, v: velocidade, vida: 0 });
+        }
+
+        // Durante a explosão, os próprios pontos de origem também têm hitbox leve.
+        const hit = () => {
+            const heart = Coracao?.elemento?.getBoundingClientRect();
+            const cr = caixa.getBoundingClientRect();
+            if (!heart) return;
+            const hx = heart.left + heart.width / 2 - cr.left;
+            const hy = heart.top + heart.height / 2 - cr.top;
+            for (const p of particulas) {
+                if (Math.hypot(hx - p.x, hy - p.y) <= Math.max(18, heart.width * 0.62)) {
+                    if (!p.hit) {
+                        p.hit = true;
+                        this.danoMascaraSeguro();
+                    }
+                    break;
+                }
+            }
+        };
+
+        const animar = () => {
+            if (!this.ativo) {
+                particulas.forEach(p => p.el.remove());
+                return;
+            }
+
+            let vivas = false;
+            for (const p of particulas) {
+                p.vida++;
+                if (p.vida < 42) vivas = true;
+                p.x += Math.cos(p.a) * p.v;
+                p.y += Math.sin(p.a) * p.v;
+                p.el.style.left = `${p.x}px`;
+                p.el.style.top = `${p.y}px`;
+                p.el.style.opacity = String(Math.max(0, 1 - p.vida / 42));
+                p.el.style.transform = `scale(${Math.max(0.18, 1 - p.vida / 55)}) rotate(${p.vida * 8}deg)`;
+            }
+            hit();
+
+            if (vivas) requestAnimationFrame(animar);
+            else {
+                particulas.forEach(p => p.el.remove());
+                if (this.ativo) {
+                    this.ativo = false;
+                    this.tipoAtual = null;
+                    this.finalizarTurno();
+                }
+            }
+        };
+
+        requestAnimationFrame(animar);
     },
 
     executarRaiosECorte() {
@@ -4424,6 +4585,7 @@ const AtaqueMascara = {
         this.ativo = true;
         this.trocaAtaqueAtivo = true;
         this.trocaAtaqueNumero = 0;
+        this.trocaAtaqueMaximo = 1 + Math.floor(Math.random() * 3); // 1 a 3 estalos
         this.tipoAtual = "ESTALOS";
 
         const original = {
@@ -4481,7 +4643,7 @@ const AtaqueMascara = {
                 return;
             }
 
-            if (this.trocaAtaqueNumero >= 5) {
+            if (this.trocaAtaqueNumero >= this.trocaAtaqueMaximo) {
                 caixa.style.left = original.left;
                 caixa.style.top = original.top;
                 caixa.style.transform = original.transform;
@@ -4514,12 +4676,12 @@ const AtaqueMascara = {
                 this.ativo = false;
                 ataques[escolhido]?.();
 
-                // O ataque fica efetivamente naquela posição por 6 segundos.
+                // O ataque fica efetivamente naquela posição por 3,5 segundos.
                 this.trocaAtaqueTimeout = setTimeout(() => {
                     this.trocaAtaqueTimeout = null;
                     this.removerAtaquesCortes();
                     proximaTroca();
-                }, 6000);
+                }, 3500);
             }, 450);
         };
 
