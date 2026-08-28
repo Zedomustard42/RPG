@@ -143,9 +143,9 @@ const Batalha = {
 
         nome: "MANEL",
 
-        hp: 190,
+        hp: 210,
 
-        hpMax: 190,
+        hpMax: 210,
 
         defesa: false,
 
@@ -1660,7 +1660,7 @@ const Batalha = {
 
             {
                 nome:
-                    "ESPADA SANGRENTA (35 PE)",
+                    "ESPADA SANGRENTA (45 PE)",
 
                 valor:
                     "espada"
@@ -1739,7 +1739,7 @@ const Batalha = {
         const custos = {
 
             espada:
-                35,
+                45,
 
             manancial:
                 30,
@@ -1785,8 +1785,8 @@ const Batalha = {
 
             const dano =
                 this.aleatorio(
-                    200,
-                    300
+                    170,
+                    220
                 );
 
 
@@ -2041,7 +2041,7 @@ const Batalha = {
 
             this.danoMascara(
                 this.aleatorio(
-                    20,
+                    30,
                     60
                 )
             );
@@ -2061,7 +2061,7 @@ const Batalha = {
 
             this.danoMascara(
                 this.aleatorio(
-                    6,
+                    90,
                     176
                 )
             );
@@ -2077,7 +2077,7 @@ const Batalha = {
             this.danoMascara(
                 this.aleatorio(
                     250,
-                    365
+                    380
                 )
             );
 
