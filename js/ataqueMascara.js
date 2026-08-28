@@ -621,9 +621,21 @@ escolherAtaque() {
         !this.trocaAtaqueAtivo
     ) {
 
-        this.executarEstalosCaixa();
+        AtaqueMascaraDois.iniciar();
 
         return;
+
+    }
+
+
+    // =====================================================
+    // RESET DA SEGUNDA FORMA
+    // =====================================================
+
+    if (typeof AtaqueMascaraDois !== "undefined" &&
+        typeof AtaqueMascaraDois.resetar === "function") {
+
+        AtaqueMascaraDois.resetar();
 
     }
 
@@ -5349,119 +5361,6 @@ finalizarVarianteRaios() {
         };
 
         proximo();
-    },
-
-
-    executarEstalosCaixa() {
-        if (this.ativo || this.trocaAtaqueAtivo) return;
-
-        const caixa = document.getElementById("caixaEsquiva");
-        if (!caixa) return;
-
-        this.ativo = true;
-        this.trocaAtaqueAtivo = true;
-        this.trocaAtaqueNumero = 0;
-        this.trocaAtaqueMaximo = 1 + Math.floor(Math.random() * 3); // 1 a 3 estalos
-        this.tipoAtual = "ESTALOS";
-
-        const original = {
-            left: caixa.style.left,
-            top: caixa.style.top,
-            transform: caixa.style.transform
-        };
-
-        const normais = [
-            "RAIO",
-            "RITUAL",
-            "ARMA",
-            "CORTES",
-            "CORTES_DIAGONAIS"
-        ];
-
-        const ataques = {
-            RAIO: () => this.executarRaio(),
-            RITUAL: () => this.executarRitual(),
-            ARMA: () => this.executarArma(),
-            CORTES: () => this.executarCortes(),
-            CORTES_DIAGONAIS: () => this.executarCortesDiagonais()
-        };
-
-        const telaPreta = () => {
-            let overlay = document.getElementById("mascaraTrocaOverlay");
-            if (!overlay) {
-                overlay = document.createElement("div");
-                overlay.id = "mascaraTrocaOverlay";
-                Object.assign(overlay.style, {
-                    position: "fixed",
-                    inset: "0",
-                    background: "#000",
-                    zIndex: "999999",
-                    pointerEvents: "none",
-                    opacity: "0"
-                });
-                document.body.appendChild(overlay);
-            }
-            overlay.style.opacity = "1";
-            this.trocaOverlay = overlay;
-        };
-
-        const voltarTela = () => {
-            const overlay = this.trocaOverlay;
-            if (!overlay) return;
-            overlay.style.opacity = "0";
-            setTimeout(() => overlay.remove(), 180);
-            this.trocaOverlay = null;
-        };
-
-        const proximaTroca = () => {
-            if (!Batalha.ativa) {
-                this.trocaAtaqueAtivo = false;
-                return;
-            }
-
-            if (this.trocaAtaqueNumero >= this.trocaAtaqueMaximo) {
-                caixa.style.left = original.left;
-                caixa.style.top = original.top;
-                caixa.style.transform = original.transform;
-                this.trocaAtaqueAtivo = false;
-                this.ativo = false;
-                voltarTela();
-                this.finalizarTurno();
-                return;
-            }
-
-            this.trocaAtaqueNumero++;
-            telaPreta();
-
-            this.tocarAudio(
-                "assets/audio/audio_batalha/bruno/mudanca.mp3",
-                0.85
-            );
-
-            caixa.style.transform =
-                `translate(${(Math.random() - 0.5) * Math.min(220, innerWidth * 0.28)}px, ` +
-                `${(Math.random() - 0.5) * Math.min(150, innerHeight * 0.20)}px)`;
-
-            const escolhido =
-                normais[Math.floor(Math.random() * normais.length)];
-
-            setTimeout(() => {
-                if (!this.trocaAtaqueAtivo) return;
-
-                voltarTela();
-                this.ativo = false;
-                ataques[escolhido]?.();
-
-                // O ataque fica efetivamente naquela posição por 3,5 segundos.
-                this.trocaAtaqueTimeout = setTimeout(() => {
-                    this.trocaAtaqueTimeout = null;
-                    this.removerAtaquesCortes();
-                    proximaTroca();
-                }, 3500);
-            }, 450);
-        };
-
-        proximaTroca();
     },
 
 
