@@ -301,6 +301,63 @@ const AtaqueMascara = {
         this.elementoRaio = null;
 
 
+        // Timeouts/elementos da VARIANTE do raio (2 ou 3 raios simultâneos).
+        if (this.raioVarianteTimeout) {
+
+            clearTimeout(
+                this.raioVarianteTimeout
+            );
+
+        }
+
+        this.raioVarianteTimeout = null;
+
+
+        if (this.raioVarianteDuracaoTimeout) {
+
+            clearTimeout(
+                this.raioVarianteDuracaoTimeout
+            );
+
+        }
+
+        this.raioVarianteDuracaoTimeout = null;
+
+
+        if (this.indicadoresRaiosVariante) {
+
+            this.indicadoresRaiosVariante.forEach(
+                aviso => {
+
+                    if (aviso) aviso.remove();
+
+                }
+            );
+
+        }
+
+        this.indicadoresRaiosVariante = [];
+
+
+        if (this.raiosVariante) {
+
+            this.raiosVariante.forEach(
+                item => {
+
+                    if (item && item.elemento) {
+
+                        item.elemento.remove();
+
+                    }
+
+                }
+            );
+
+        }
+
+        this.raiosVariante = [];
+
+
         // =================================================
         // RITUAL
         // =================================================
@@ -646,21 +703,15 @@ escolherAtaque() {
 
         RAIO: () => {
 
-            // 50% = raio normal
-            // 50% = variante de 2 ou 3 raios
+            // executarRaio() já decide sozinho, internamente,
+            // entre raio normal (4 partes em sequência) e a
+            // variante de 2 ou 3 raios simultâneos. Antes havia
+            // aqui um segundo sorteio que chamava
+            // this.executarRaiosVariante() — função que nunca
+            // existiu (o nome certo é executarVarianteRaios) —
+            // e isso quebrava a escolha do ataque em 50% das vezes.
 
-            if (
-                Math.random() < 0.5
-            ) {
-
-                this.executarRaio();
-
-            }
-            else {
-
-                this.executarRaiosVariante();
-
-            }
+            this.executarRaio();
 
         },
 
@@ -877,6 +928,426 @@ executarRaioNormal() {
 
 
     this.executarProximoRaio();
+
+},
+
+
+// =====================================================
+// PRÓXIMO RAIO DA SEQUÊNCIA (RAIO NORMAL)
+// =====================================================
+
+executarProximoRaio() {
+
+    if (!this.ativo || !Batalha.ativa) {
+
+        this.finalizarRaioNormal();
+
+        return;
+
+    }
+
+    if (
+        Batalha.turno !== "mascara" ||
+        Batalha.estado !== "ESQUIVA"
+    ) {
+
+        this.finalizarRaioNormal();
+
+        return;
+
+    }
+
+    if (
+        this.etapaRaio >=
+        this.ordemRaios.length
+    ) {
+
+        this.finalizarRaioNormal();
+
+        return;
+
+    }
+
+    const caixa =
+        document.getElementById(
+            "caixaEsquiva"
+        );
+
+    if (!caixa) {
+
+        this.finalizarRaioNormal();
+
+        return;
+
+    }
+
+    const parte =
+        this.ordemRaios[
+            this.etapaRaio
+        ];
+
+    this.parteRaioAtual = parte;
+
+    const larguraParte =
+        caixa.clientWidth /
+        this.quantidadePartesRaio;
+
+    const centroX =
+        (larguraParte * parte) +
+        (larguraParte / 2);
+
+
+    // =================================================
+    // AVISO "!"
+    // =================================================
+
+    this.removerAvisoRaio();
+
+    const aviso =
+        document.createElement(
+            "div"
+        );
+
+    aviso.textContent = "!";
+
+    Object.assign(
+        aviso.style,
+        {
+            position: "absolute",
+            left: `${centroX - 35}px`,
+            top: `${caixa.clientHeight / 2 - 55}px`,
+            width: "70px",
+            height: "90px",
+            fontSize: "90px",
+            lineHeight: "90px",
+            textAlign: "center",
+            fontWeight: "900",
+            fontFamily: "Arial, sans-serif",
+            color: "red",
+            textShadow:
+                "0 0 5px black," +
+                "0 0 12px red," +
+                "0 0 25px red",
+            zIndex: "300",
+            pointerEvents: "none"
+        }
+    );
+
+    aviso.animate(
+        [
+            { transform: "scale(0.6)", opacity: "0" },
+            { transform: "scale(1.25)", opacity: "1" },
+            { transform: "scale(1)", opacity: "1" }
+        ],
+        {
+            duration: this.raioAvisoTempo,
+            easing: "ease-out"
+        }
+    );
+
+    caixa.appendChild(
+        aviso
+    );
+
+    this.indicadorRaio = aviso;
+
+
+    this.raioTimeout =
+        setTimeout(
+            () => {
+
+                this.raioTimeout = null;
+
+                if (!this.ativo || !Batalha.ativa) {
+
+                    this.finalizarRaioNormal();
+
+                    return;
+
+                }
+
+                this.removerAvisoRaio();
+
+                this.criarRaioUnico(
+                    parte
+                );
+
+            },
+            this.raioAvisoTempo
+        );
+
+},
+
+
+// =====================================================
+// CRIAR RAIO ÚNICO (parte do RAIO NORMAL)
+// =====================================================
+
+criarRaioUnico(parte) {
+
+    if (!this.ativo || !Batalha.ativa) {
+
+        this.finalizarRaioNormal();
+
+        return;
+
+    }
+
+    const caixa =
+        document.getElementById(
+            "caixaEsquiva"
+        );
+
+    if (!caixa) {
+
+        this.finalizarRaioNormal();
+
+        return;
+
+    }
+
+    const larguraParte =
+        caixa.clientWidth /
+        this.quantidadePartesRaio;
+
+    const raio =
+        document.createElement(
+            "img"
+        );
+
+    raio.src = this.raioGif;
+
+    Object.assign(
+        raio.style,
+        {
+            position: "absolute",
+            left: `${larguraParte * parte}px`,
+            top: "0px",
+            width: `${larguraParte}px`,
+            height: `${caixa.clientHeight}px`,
+            objectFit: "fill",
+            zIndex: "280",
+            pointerEvents: "none",
+            userSelect: "none",
+            opacity: "0",
+            transform: "scale(0.8)",
+            transition:
+                "opacity .08s ease," +
+                "transform .08s ease"
+        }
+    );
+
+    caixa.appendChild(
+        raio
+    );
+
+    this.elementoRaio = raio;
+
+    requestAnimationFrame(
+        () => {
+
+            raio.style.opacity = "1";
+            raio.style.transform = "scale(1)";
+
+        }
+    );
+
+    this.tocarSomRaio();
+
+    this.verificarDanoRaio(
+        parte
+    );
+
+    this.raioTimeout =
+        setTimeout(
+            () => {
+
+                this.raioTimeout = null;
+
+                this.removerRaio();
+
+                this.etapaRaio++;
+
+                if (!this.ativo || !Batalha.ativa) {
+
+                    this.finalizarRaioNormal();
+
+                    return;
+
+                }
+
+                this.raioProximoTimeout =
+                    setTimeout(
+                        () => {
+
+                            this.raioProximoTimeout = null;
+
+                            this.executarProximoRaio();
+
+                        },
+                        this.intervaloRaios
+                    );
+
+            },
+            this.raioDuracao
+        );
+
+},
+
+
+// =====================================================
+// FINALIZAR RAIO NORMAL
+// =====================================================
+
+finalizarRaioNormal() {
+
+    if (this.raioTimeout) {
+
+        clearTimeout(
+            this.raioTimeout
+        );
+
+    }
+
+    this.raioTimeout = null;
+
+
+    if (this.raioProximoTimeout) {
+
+        clearTimeout(
+            this.raioProximoTimeout
+        );
+
+    }
+
+    this.raioProximoTimeout = null;
+
+
+    this.removerAvisoRaio();
+
+    this.removerRaio();
+
+
+    this.raioAtivo = false;
+
+    this.etapaRaio = 0;
+
+    this.ordemRaios = [];
+
+    this.parteRaioAtual = null;
+
+
+    this.ativo = false;
+
+    this.tipoAtual = null;
+
+    this.finalizando = false;
+
+
+    if (
+        typeof BatalhaRender !== "undefined" &&
+        typeof BatalhaRender.finalizarTeleporteTrovao === "function"
+    ) {
+
+        BatalhaRender.finalizarTeleporteTrovao();
+
+    }
+
+
+    console.log(
+        "⚡ RAIO NORMAL TERMINOU"
+    );
+
+
+    this.finalizarTurno();
+
+},
+
+
+// =====================================================
+// REMOVER AVISO / REMOVER RAIO (RAIO NORMAL)
+// =====================================================
+
+removerAvisoRaio() {
+
+    if (this.indicadorRaio) {
+
+        this.indicadorRaio.remove();
+
+    }
+
+    this.indicadorRaio = null;
+
+},
+
+
+removerRaio() {
+
+    if (this.elementoRaio) {
+
+        this.elementoRaio.remove();
+
+    }
+
+    this.elementoRaio = null;
+
+},
+
+
+// =====================================================
+// SOM DO RAIO
+// =====================================================
+
+tocarSomRaio() {
+
+    this.tocarAudio(
+        this.somRaio,
+        1
+    );
+
+},
+
+
+// =====================================================
+// DANO DO RAIO (por coluna/parte)
+// =====================================================
+
+verificarDanoRaio(parte) {
+
+    const caixa =
+        document.getElementById(
+            "caixaEsquiva"
+        );
+
+    if (!caixa)
+        return;
+
+    if (
+        typeof Coracao ===
+        "undefined"
+    )
+        return;
+
+    const larguraParte =
+        caixa.clientWidth /
+        this.quantidadePartesRaio;
+
+    const inicioX =
+        larguraParte * parte;
+
+    const fimX =
+        inicioX + larguraParte;
+
+    if (
+        Coracao.x >= inicioX &&
+        Coracao.x <= fimX
+    ) {
+
+        Coracao.receberDano(
+            this.rolarDanoMascara()
+        );
+
+    }
 
 },
 
@@ -4061,6 +4532,51 @@ finalizarVarianteRaios() {
         this.parteRaioAtual = null;
 
 
+       
+        if (this.raioVarianteTimeout) {
+
+            clearTimeout(
+                this.raioVarianteTimeout
+            );
+
+        }
+
+        this.raioVarianteTimeout = null;
+
+
+        if (this.raioVarianteDuracaoTimeout) {
+
+            clearTimeout(
+                this.raioVarianteDuracaoTimeout
+            );
+
+        }
+
+        this.raioVarianteDuracaoTimeout = null;
+
+
+        this.removerAvisosRaiosVariante();
+
+
+        if (this.raiosVariante) {
+
+            this.raiosVariante.forEach(
+                item => {
+
+                    if (item && item.elemento) {
+
+                        item.elemento.remove();
+
+                    }
+
+                }
+            );
+
+        }
+
+        this.raiosVariante = [];
+
+
         // =================================================
         // RITUAL
         // =================================================
@@ -4271,6 +4787,9 @@ finalizarVarianteRaios() {
         setTimeout(() => {
             if (!Batalha.ativa) return;
             if (BatalhaRender?.teleporteCortesAtivo && typeof BatalhaRender.finalizarTeleporteCortes === "function") BatalhaRender.finalizarTeleporteCortes();
+            
+            this.ativo = false;
+            this.tipoAtual = null;
             this.finalizarTurno();
         }, delay);
     },
@@ -4607,6 +5126,9 @@ finalizarVarianteRaios() {
             if (!this.ativo || !Batalha.ativa) return;
             if (cortes++ >= 6) {
                 raios.forEach(e => e.remove());
+               
+                this.ativo = false;
+                this.tipoAtual = null;
                 this.finalizarTurno();
                 return;
             }
@@ -4785,8 +5307,7 @@ finalizarVarianteRaios() {
         this.ativo = true;
         this.tipoAtual = "CORTES_VARIAVEIS";
 
-        // A cadência é deliberadamente irregular:
-        // desacelera → acelera → acelera → desacelera.
+       
         const duracoes = [720, 330, 180, 650, 260, 760, 190];
         let i = 0;
 
@@ -4794,6 +5315,9 @@ finalizarVarianteRaios() {
             if (!this.ativo || !Batalha.ativa) return;
 
             if (i >= duracoes.length) {
+                
+                this.ativo = false;
+                this.tipoAtual = null;
                 this.finalizarTurno();
                 return;
             }
@@ -5048,6 +5572,9 @@ finalizarVarianteRaios() {
                 requestAnimationFrame(mover);
             } else {
                 e.remove();
+                
+                this.ativo = false;
+                this.tipoAtual = null;
                 this.finalizarTurno();
             }
         };
@@ -5126,7 +5653,13 @@ finalizarVarianteRaios() {
             }, i * 280);
         }
 
-        setTimeout(() => this.finalizarTurno(), 2700);
+        setTimeout(() => {
+            // Faltava resetar ativo/tipoAtual — sem isso, ESPADAS_SANGUE
+            // travava a Máscara depois de tocar uma vez.
+            this.ativo = false;
+            this.tipoAtual = null;
+            this.finalizarTurno();
+        }, 2700);
     },
 
 
@@ -5193,7 +5726,13 @@ finalizarVarianteRaios() {
             }, i * 80);
         }
 
-        setTimeout(() => this.finalizarTurno(), 2100);
+        setTimeout(() => {
+            // Faltava resetar ativo/tipoAtual — mesmo bug dos outros:
+            // CONJUNTO_ESPADAS travava a Máscara depois de acontecer.
+            this.ativo = false;
+            this.tipoAtual = null;
+            this.finalizarTurno();
+        }, 2100);
     },
 
 
@@ -5256,6 +5795,9 @@ finalizarVarianteRaios() {
                 requestAnimationFrame(mover);
             } else {
                 tridente.remove();
+               
+                this.ativo = false;
+                this.tipoAtual = null;
                 this.finalizarTurno();
             }
         };
@@ -5621,8 +6163,7 @@ finalizarVarianteRaios() {
 
     finalizarTurno() {
 
-        // Durante a sequência TROCA, o ataque normal pode terminar visualmente,
-        // mas o turno continua até os 6 segundos daquela troca.
+       
         if (this.trocaAtaqueAtivo)
             return;
 
