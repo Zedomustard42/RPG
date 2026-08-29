@@ -71,66 +71,100 @@ const AtaqueMascara = {
         varianteRaiosTimeout: null,
 
 
-    // =====================================================
-    // RITUAL
-    // =====================================================
+        // =====================================================
+        // RITUAL
+        // =====================================================
 
-    bolaAtiva: false,
+        bolaAtiva: false,
 
-    bolaX: 0,
-    bolaY: 0,
+        bolaX: 0,
+        bolaY: 0,
 
-    velX: 0,
-    velY: 0,
+        velX: 0,
+        velY: 0,
 
-    velocidadeProjetil: 4,
+        velocidadeProjetil: 4,
 
-    danoRitual: 45,
+        danoRitual: 45,
 
-    perseguindo: false,
+        perseguindo: false,
 
-    tempoPerseguicao: 1500,
+        tempoPerseguicao: 1500,
 
-    elementoBola: null,
+        elementoBola: null,
 
-    tempoPerseguicaoTimeout: null,
+        tempoPerseguicaoTimeout: null,
 
 
-    // =====================================================
-    // EXECUTAR RITUAL
-    // =====================================================
+        // =====================================================
+        // SISTEMA DO RITUAL
+        // =====================================================
 
-    executarRitual() {
+        // guarda as 4 bolas que perseguem o jogador
+        bolasRitual: [],
 
-        if (
-            !Batalha.ativa ||
-            Batalha.turno !== "mascara" ||
-            Batalha.estado !== "ESQUIVA"
-        ) {
-            this.finalizar();
-            return;
-        }
+        // pelas explosões das 4 bolas
+        projeteisRitual: [],
 
-        this.tipoAtual = "RITUAL";
+        // controla o loop dos projeteis
+        movendoProjeteisRitual: false,
 
-        console.log("RITUAL DA MÁSCARA");
 
-        setTimeout(() => {
+        // =====================================================
+        // EXECUTAR RITUAL
+        // =====================================================
+
+        executarRitual() {
 
             if (
                 !Batalha.ativa ||
                 Batalha.turno !== "mascara" ||
                 Batalha.estado !== "ESQUIVA"
             ) {
+
                 this.finalizar();
+
                 return;
+
             }
 
-            this.criarBola();
 
-        }, 1000);
+            this.tipoAtual =
+                "RITUAL";
 
-    },
+
+            console.log(
+                "RITUAL DA MÁSCARA"
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        !Batalha.ativa ||
+                        Batalha.turno !== "mascara" ||
+                        Batalha.estado !== "ESQUIVA"
+                    ) {
+
+                        this.finalizar();
+
+                        return;
+
+                    }
+
+
+                    // =================================================
+                    // CRIA AS 4 BOLAS
+                    // =================================================
+
+                    this.criarBola();
+
+                },
+                1000
+            );
+
+        },
 
     // =====================================================
     // ARMA
@@ -621,21 +655,9 @@ escolherAtaque() {
         !this.trocaAtaqueAtivo
     ) {
 
-        AtaqueMascaraDois.iniciar();
+        this.executarEstalosCaixa();
 
         return;
-
-    }
-
-
-    // =====================================================
-    // RESET DA SEGUNDA FORMA
-    // =====================================================
-
-    if (typeof AtaqueMascaraDois !== "undefined" &&
-        typeof AtaqueMascaraDois.resetar === "function") {
-
-        AtaqueMascaraDois.resetar();
 
     }
 
@@ -715,14 +737,7 @@ escolherAtaque() {
 
         RAIO: () => {
 
-            // executarRaio() já decide sozinho, internamente,
-            // entre raio normal (4 partes em sequência) e a
-            // variante de 2 ou 3 raios simultâneos. Antes havia
-            // aqui um segundo sorteio que chamava
-            // this.executarRaiosVariante() — função que nunca
-            // existiu (o nome certo é executarVarianteRaios) —
-            // e isso quebrava a escolha do ataque em 50% das vezes.
-
+            
             this.executarRaio();
 
         },
@@ -1970,758 +1985,495 @@ finalizarVarianteRaios() {
 
 },
 
+        // =====================================================
+        // CRIAR 4 BOLAS DO RITUAL
+        // =====================================================
 
-    // =====================================================
-    // CRIAR BOLA
-    // =====================================================
+        criarBola() {
 
-    criarBola() {
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa) {
-
-            this.finalizar();
-
-            return;
-
-        }
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
 
 
-        this.bolaAtiva = true;
+            if (!caixa) {
+
+                this.finalizar();
+
+                return;
+
+            }
 
 
-        this.elementoBola =
-            document.createElement(
-                "div"
-            );
+            this.bolaAtiva =
+                true;
 
 
-        this.elementoBola.id =
-            "bolaRitual";
+            this.bolasRitual =
+                [];
 
 
-        this.elementoBola.textContent =
-            "●";
+            this.projeteisRitual =
+                [];
 
 
-        this.elementoBola.style.position =
-            "absolute";
+            // =================================================
+            // POSIÇÕES INICIAIS DAS 4 BOLAS
+            // =================================================
 
+            const posicoes = [
 
-        this.elementoBola.style.width =
-            "24px";
+                // CIMA
+                {
+                    x:
+                        caixa.clientWidth / 2 - 12,
 
-
-        this.elementoBola.style.height =
-            "24px";
-
-
-        this.elementoBola.style.fontSize =
-            "24px";
-
-
-        this.elementoBola.style.lineHeight =
-            "24px";
-
-
-        this.elementoBola.style.textAlign =
-            "center";
-
-
-        this.elementoBola.style.color =
-            "white";
-
-
-        this.elementoBola.style.zIndex =
-            "80";
-
-
-        this.elementoBola.style.pointerEvents =
-            "none";
-
-
-        caixa.appendChild(
-            this.elementoBola
-        );
-
-
-        this.bolaX =
-            caixa.clientWidth /
-            2 -
-            12;
-
-
-        this.bolaY = 20;
-
-
-        this.calcularDirecao();
-
-
-        this.perseguindo = true;
-
-
-        this.tempoPerseguicaoTimeout =
-            setTimeout(
-                () => {
-
-                    this.perseguindo =
-                        false;
-
+                    y:
+                        20
                 },
-                this.tempoPerseguicao
-            );
+
+                // DIREITA
+                {
+                    x:
+                        caixa.clientWidth - 45,
+
+                    y:
+                        caixa.clientHeight / 2 - 12
+                },
+
+                // BAIXO
+                {
+                    x:
+                        caixa.clientWidth / 2 - 12,
+
+                    y:
+                        caixa.clientHeight - 45
+                },
+
+                // ESQUERDA
+                {
+                    x:
+                        20,
+
+                    y:
+                        caixa.clientHeight / 2 - 12
+                }
+
+            ];
 
 
-        this.moverBola();
+            // =================================================
+            // CRIAR AS 4 BOLAS
+            // =================================================
 
-    },
+            for (
+                let i = 0;
+                i < 4;
+                i++
+            ) {
 
-
-    // =====================================================
-    // DIREÇÃO DA BOLA
-    // =====================================================
-
-    calcularDirecao() {
-
-        if (
-            typeof Coracao ===
-            "undefined"
-        )
-            return;
+                const elemento =
+                    document.createElement(
+                        "div"
+                    );
 
 
-        const dx =
-            Coracao.x -
-            this.bolaX -
-            12;
+                elemento.className =
+                    "bolaRitual";
 
 
-        const dy =
-            Coracao.y -
-            this.bolaY -
-            12;
+                elemento.textContent =
+                    "●";
 
 
-        const distancia =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
+                elemento.style.position =
+                    "absolute";
 
 
-        if (distancia <= 0)
-            return;
+                elemento.style.width =
+                    "24px";
 
 
-        this.velX =
-            (
-                dx /
-                distancia
-            ) *
-            this.velocidadeProjetil;
+                elemento.style.height =
+                    "24px";
 
 
-        this.velY =
-            (
-                dy /
-                distancia
-            ) *
-            this.velocidadeProjetil;
-
-    },
+                elemento.style.fontSize =
+                    "24px";
 
 
-    // =====================================================
-    // MOVER BOLA
-    // =====================================================
-
-    moverBola() {
-
-        if (!this.bolaAtiva)
-            return;
+                elemento.style.lineHeight =
+                    "24px";
 
 
-        if (
-            !Batalha.ativa ||
-            Batalha.turno !== "mascara" ||
-            Batalha.estado !== "ESQUIVA"
+                elemento.style.textAlign =
+                    "center";
+
+
+                elemento.style.color =
+                    "white";
+
+
+                elemento.style.zIndex =
+                    "80";
+
+
+                elemento.style.pointerEvents =
+                    "none";
+
+
+                // =============================================
+                // DADOS DA BOLA
+                // =============================================
+
+                const bola = {
+
+                    elemento:
+                        elemento,
+
+                    x:
+                        posicoes[i].x,
+
+                    y:
+                        posicoes[i].y,
+
+                    velX:
+                        0,
+
+                    velY:
+                        0,
+
+                    perseguindo:
+                        true,
+
+                    parada:
+                        false,
+
+                    explodida:
+                        false
+
+                };
+
+
+                elemento.style.left =
+                    bola.x + "px";
+
+
+                elemento.style.top =
+                    bola.y + "px";
+
+
+                caixa.appendChild(
+                    elemento
+                );
+
+
+                this.bolasRitual.push(
+                    bola
+                );
+
+
+                // =============================================
+                // CALCULAR DIREÇÃO INICIAL
+                // =============================================
+
+                this.calcularDirecaoBola(
+                    bola
+                );
+
+
+                // =============================================
+                // TEMPO PARA PARAR
+                // =============================================
+
+                setTimeout(
+                    () => {
+
+                        this.pararBolaRitual(
+                            bola
+                        );
+
+                    },
+                    this.tempoPerseguicao
+                );
+
+            }
+
+
+            // =================================================
+            // COMEÇAR MOVIMENTO
+            // =================================================
+
+            this.moverBolasRitual();
+
+        },
+
+
+        // =====================================================
+        // CALCULAR DIREÇÃO DA BOLA
+        // =====================================================
+
+        calcularDirecaoBola(
+            bola
         ) {
 
-            this.finalizar();
-
-            return;
-
-        }
-
-
-        if (this.perseguindo) {
-
-            this.calcularDirecao();
-
-        }
-
-
-        this.bolaX +=
-            this.velX;
-
-
-        this.bolaY +=
-            this.velY;
-
-
-        if (this.elementoBola) {
-
-            this.elementoBola.style.left =
-                this.bolaX + "px";
-
-
-            this.elementoBola.style.top =
-                this.bolaY + "px";
-
-        }
-
-
-        this.verificarColisaoBola();
-
-
-        if (!this.bolaAtiva)
-            return;
-
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (
-            caixa &&
-            (
-                this.bolaX < -50 ||
-                this.bolaX >
-                    caixa.clientWidth + 50 ||
-                this.bolaY < -50 ||
-                this.bolaY >
-                    caixa.clientHeight + 50
+            if (
+                !bola ||
+                typeof Coracao ===
+                "undefined"
             )
-        ) {
+                return;
 
-            this.finalizar();
-
-            return;
-
-        }
-
-
-        requestAnimationFrame(
-            () =>
-                this.moverBola()
-        );
-
-    },
-
-
-    // =====================================================
-    // COLISÃO BOLA
-    // =====================================================
-
-    verificarColisaoBola() {
-
-        if (!this.bolaAtiva)
-            return;
-
-
-        if (
-            typeof Coracao ===
-            "undefined"
-        )
-            return;
-
-
-        const dx =
-            this.bolaX +
-            12 -
-            Coracao.x;
-
-
-        const dy =
-            this.bolaY +
-            12 -
-            Coracao.y;
-
-
-        const distancia =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-
-        if (distancia < 22) {
-
-            Coracao.receberDano(
-                this.rolarDanoMascara()
-            );
-
-
-            this.finalizar();
-
-        }
-
-    },
-
-
-    // =====================================================
-    // ARMA
-    // =====================================================
-
-    executarArma() {
-
-        if (this.ativo)
-            return;
-
-        if (!Batalha.ativa)
-            return;
-
-        if (
-            Batalha.turno !==
-            "mascara"
-        )
-            return;
-
-        if (
-            Batalha.estado !==
-            "ESQUIVA"
-        )
-            return;
-
-
-        this.ativo = true;
-
-        this.tipoAtual = "ARMA";
-
-        this.atirando = true;
-
-        this.finalizando = false;
-
-        this.balas = [];
-
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa) {
-
-            this.finalizar();
-
-            return;
-
-        }
-
-
-        this.arma =
-            document.createElement(
-                "div"
-            );
-
-
-        this.arma.id =
-            "armaMascara";
-
-
-        this.arma.textContent =
-            "▰";
-
-
-        this.arma.style.position =
-            "absolute";
-
-
-        this.arma.style.fontSize =
-            "28px";
-
-
-        this.arma.style.color =
-            "white";
-
-
-        this.arma.style.zIndex =
-            "80";
-
-
-        this.arma.style.pointerEvents =
-            "none";
-
-
-        caixa.appendChild(
-            this.arma
-        );
-
-
-        this.atualizarArma();
-
-
-        this.dispararBalaArma();
-
-
-        setTimeout(
-            () => {
-
-                if (this.atirando) {
-
-                    this.dispararBalaArma();
-
-                }
-
-            },
-            this.intervaloTiro
-        );
-
-
-        setTimeout(
-            () => {
-
-                if (this.atirando) {
-
-                    this.dispararBalaArma();
-
-                }
-
-            },
-            this.intervaloTiro * 2
-        );
-
-
-        this.timeoutFinal =
-            setTimeout(
-                () => {
-
-                    this.finalizarArma();
-
-                },
-                3500
-            );
-
-    },
-
-
-    // =====================================================
-    // ATUALIZAR ARMA
-    // =====================================================
-
-    atualizarArma() {
-
-        if (
-            !this.arma ||
-            !this.atirando
-        )
-            return;
-
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa)
-            return;
-
-
-        const armaX =
-            caixa.clientWidth - 45;
-
-
-        const armaY =
-            caixa.clientHeight / 2;
-
-
-        this.arma.style.left =
-            armaX + "px";
-
-
-        this.arma.style.top =
-            armaY + "px";
-
-
-        if (
-            typeof Coracao !==
-            "undefined"
-        ) {
 
             const dx =
                 Coracao.x -
-                armaX;
+                (
+                    bola.x +
+                    12
+                );
 
 
             const dy =
                 Coracao.y -
-                armaY;
+                (
+                    bola.y +
+                    12
+                );
 
 
-            const angulo =
-                Math.atan2(
-                    dy,
-                    dx
-                ) *
-                180 /
-                Math.PI;
+            const distancia =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                );
 
 
-            this.arma.style.transform =
-                `rotate(${angulo}deg)`;
+            if (
+                distancia <= 0
+            )
+                return;
 
-        }
 
-
-        requestAnimationFrame(
-            () =>
-                this.atualizarArma()
-        );
-
-    },
-
-
-    // =====================================================
-    // DISPARAR BALA
-    // =====================================================
-
-    dispararBalaArma() {
-
-        if (
-            !this.arma ||
-            !this.atirando
-        )
-            return;
-
-
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
-
-
-        if (!caixa)
-            return;
-
-
-        const bala =
-            document.createElement(
-                "div"
-            );
-
-
-        bala.textContent =
-            "●";
-
-
-        bala.style.position =
-            "absolute";
-
-
-        bala.style.width =
-            "14px";
-
-
-        bala.style.height =
-            "14px";
-
-
-        bala.style.fontSize =
-            "14px";
-
-
-        bala.style.lineHeight =
-            "14px";
-
-
-        bala.style.color =
-            "white";
-
-
-        bala.style.zIndex =
-            "90";
-
-
-        bala.style.pointerEvents =
-            "none";
-
-
-        const x =
-            caixa.clientWidth -
-            55;
-
-
-        const y =
-            caixa.clientHeight / 2;
-
-
-        bala.style.left =
-            x + "px";
-
-
-        bala.style.top =
-            y + "px";
-
-
-        caixa.appendChild(
-            bala
-        );
-
-
-        let alvoX =
-            caixa.clientWidth / 2;
-
-
-        let alvoY =
-            caixa.clientHeight / 2;
-
-
-        if (
-            typeof Coracao !==
-            "undefined"
-        ) {
-
-            alvoX =
-                Coracao.x;
-
-            alvoY =
-                Coracao.y;
-
-        }
-
-
-        const dx =
-            alvoX - x;
-
-
-        const dy =
-            alvoY - y;
-
-
-        const distancia =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-
-        if (distancia <= 0) {
-
-            bala.remove();
-
-            return;
-
-        }
-
-
-        const dados = {
-
-            elemento:
-                bala,
-
-            x:
-                x,
-
-            y:
-                y,
-
-            velX:
+            bola.velX =
                 (
                     dx /
                     distancia
                 ) *
-                this.velocidadeBala,
+                this.velocidadeProjetil;
 
-            velY:
+
+            bola.velY =
                 (
                     dy /
                     distancia
                 ) *
-                this.velocidadeBala
+                this.velocidadeProjetil;
 
-        };
-
-
-        this.balas.push(
-            dados
-        );
+        },
 
 
-        this.moverBala(
-            dados
-        );
+        // =====================================================
+        // MOVER AS 4 BOLAS
+        // =====================================================
 
-    },
+        moverBolasRitual() {
 
-
-    // =====================================================
-    // MOVER BALA
-    // =====================================================
-
-    moverBala(bala) {
-
-        if (
-            !bala ||
-            !bala.elemento ||
-            !this.atirando
-        )
-            return;
+            if (
+                !this.bolaAtiva
+            )
+                return;
 
 
-        if (
-            !Batalha.ativa ||
-            Batalha.turno !== "mascara" ||
-            Batalha.estado !== "ESQUIVA"
-        ) {
+            if (
+                !Batalha.ativa ||
+                Batalha.turno !== "mascara" ||
+                Batalha.estado !== "ESQUIVA"
+            ) {
 
-            this.removerBala(
-                bala
+                this.finalizar();
+
+                return;
+
+            }
+
+
+            for (
+                const bola of
+                [...this.bolasRitual]
+            ) {
+
+                if (
+                    !bola ||
+                    !bola.elemento ||
+                    bola.parada ||
+                    bola.explodida
+                )
+                    continue;
+
+
+                // =============================================
+                // CONTINUA MIRANDO NO PLAYER
+                // =============================================
+
+                if (
+                    bola.perseguindo
+                ) {
+
+                    this.calcularDirecaoBola(
+                        bola
+                    );
+
+                }
+
+
+                bola.x +=
+                    bola.velX;
+
+
+                bola.y +=
+                    bola.velY;
+
+
+                bola.elemento.style.left =
+                    bola.x + "px";
+
+
+                bola.elemento.style.top =
+                    bola.y + "px";
+
+
+                // =============================================
+                // COLISÃO
+                // =============================================
+
+                this.verificarColisaoBolaIndividual(
+                    bola
+                );
+
+            }
+
+
+            requestAnimationFrame(
+                () =>
+                    this.moverBolasRitual()
             );
 
-            return;
-
-        }
+        },
 
 
-        bala.x +=
-            bala.velX;
+        // =====================================================
+        // PARAR UMA BOLA
+        // =====================================================
 
-
-        bala.y +=
-            bala.velY;
-
-
-        bala.elemento.style.left =
-            bala.x + "px";
-
-
-        bala.elemento.style.top =
-            bala.y + "px";
-
-
-        if (
-            typeof Coracao !==
-            "undefined"
+        pararBolaRitual(
+            bola
         ) {
 
+            if (
+                !bola ||
+                bola.parada ||
+                bola.explodida
+            )
+                return;
+
+
+            bola.perseguindo =
+                false;
+
+
+            bola.parada =
+                true;
+
+
+            // =================================================
+            // EFEITO DE AVISO
+            // =================================================
+
+            if (
+                bola.elemento
+            ) {
+
+                bola.elemento.textContent =
+                    "✦";
+
+
+                bola.elemento.style.fontSize =
+                    "28px";
+
+
+                bola.elemento.style.width =
+                    "28px";
+
+
+                bola.elemento.style.height =
+                    "28px";
+
+
+                bola.elemento.style.lineHeight =
+                    "28px";
+
+            }
+
+
+            // =================================================
+            // ESPERA 400ms E EXPLODE
+            // =================================================
+
+            setTimeout(
+                () => {
+
+                    if (
+                        this.bolaAtiva &&
+                        Batalha.ativa &&
+                        !bola.explodida
+                    ) {
+
+                        this.iniciarEstrelaRitual(
+                            bola
+                        );
+
+                    }
+
+                },
+                400
+            );
+
+        },
+
+
+        // =====================================================
+        // COLISÃO INDIVIDUAL DAS BOLAS
+        // =====================================================
+
+        verificarColisaoBolaIndividual(
+            bola
+        ) {
+
+            if (
+                !bola ||
+                bola.parada ||
+                bola.explodida
+            )
+                return;
+
+
+            if (
+                typeof Coracao ===
+                "undefined"
+            )
+                return;
+
+
             const dx =
-                bala.x +
-                7 -
+                bola.x +
+                12 -
                 Coracao.x;
 
 
             const dy =
-                bala.y +
-                7 -
+                bola.y +
+                12 -
                 Coracao.y;
 
 
@@ -2732,12 +2484,985 @@ finalizarVarianteRaios() {
                 );
 
 
-            if (distancia < 20) {
+            if (
+                distancia < 22
+            ) {
 
                 Coracao.receberDano(
                     this.rolarDanoMascara()
                 );
 
+            }
+
+        },
+
+
+        // =====================================================
+        // INICIAR ESTRELA DA BOLA
+        // =====================================================
+
+        iniciarEstrelaRitual(
+            bola
+        ) {
+
+            if (
+                !bola ||
+                !this.bolaAtiva
+            )
+                return;
+
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (!caixa)
+                return;
+
+
+            bola.explodida =
+                true;
+
+
+            // =================================================
+            // CENTRO DA EXPLOSÃO
+            // =================================================
+
+            const centroX =
+                bola.x;
+
+
+            const centroY =
+                bola.y;
+
+
+            // =================================================
+            // EFEITO DE EXPLOSÃO
+            // =================================================
+
+            if (
+                bola.elemento
+            ) {
+
+                bola.elemento.textContent =
+                    "✦";
+
+
+                bola.elemento.style.fontSize =
+                    "32px";
+
+
+                bola.elemento.style.width =
+                    "32px";
+
+
+                bola.elemento.style.height =
+                    "32px";
+
+            }
+
+
+            // =================================================
+            // 8 DIREÇÕES
+            // =================================================
+
+            const direcoes = [
+
+                // CIMA
+                {
+                    x: 0,
+                    y: -1
+                },
+
+                // CIMA-DIREITA
+                {
+                    x: 0.707,
+                    y: -0.707
+                },
+
+                // DIREITA
+                {
+                    x: 1,
+                    y: 0
+                },
+
+                // BAIXO-DIREITA
+                {
+                    x: 0.707,
+                    y: 0.707
+                },
+
+                // BAIXO
+                {
+                    x: 0,
+                    y: 1
+                },
+
+                // BAIXO-ESQUERDA
+                {
+                    x: -0.707,
+                    y: 0.707
+                },
+
+                // ESQUERDA
+                {
+                    x: -1,
+                    y: 0
+                },
+
+                // CIMA-ESQUERDA
+                {
+                    x: -0.707,
+                    y: -0.707
+                }
+
+            ];
+
+
+            // =================================================
+            // ESCOLHER UMA ABERTURA ALEATÓRIA
+            // =================================================
+
+            const abertura =
+                Math.floor(
+                    Math.random() *
+                    direcoes.length
+                );
+
+
+            // =================================================
+            // CRIAR 7 PROJÉTEIS
+            // =================================================
+
+            for (
+                let i = 0;
+                i < direcoes.length;
+                i++
+            ) {
+
+                // Uma direção fica vazia
+
+                if (
+                    i === abertura
+                )
+                    continue;
+
+
+                const direcao =
+                    direcoes[i];
+
+
+                const projetil =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                projetil.textContent =
+                    "●";
+
+
+                projetil.style.position =
+                    "absolute";
+
+
+                projetil.style.width =
+                    "12px";
+
+
+                projetil.style.height =
+                    "12px";
+
+
+                projetil.style.fontSize =
+                    "12px";
+
+
+                projetil.style.lineHeight =
+                    "12px";
+
+
+                projetil.style.textAlign =
+                    "center";
+
+
+                projetil.style.color =
+                    "white";
+
+
+                projetil.style.zIndex =
+                    "85";
+
+
+                projetil.style.pointerEvents =
+                    "none";
+
+
+                projetil.style.left =
+                    centroX + "px";
+
+
+                projetil.style.top =
+                    centroY + "px";
+
+
+                caixa.appendChild(
+                    projetil
+                );
+
+
+                this.projeteisRitual.push({
+
+                    elemento:
+                        projetil,
+
+                    x:
+                        centroX,
+
+                    y:
+                        centroY,
+
+                    velX:
+                        direcao.x *
+                        this.velocidadeProjetil,
+
+                    velY:
+                        direcao.y *
+                        this.velocidadeProjetil
+
+                });
+
+            }
+
+
+            // =================================================
+            // REMOVER A BOLA
+            // =================================================
+
+            if (
+                bola.elemento
+            ) {
+
+                bola.elemento.remove();
+
+                bola.elemento =
+                    null;
+
+            }
+
+
+            // =================================================
+            // VERIFICAR SE TODAS AS BOLAS EXPLODIRAM
+            // =================================================
+
+            const aindaTemBolas =
+                this.bolasRitual.some(
+                    b =>
+                        b &&
+                        !b.explodida
+                );
+
+
+            // =================================================
+            // COMEÇAR OS PROJÉTEIS
+            // =================================================
+
+            if (
+                !this.movendoProjeteisRitual
+            ) {
+
+                this.movendoProjeteisRitual =
+                    true;
+
+
+                this.moverProjetilRitual();
+
+            }
+
+        },
+
+
+        // =====================================================
+        // MOVER PROJÉTEIS DO RITUAL
+        // =====================================================
+
+        moverProjetilRitual() {
+
+            if (
+                !this.bolaAtiva
+            ) {
+
+                this.movendoProjeteisRitual =
+                    false;
+
+                return;
+
+            }
+
+
+            if (
+                !Batalha.ativa ||
+                Batalha.turno !== "mascara" ||
+                Batalha.estado !== "ESQUIVA"
+            ) {
+
+                this.finalizar();
+
+                return;
+
+            }
+
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            for (
+                const projetil of
+                [...this.projeteisRitual]
+            ) {
+
+                if (
+                    !projetil ||
+                    !projetil.elemento
+                )
+                    continue;
+
+
+                projetil.x +=
+                    projetil.velX;
+
+
+                projetil.y +=
+                    projetil.velY;
+
+
+                projetil.elemento.style.left =
+                    projetil.x + "px";
+
+
+                projetil.elemento.style.top =
+                    projetil.y + "px";
+
+
+                // =============================================
+                // COLISÃO
+                // =============================================
+
+                if (
+                    typeof Coracao !==
+                    "undefined"
+                ) {
+
+                    const dx =
+                        projetil.x +
+                        6 -
+                        Coracao.x;
+
+
+                    const dy =
+                        projetil.y +
+                        6 -
+                        Coracao.y;
+
+
+                    const distancia =
+                        Math.sqrt(
+                            dx * dx +
+                            dy * dy
+                        );
+
+
+                    if (
+                        distancia < 18
+                    ) {
+
+                        Coracao.receberDano(
+                            this.rolarDanoMascara()
+                        );
+
+
+                        projetil.elemento.remove();
+
+                        projetil.elemento =
+                            null;
+
+                        continue;
+
+                    }
+
+                }
+
+
+                // =============================================
+                // SAIR DA ARENA
+                // =============================================
+
+                if (
+                    caixa &&
+                    (
+                        projetil.x < -40 ||
+                        projetil.x >
+                            caixa.clientWidth + 40 ||
+                        projetil.y < -40 ||
+                        projetil.y >
+                            caixa.clientHeight + 40
+                    )
+                ) {
+
+                    projetil.elemento.remove();
+
+                    projetil.elemento =
+                        null;
+
+                }
+
+            }
+
+
+            // =================================================
+            // LIMPAR PROJÉTEIS
+            // =================================================
+
+            this.projeteisRitual =
+                this.projeteisRitual.filter(
+                    projetil =>
+                        projetil &&
+                        projetil.elemento
+                );
+
+
+            // =================================================
+            // VERIFICAR SE AINDA EXISTEM BOLAS
+            // =================================================
+
+            const bolasExplodindo =
+                this.bolasRitual.some(
+                    bola =>
+                        bola &&
+                        !bola.explodida
+                );
+
+
+            // =================================================
+            // SE NÃO TEM MAIS NADA, TERMINA
+            // =================================================
+
+            if (
+                this.projeteisRitual.length === 0 &&
+                !bolasExplodindo
+            ) {
+
+                this.movendoProjeteisRitual =
+                    false;
+
+
+                this.finalizar();
+
+                return;
+
+            }
+
+
+            requestAnimationFrame(
+                () =>
+                    this.moverProjetilRitual()
+            );
+
+        },
+
+
+        // =====================================================
+        // COLISÃO DA BOLA
+        // =====================================================
+
+        verificarColisaoBola() {
+
+            if (
+                !this.bolaAtiva
+            )
+                return;
+
+
+            if (
+                typeof Coracao ===
+                "undefined"
+            )
+                return;
+
+
+            const dx =
+                this.bolaX +
+                12 -
+                Coracao.x;
+
+
+            const dy =
+                this.bolaY +
+                12 -
+                Coracao.y;
+
+
+            const distancia =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                );
+
+
+            if (
+                distancia < 22
+            ) {
+
+                Coracao.receberDano(
+                    this.rolarDanoMascara()
+                );
+
+
+                this.finalizar();
+
+            }
+
+        },
+
+
+        // =====================================================
+        // ARMA
+        // =====================================================
+
+        executarArma() {
+
+            if (this.ativo)
+                return;
+
+            if (!Batalha.ativa)
+                return;
+
+            if (
+                Batalha.turno !==
+                "mascara"
+            )
+                return;
+
+            if (
+                Batalha.estado !==
+                "ESQUIVA"
+            )
+                return;
+
+
+            this.ativo = true;
+
+            this.tipoAtual = "ARMA";
+
+            this.atirando = true;
+
+            this.finalizando = false;
+
+            this.balas = [];
+
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (!caixa) {
+
+                this.finalizar();
+
+                return;
+
+            }
+
+
+            this.arma =
+                document.createElement(
+                    "div"
+                );
+
+
+            this.arma.id =
+                "armaMascara";
+
+
+            this.arma.textContent =
+                "▰";
+
+
+            this.arma.style.position =
+                "absolute";
+
+
+            this.arma.style.fontSize =
+                "28px";
+
+
+            this.arma.style.color =
+                "white";
+
+
+            this.arma.style.zIndex =
+                "80";
+
+
+            this.arma.style.pointerEvents =
+                "none";
+
+
+            caixa.appendChild(
+                this.arma
+            );
+
+
+            this.atualizarArma();
+
+
+            // =================================================
+            // 3 TIROS
+            // =================================================
+
+            this.dispararBalaArma();
+
+
+            setTimeout(
+                () => {
+
+                    if (this.atirando) {
+
+                        this.dispararBalaArma();
+
+                    }
+
+                },
+                this.intervaloTiro
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (this.atirando) {
+
+                        this.dispararBalaArma();
+
+                    }
+
+                },
+                this.intervaloTiro * 2
+            );
+
+
+            // Tempo suficiente para as balas
+            // pararem e explodirem
+
+            this.timeoutFinal =
+                setTimeout(
+                    () => {
+
+                        this.finalizarArma();
+
+                    },
+                    5000
+                );
+
+        },
+
+
+        // =====================================================
+        // ATUALIZAR ARMA
+        // =====================================================
+
+        atualizarArma() {
+
+            if (
+                !this.arma ||
+                !this.atirando
+            )
+                return;
+
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (!caixa)
+                return;
+
+
+            const armaX =
+                caixa.clientWidth - 45;
+
+
+            const armaY =
+                caixa.clientHeight / 2;
+
+
+            this.arma.style.left =
+                armaX + "px";
+
+
+            this.arma.style.top =
+                armaY + "px";
+
+
+            if (
+                typeof Coracao !==
+                "undefined"
+            ) {
+
+                const dx =
+                    Coracao.x -
+                    armaX;
+
+
+                const dy =
+                    Coracao.y -
+                    armaY;
+
+
+                const angulo =
+                    Math.atan2(
+                        dy,
+                        dx
+                    ) *
+                    180 /
+                    Math.PI;
+
+
+                this.arma.style.transform =
+                    `rotate(${angulo}deg)`;
+
+            }
+
+
+            requestAnimationFrame(
+                () =>
+                    this.atualizarArma()
+            );
+
+        },
+
+
+        // =====================================================
+        // DISPARAR BALA
+        // =====================================================
+
+        dispararBalaArma() {
+
+            if (
+                !this.arma ||
+                !this.atirando
+            )
+                return;
+
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (!caixa)
+                return;
+
+
+            const bala =
+                document.createElement(
+                    "div"
+                );
+
+
+            bala.textContent =
+                "●";
+
+
+            bala.style.position =
+                "absolute";
+
+
+            bala.style.width =
+                "14px";
+
+
+            bala.style.height =
+                "14px";
+
+
+            bala.style.fontSize =
+                "14px";
+
+
+            bala.style.lineHeight =
+                "14px";
+
+
+            bala.style.color =
+                "white";
+
+
+            bala.style.zIndex =
+                "90";
+
+
+            bala.style.pointerEvents =
+                "none";
+
+
+            const x =
+                caixa.clientWidth -
+                55;
+
+
+            const y =
+                caixa.clientHeight / 2;
+
+
+            bala.style.left =
+                x + "px";
+
+
+            bala.style.top =
+                y + "px";
+
+
+            caixa.appendChild(
+                bala
+            );
+
+
+            // =================================================
+            // GUARDAR A POSIÇÃO DO PLAYER
+            // =================================================
+
+            let alvoX =
+                caixa.clientWidth / 2;
+
+
+            let alvoY =
+                caixa.clientHeight / 2;
+
+
+            if (
+                typeof Coracao !==
+                "undefined"
+            ) {
+
+                alvoX =
+                    Coracao.x;
+
+                alvoY =
+                    Coracao.y;
+
+            }
+
+
+            const dx =
+                alvoX - x;
+
+
+            const dy =
+                alvoY - y;
+
+
+            const distancia =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                );
+
+
+            if (distancia <= 0) {
+
+                bala.remove();
+
+                return;
+
+            }
+
+
+            const dados = {
+
+                elemento:
+                    bala,
+
+                x:
+                    x,
+
+                y:
+                    y,
+
+                // -----------------------------------------
+                // POSIÇÃO FIXA DO PLAYER NO DISPARO
+                // -----------------------------------------
+
+                alvoX:
+                    alvoX,
+
+                alvoY:
+                    alvoY,
+
+                velX:
+                    (
+                        dx /
+                        distancia
+                    ) *
+                    this.velocidadeBala,
+
+                velY:
+                    (
+                        dy /
+                        distancia
+                    ) *
+                    this.velocidadeBala,
+
+                parada:
+                    false,
+
+                explodindo:
+                    false
+
+            };
+
+
+            this.balas.push(
+                dados
+            );
+
+
+            this.moverBala(
+                dados
+            );
+
+        },
+
+
+        // =====================================================
+        // MOVER BALA
+        // =====================================================
+
+        moverBala(bala) {
+
+            if (
+                !bala ||
+                !bala.elemento ||
+                !this.atirando
+            )
+                return;
+
+
+            if (
+                !Batalha.ativa ||
+                Batalha.turno !== "mascara" ||
+                Batalha.estado !== "ESQUIVA"
+            ) {
 
                 this.removerBala(
                     bala
@@ -2747,147 +3472,683 @@ finalizarVarianteRaios() {
 
             }
 
-        }
+
+            // =================================================
+            // SE A BALA JÁ PAROU
+            // =================================================
+
+            if (bala.parada)
+                return;
 
 
-        const caixa =
-            document.getElementById(
-                "caixaEsquiva"
-            );
+            bala.x +=
+                bala.velX;
 
 
-        if (
-            caixa &&
-            (
-                bala.x < -50 ||
-                bala.x >
-                    caixa.clientWidth + 50 ||
-                bala.y < -50 ||
-                bala.y >
-                    caixa.clientHeight + 50
-            )
-        ) {
-
-            this.removerBala(
-                bala
-            );
-
-            return;
-
-        }
+            bala.y +=
+                bala.velY;
 
 
-        requestAnimationFrame(
-            () =>
-                this.moverBala(
-                    bala
+            bala.elemento.style.left =
+                bala.x + "px";
+
+
+            bala.elemento.style.top =
+                bala.y + "px";
+
+
+            // =================================================
+            // VERIFICAR SE CHEGOU AO PONTO MIRADO
+            // =================================================
+
+            const dxAlvo =
+                bala.alvoX -
+                bala.x;
+
+
+            const dyAlvo =
+                bala.alvoY -
+                bala.y;
+
+
+            const distanciaAlvo =
+                Math.sqrt(
+                    dxAlvo * dxAlvo +
+                    dyAlvo * dyAlvo
+                );
+
+
+            if (
+                distanciaAlvo <=
+                this.velocidadeBala + 2
+            ) {
+
+                // ---------------------------------------------
+                // COLOCA EXATAMENTE NO PONTO DO PLAYER
+                // ---------------------------------------------
+
+                bala.x =
+                    bala.alvoX;
+
+                bala.y =
+                    bala.alvoY;
+
+
+                bala.elemento.style.left =
+                    bala.x + "px";
+
+
+                bala.elemento.style.top =
+                    bala.y + "px";
+
+
+                bala.parada =
+                    true;
+
+
+                // ---------------------------------------------
+                // A BALA PARA
+                // ---------------------------------------------
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            bala.elemento &&
+                            this.atirando &&
+                            !bala.explodindo
+                        ) {
+
+                            this.explodirBala(
+                                bala
+                            );
+
+                        }
+
+                    },
+                    300
+                );
+
+
+                return;
+
+            }
+
+
+            // =================================================
+            // COLISÃO COM O CORAÇÃO
+            // =================================================
+
+            if (
+                typeof Coracao !==
+                "undefined"
+            ) {
+
+                const dx =
+                    bala.x +
+                    7 -
+                    Coracao.x;
+
+
+                const dy =
+                    bala.y +
+                    7 -
+                    Coracao.y;
+
+
+                const distancia =
+                    Math.sqrt(
+                        dx * dx +
+                        dy * dy
+                    );
+
+
+                if (
+                    distancia <
+                    20
+                ) {
+
+                    Coracao.receberDano(
+                        this.rolarDanoMascara()
+                    );
+
+
+                    this.removerBala(
+                        bala
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            // =================================================
+            // FORA DA ARENA
+            // =================================================
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (
+                caixa &&
+                (
+                    bala.x < -50 ||
+                    bala.x >
+                        caixa.clientWidth + 50 ||
+                    bala.y < -50 ||
+                    bala.y >
+                        caixa.clientHeight + 50
                 )
-        );
+            ) {
 
-    },
+                this.removerBala(
+                    bala
+                );
 
+                return;
 
-    // =====================================================
-    // REMOVER BALA
-    // =====================================================
-
-    removerBala(bala) {
-
-        if (!bala)
-            return;
+            }
 
 
-        if (bala.elemento) {
-
-            bala.elemento.remove();
-
-            bala.elemento = null;
-
-        }
-
-
-        const index =
-            this.balas.indexOf(
-                bala
+            requestAnimationFrame(
+                () =>
+                    this.moverBala(
+                        bala
+                    )
             );
 
-
-        if (index !== -1) {
-
-            this.balas.splice(
-                index,
-                1
-            );
-
-        }
-
-    },
+        },
 
 
-    // =====================================================
-    // FINALIZAR ARMA
-    // =====================================================
+        // =====================================================
+        // EXPLOSÃO DA BALA
+        // =====================================================
 
-    finalizarArma() {
+        explodirBala(bala) {
 
-        if (this.finalizando)
-            return;
-
-
-        this.finalizando = true;
-
-        this.atirando = false;
-
-
-        if (this.timeoutFinal) {
-
-            clearTimeout(
-                this.timeoutFinal
-            );
-
-        }
-
-        this.timeoutFinal = null;
+            if (
+                !bala ||
+                !bala.elemento ||
+                bala.explodindo
+            )
+                return;
 
 
-        if (this.arma) {
-
-            this.arma.remove();
-
-        }
-
-        this.arma = null;
+            bala.explodindo =
+                true;
 
 
-        for (
-            const bala of [...this.balas]
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (!caixa)
+                return;
+
+
+            const explosaoX =
+                bala.x;
+
+
+            const explosaoY =
+                bala.y;
+
+
+            // =================================================
+            // REMOVER A BALA
+            // =================================================
+
+            if (bala.elemento) {
+
+                bala.elemento.remove();
+
+                bala.elemento = null;
+
+            }
+
+
+            // =================================================
+            // 4 BOLINHAS
+            // =================================================
+
+            const direcoes = [
+
+                // ↖
+                {
+                    x: -1,
+                    y: -1
+                },
+
+                // ↗
+                {
+                    x: 1,
+                    y: -1
+                },
+
+                // ↙
+                {
+                    x: -1,
+                    y: 1
+                },
+
+                // ↘
+                {
+                    x: 1,
+                    y: 1
+                }
+
+            ];
+
+
+            for (
+                const direcao of direcoes
+            ) {
+
+                this.criarBolaExplosao(
+                    caixa,
+                    explosaoX,
+                    explosaoY,
+                    direcao.x,
+                    direcao.y
+                );
+
+            }
+
+
+            // =================================================
+            // REMOVER DOS DISPAROS
+            // =================================================
+
+            const index =
+                this.balas.indexOf(
+                    bala
+                );
+
+
+            if (index !== -1) {
+
+                this.balas.splice(
+                    index,
+                    1
+                );
+
+            }
+
+        },
+
+
+        // =====================================================
+        // CRIAR BOLINHA DA EXPLOSÃO
+        // =====================================================
+
+        criarBolaExplosao(
+            caixa,
+            x,
+            y,
+            direcaoX,
+            direcaoY
         ) {
 
-            this.removerBala(
-                bala
+            const bola =
+                document.createElement(
+                    "div"
+                );
+
+
+            bola.textContent =
+                "●";
+
+
+            bola.style.position =
+                "absolute";
+
+
+            bola.style.width =
+                "10px";
+
+
+            bola.style.height =
+                "10px";
+
+
+            bola.style.fontSize =
+                "10px";
+
+
+            bola.style.lineHeight =
+                "10px";
+
+
+            bola.style.color =
+                "white";
+
+
+            bola.style.zIndex =
+                "91";
+
+
+            bola.style.pointerEvents =
+                "none";
+
+
+            bola.style.left =
+                x + "px";
+
+
+            bola.style.top =
+                y + "px";
+
+
+            caixa.appendChild(
+                bola
             );
 
-        }
+
+            const velocidade =
+                this.velocidadeBala;
 
 
-        this.balas = [];
+            const dados = {
+
+                elemento:
+                    bola,
+
+                x:
+                    x,
+
+                y:
+                    y,
+
+                velX:
+                    direcaoX *
+                    velocidade,
+
+                velY:
+                    direcaoY *
+                    velocidade
+
+            };
 
 
-        this.ativo = false;
+            this.moverBolaExplosao(
+                dados
+            );
 
-        this.tipoAtual = null;
-
-        this.finalizando = false;
-
-
-        console.log(
-            "ATAQUE DA ARMA TERMINOU"
-        );
+        },
 
 
-        this.finalizarTurno();
+        // =====================================================
+        // MOVER BOLINHA DA EXPLOSÃO
+        // =====================================================
 
-    },
+        moverBolaExplosao(bola) {
+
+            if (
+                !bola ||
+                !bola.elemento
+            )
+                return;
+
+
+            if (
+                !Batalha.ativa ||
+                Batalha.turno !== "mascara" ||
+                Batalha.estado !== "ESQUIVA" ||
+                !this.atirando
+            ) {
+
+                bola.elemento.remove();
+
+                return;
+
+            }
+
+
+            bola.x +=
+                bola.velX;
+
+
+            bola.y +=
+                bola.velY;
+
+
+            bola.elemento.style.left =
+                bola.x + "px";
+
+
+            bola.elemento.style.top =
+                bola.y + "px";
+
+
+            // =================================================
+            // COLISÃO COM O CORAÇÃO
+            // =================================================
+
+            if (
+                typeof Coracao !==
+                "undefined"
+            ) {
+
+                const dx =
+                    bola.x +
+                    5 -
+                    Coracao.x;
+
+
+                const dy =
+                    bola.y +
+                    5 -
+                    Coracao.y;
+
+
+                const distancia =
+                    Math.sqrt(
+                        dx * dx +
+                        dy * dy
+                    );
+
+
+                if (
+                    distancia <
+                    18
+                ) {
+
+                    Coracao.receberDano(
+                        this.rolarDanoMascara()
+                    );
+
+
+                    bola.elemento.remove();
+
+                    return;
+
+                }
+
+            }
+
+
+            // =================================================
+            // FORA DA ARENA
+            // =================================================
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (
+                caixa &&
+                (
+                    bola.x < -30 ||
+                    bola.x >
+                        caixa.clientWidth + 30 ||
+                    bola.y < -30 ||
+                    bola.y >
+                        caixa.clientHeight + 30
+                )
+            ) {
+
+                bola.elemento.remove();
+
+                return;
+
+            }
+
+
+            requestAnimationFrame(
+                () =>
+                    this.moverBolaExplosao(
+                        bola
+                    )
+            );
+
+        },
+
+
+        // =====================================================
+        // REMOVER BALA
+        // =====================================================
+
+        removerBala(bala) {
+
+            if (!bala)
+                return;
+
+
+            if (bala.elemento) {
+
+                bala.elemento.remove();
+
+                bala.elemento = null;
+
+            }
+
+
+            const index =
+                this.balas.indexOf(
+                    bala
+                );
+
+
+            if (index !== -1) {
+
+                this.balas.splice(
+                    index,
+                    1
+                );
+
+            }
+
+        },
+
+
+        // =====================================================
+        // FINALIZAR ARMA
+        // =====================================================
+
+        finalizarArma() {
+
+            if (this.finalizando)
+                return;
+
+
+            this.finalizando = true;
+
+            this.atirando = false;
+
+
+            if (this.timeoutFinal) {
+
+                clearTimeout(
+                    this.timeoutFinal
+                );
+
+            }
+
+            this.timeoutFinal =
+                null;
+
+
+            if (this.arma) {
+
+                this.arma.remove();
+
+            }
+
+            this.arma =
+                null;
+
+
+            for (
+                const bala of [...this.balas]
+            ) {
+
+                this.removerBala(
+                    bala
+                );
+
+            }
+
+
+            this.balas =
+                [];
+
+
+            // Remove possíveis bolinhas
+            // que ainda estejam na arena
+
+            const caixa =
+                document.getElementById(
+                    "caixaEsquiva"
+                );
+
+
+            if (caixa) {
+
+                const elementos =
+                    caixa.querySelectorAll(
+                        "[data-explosao-arma]"
+                    );
+
+
+                elementos.forEach(
+                    elemento => {
+
+                        elemento.remove();
+
+                    }
+                );
+
+            }
+
+
+            this.ativo =
+                false;
+
+            this.tipoAtual =
+                null;
+
+            this.finalizando =
+                false;
+
+
+            console.log(
+                "ATAQUE DA ARMA TERMINOU"
+            );
+
+
+            this.finalizarTurno();
+
+        },
+
 
 
     // =====================================================
@@ -2951,7 +4212,7 @@ finalizarVarianteRaios() {
         );
 
 
-        // Teleporta a Máscara para o lado oposto antes do primeiro aviso.
+       
         if (
             typeof BatalhaRender !== "undefined" &&
             typeof BatalhaRender.iniciarTeleporteCortes === "function"
@@ -3006,8 +4267,7 @@ finalizarVarianteRaios() {
         );
 
 
-        // Durante o aviso, Bruno fica na pose de preparação
-        // e gira continuamente para dificultar a leitura do ataque.
+       
         if (
             typeof BatalhaRender !== "undefined" &&
             typeof BatalhaRender.trocarSpriteMascara === "function"
@@ -3024,7 +4284,7 @@ finalizarVarianteRaios() {
         );
 
 
-        // Gira o AVISO/ATAQUE, não a Máscara.
+        
         if (
             typeof BatalhaRender !== "undefined" &&
             typeof BatalhaRender.iniciarGiroCorte === "function"
@@ -3727,9 +4987,7 @@ finalizarVarianteRaios() {
 
             const rad = ataque.angulo * Math.PI / 180;
 
-            // Colisão com o SEGMENTO inteiro do corte, em vez de
-            // verificar somente o centro. Isso deixa a hitbox muito
-            // mais justa: se a linha passar pelo coração, acerta.
+          
             const metade = ataque.tamanho / 2;
             const ax = ataque.centroX - Math.cos(rad) * metade;
             const ay = ataque.centroY - Math.sin(rad) * metade;
@@ -3752,7 +5010,7 @@ finalizarVarianteRaios() {
             const dy = Coracao.y - py;
             const distancia = Math.hypot(dx, dy);
 
-            // 18px para a espessura visual + 16px de margem do coração.
+           
             if (distancia <= 34) {
 
                 ataque.atingiu = true;
@@ -4864,7 +6122,7 @@ finalizarVarianteRaios() {
             blocos.push({ el, x, y, w, h });
         };
 
-        // Padrão inicial: duas paredes de fogo deixando um corredor pequeno no meio.
+        
         const corredor = Math.max(44, Math.min(64, W * 0.22));
         const margem = Math.max(26, Math.min(42, H * 0.18));
         const centroX = W / 2;
@@ -4873,7 +6131,7 @@ finalizarVarianteRaios() {
         adicionarBloco(0, 0, centroX - corredor / 2, H);
         adicionarBloco(centroX + corredor / 2, 0, W - (centroX + corredor / 2), H);
 
-        // Abertura real no corredor: o coração precisa ficar dentro desta região.
+        
         const dano = () => {
             const c = Coracao?.elemento?.getBoundingClientRect();
             const r = caixa.getBoundingClientRect();
@@ -4897,7 +6155,7 @@ finalizarVarianteRaios() {
             dano();
         }, 45);
 
-        // Variante: um pilar horizontal aparece ao mesmo tempo, apertando o espaço.
+       
         setTimeout(() => {
             if (!this.ativo || !Batalha.ativa) return;
 
@@ -4908,11 +6166,11 @@ finalizarVarianteRaios() {
                 adicionarBloco(0, 0, W, aberturaY - faixa / 2);
                 adicionarBloco(0, aberturaY + faixa / 2, W, H - (aberturaY + faixa / 2));
             } else {
-                // Outra variação: pilar vertical cruzando a lateral oposta, sem áudio.
+              
                 const faixa = Math.max(34, Math.min(48, W * 0.15));
                 const x = Math.random() < 0.5 ? W * 0.67 : W * 0.18;
                 adicionarBloco(x, 0, faixa, H);
-                // Abre um pequeno vão no meio da faixa para manter uma rota possível.
+                
                 const gap = Math.max(44, Math.min(58, H * 0.22));
                 const cortes = blocos.splice(-1, 1)[0];
                 cortes.el.remove();
@@ -4933,8 +6191,6 @@ finalizarVarianteRaios() {
 
     // =====================================================
     // CORTES DE FOGO
-    // Dois cortes apenas: um / e um \, depois ~10 fogos
-    // surgem nos pontos onde os golpes passaram.
     // =====================================================
 
     executarCortesFogo() {
@@ -4945,7 +6201,7 @@ finalizarVarianteRaios() {
         this.ativo = true;
         this.tipoAtual = "CORTES_FOGO";
 
-        // Entre 5 e 8 cortes, todos individuais.
+       
         const quantidadeCortes = 5 + Math.floor(Math.random() * 4);
         const angulos = [];
         const cortes = [];
@@ -4955,8 +6211,7 @@ finalizarVarianteRaios() {
             if (!this.ativo || !Batalha.ativa) return;
 
             if (indice >= quantidadeCortes) {
-                // Depois do último corte, surgem os fogos nos pontos
-                // das linhas que foram utilizadas.
+                
                 setTimeout(() => {
                     if (!this.ativo || !Batalha.ativa) return;
                     this.explosaoFogoNosCortes(caixa, angulos);
@@ -4964,12 +6219,11 @@ finalizarVarianteRaios() {
                 return;
             }
 
-            // Alterna entre as duas diagonais para que cada golpe seja
-            // visualmente uma única linha, nunca multiplicada.
+          
             const angulo = indice % 2 === 0 ? -45 : 45;
             angulos.push(angulo);
 
-            // Usa a MESMA animação visual dos cortes normais.
+           
             const gif = document.createElement("img");
             gif.src = "assets/imagens/batalha_imagens/bruno/cortar.gif";
             Object.assign(gif.style, {
@@ -4987,16 +6241,16 @@ finalizarVarianteRaios() {
             caixa.appendChild(gif);
             cortes.push(gif);
 
-            // Mesma hitbox matemática dos cortes normais.
+           
             this.criarCorteHitbox(caixa, angulo, 24, 520, true);
 
-            // Mesmo som dos cortes normais.
+            
             this.tocarAudio(
                 "assets/audio/audio_batalha/bruno/bruno-corte.mp3",
                 0.9
             );
 
-            // Cada corte termina antes do próximo começar.
+           
             setTimeout(() => {
                 gif.remove();
                 if (this.ativo && Batalha.ativa) fazerCorte();
@@ -5015,7 +6269,7 @@ finalizarVarianteRaios() {
         const len = Math.hypot(caixa.clientWidth, caixa.clientHeight) * 0.68;
         const particulas = [];
 
-        // As partículas nascem espalhadas ao longo das duas linhas de corte.
+        
         for (let i = 0; i < quantidade; i++) {
             const angulo = angulos[i % angulos.length] * Math.PI / 180;
             const t = -0.48 + Math.random() * 0.96;
@@ -5042,7 +6296,7 @@ finalizarVarianteRaios() {
             particulas.push({ el: p, x: px, y: py, a, v: velocidade, vida: 0 });
         }
 
-        // Durante a explosão, os próprios pontos de origem também têm hitbox leve.
+       
         const hit = () => {
             const heart = Coracao?.elemento?.getBoundingClientRect();
             const cr = caixa.getBoundingClientRect();
@@ -5105,7 +6359,7 @@ finalizarVarianteRaios() {
         const W = caixa.clientWidth;
         const H = caixa.clientHeight;
 
-        // Três posições realmente diferentes.
+       
         const posicoes = [
             [0.12, 0.50], [0.50, 0.50], [0.84, 0.50]
         ].sort(() => Math.random() - 0.5);
@@ -5179,7 +6433,7 @@ finalizarVarianteRaios() {
                 return;
             }
 
-            // A caixa sempre retorna antes do próximo golpe.
+            
             caixa.style.transition = "transform 180ms ease";
             caixa.style.transform =
                 `translate(${(Math.random() - 0.5) * 55}px, ${(Math.random() - 0.5) * 38}px) ` +
@@ -5220,7 +6474,7 @@ finalizarVarianteRaios() {
                     0.9
                 );
 
-                // GIF real fornecido pelo usuário.
+               
                 const gif = document.createElement("img");
                 gif.src = "assets/imagens/batalha_imagens/bruno/cortar.gif";
                 Object.assign(gif.style, {
@@ -5237,7 +6491,7 @@ finalizarVarianteRaios() {
                 });
                 caixa.appendChild(gif);
 
-                // Hitbox matemática do segmento, muito mais confiável que o GIF.
+                
                 this.criarCorteHitbox(
                     caixa,
                     angulo,
@@ -5246,7 +6500,7 @@ finalizarVarianteRaios() {
                     true
                 );
 
-                // 4–6 partículas de fogo, com direção imprevisível.
+               
                 const particulas = [];
                 const quantidade = 4 + Math.floor(Math.random() * 3);
                 for (let i = 0; i < quantidade; i++) {
@@ -5364,6 +6618,119 @@ finalizarVarianteRaios() {
     },
 
 
+    executarEstalosCaixa() {
+        if (this.ativo || this.trocaAtaqueAtivo) return;
+
+        const caixa = document.getElementById("caixaEsquiva");
+        if (!caixa) return;
+
+        this.ativo = true;
+        this.trocaAtaqueAtivo = true;
+        this.trocaAtaqueNumero = 0;
+        this.trocaAtaqueMaximo = 1 + Math.floor(Math.random() * 3); // 1 a 3 estalos
+        this.tipoAtual = "ESTALOS";
+
+        const original = {
+            left: caixa.style.left,
+            top: caixa.style.top,
+            transform: caixa.style.transform
+        };
+
+        const normais = [
+            "RAIO",
+            "RITUAL",
+            "ARMA",
+            "CORTES",
+            "CORTES_DIAGONAIS"
+        ];
+
+        const ataques = {
+            RAIO: () => this.executarRaio(),
+            RITUAL: () => this.executarRitual(),
+            ARMA: () => this.executarArma(),
+            CORTES: () => this.executarCortes(),
+            CORTES_DIAGONAIS: () => this.executarCortesDiagonais()
+        };
+
+        const telaPreta = () => {
+            let overlay = document.getElementById("mascaraTrocaOverlay");
+            if (!overlay) {
+                overlay = document.createElement("div");
+                overlay.id = "mascaraTrocaOverlay";
+                Object.assign(overlay.style, {
+                    position: "fixed",
+                    inset: "0",
+                    background: "#000",
+                    zIndex: "999999",
+                    pointerEvents: "none",
+                    opacity: "0"
+                });
+                document.body.appendChild(overlay);
+            }
+            overlay.style.opacity = "1";
+            this.trocaOverlay = overlay;
+        };
+
+        const voltarTela = () => {
+            const overlay = this.trocaOverlay;
+            if (!overlay) return;
+            overlay.style.opacity = "0";
+            setTimeout(() => overlay.remove(), 180);
+            this.trocaOverlay = null;
+        };
+
+        const proximaTroca = () => {
+            if (!Batalha.ativa) {
+                this.trocaAtaqueAtivo = false;
+                return;
+            }
+
+            if (this.trocaAtaqueNumero >= this.trocaAtaqueMaximo) {
+                caixa.style.left = original.left;
+                caixa.style.top = original.top;
+                caixa.style.transform = original.transform;
+                this.trocaAtaqueAtivo = false;
+                this.ativo = false;
+                voltarTela();
+                this.finalizarTurno();
+                return;
+            }
+
+            this.trocaAtaqueNumero++;
+            telaPreta();
+
+            this.tocarAudio(
+                "assets/audio/audio_batalha/bruno/mudanca.mp3",
+                0.85
+            );
+
+            caixa.style.transform =
+                `translate(${(Math.random() - 0.5) * Math.min(220, innerWidth * 0.28)}px, ` +
+                `${(Math.random() - 0.5) * Math.min(150, innerHeight * 0.20)}px)`;
+
+            const escolhido =
+                normais[Math.floor(Math.random() * normais.length)];
+
+            setTimeout(() => {
+                if (!this.trocaAtaqueAtivo) return;
+
+                voltarTela();
+                this.ativo = false;
+                ataques[escolhido]?.();
+
+                
+                this.trocaAtaqueTimeout = setTimeout(() => {
+                    this.trocaAtaqueTimeout = null;
+                    this.removerAtaquesCortes();
+                    proximaTroca();
+                }, 3500);
+            }, 450);
+        };
+
+        proximaTroca();
+    },
+
+
     executarCorrentesDestino() {
         if (this.ativo) return;
 
@@ -5390,7 +6757,7 @@ finalizarVarianteRaios() {
         });
         caixa.appendChild(corrente);
 
-        // Um ataque normal acontece enquanto as correntes movem a caixa.
+        
         this.trocaAtaqueAtivo = true;
         this.ativo = false;
 
@@ -5553,8 +6920,7 @@ finalizarVarianteRaios() {
         }
 
         setTimeout(() => {
-            // Faltava resetar ativo/tipoAtual — sem isso, ESPADAS_SANGUE
-            // travava a Máscara depois de tocar uma vez.
+            
             this.ativo = false;
             this.tipoAtual = null;
             this.finalizarTurno();
@@ -5593,7 +6959,7 @@ finalizarVarianteRaios() {
             });
             caixa.appendChild(espada);
 
-            // O espaço entre espadas é preservado.
+           
             setTimeout(() => {
                 let t = 0;
                 const mover = () => {
@@ -5626,8 +6992,7 @@ finalizarVarianteRaios() {
         }
 
         setTimeout(() => {
-            // Faltava resetar ativo/tipoAtual — mesmo bug dos outros:
-            // CONJUNTO_ESPADAS travava a Máscara depois de acontecer.
+            
             this.ativo = false;
             this.tipoAtual = null;
             this.finalizarTurno();
@@ -5644,7 +7009,7 @@ finalizarVarianteRaios() {
         this.ativo = true;
         this.tipoAtual = "TRIDENTE_SANGUE";
 
-        // Tridente é desenhado em CSS para não depender de um asset inexistente.
+       
         const tridente = document.createElement("div");
         tridente.textContent = "🔱";
         Object.assign(tridente.style, {
@@ -5671,8 +7036,7 @@ finalizarVarianteRaios() {
             y += 9;
             movimento += 0.08;
 
-            // Espaço entre as pontas: o corpo do tridente fica acima,
-            // enquanto a área perigosa é definida pelas três linhas.
+            
             tridente.style.top = `${y}px`;
             tridente.style.transform =
                 `translateX(${Math.sin(movimento) * 55}px) rotate(${Math.sin(movimento / 2) * 4}deg)`;
@@ -5728,8 +7092,7 @@ finalizarVarianteRaios() {
         this.ativo = false;
         ataque();
 
-        // O ataque já acontece normalmente. Depois o estalo faz todos os
-        // elementos criados desde "antes" voltarem visualmente.
+    
         setTimeout(() => {
             if (!Batalha.ativa) return;
 
